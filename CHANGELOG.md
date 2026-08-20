@@ -28,6 +28,8 @@ The format is based on Keep a Changelog, and follows the Multi-AI Orchestration 
   - Expanded footer dimensions (`py-16 lg:py-24`) with top cyan glow line.
   - Balanced 12-column grid featuring AI Foundry & DSU credentials, organized `Navigation`, `Initiatives`, and `Connect & Follow` columns with branded social icons (`LinkedIn`, `Instagram`, `GitHub`, `X`).
   - Centered bottom copyright and university slogan bar.
+- **GitHub Repository Deployment**:
+  - Initialized Git repository and published full codebase to [`https://github.com/rishushaurya/ai_foundary_website.git`](https://github.com/rishushaurya/ai_foundary_website.git) on branch `main`.
 - **Verification & Health**:
   - `npx tsc --noEmit`: 0 errors.
   - `node diagnostics.js`: 4/4 checks passed.
