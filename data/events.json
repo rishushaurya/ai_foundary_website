@@ -1,0 +1,27 @@
+[
+  {
+    "id": "evt-1787058593352",
+    "title": "new",
+    "description": "this is best",
+    "date": "2026-08-24T15:09",
+    "venue": "DSU Main Campus, Bangalore",
+    "image": "/uploads/events/default.png",
+    "status": "ongoing",
+    "registrationMode": "google-form",
+    "googleFormUrl": "https://www.googleapps.com/forms/about/",
+    "isCountdownEvent": true,
+    "showOnHome": true,
+    "showOnEventPage": true,
+    "registrations": [
+      {
+        "id": "reg-1787059116593-x5bx",
+        "name": "rishu",
+        "email": "sagarbitian@gmail.com",
+        "phone": "89678342324",
+        "college": "Dayananda Sagar University",
+        "branch": "B.Tech CSE (AI & ML)",
+        "timestamp": "2026-08-18T13:18:36.593Z"
+      }
+    ]
+  }
+]

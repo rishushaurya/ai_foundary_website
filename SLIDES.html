@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Foundry - RAISE AI CLUB Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;800&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #060918;
+      color: #f0f4fc;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.5;
+      padding: 2rem;
+    }
+    .slide {
+      background: rgba(13, 19, 43, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 16px;
+      padding: 3rem;
+      margin-bottom: 2rem;
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 1.5rem;
+    }
+    .badge {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      background: rgba(0, 240, 255, 0.15);
+      color: #00f0ff;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .slide-title {
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #a0c4ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-body {
+      flex: 1;
+      margin: 2rem 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .card h3 {
+      color: #00f0ff;
+      font-family: 'Geist Mono', monospace;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+    .card p {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1.5rem;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    @media print {
+      body {
+        padding: 0;
+        background: #060918;
+      }
+      .slide {
+        page-break-after: always;
+        min-height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SLIDE 1: TITLE -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Dayananda Sagar University</span>
+      <span class="badge">Department of CSE (AI & ML)</span>
+    </div>
+    <div class="slide-body" style="text-align: center;">
+      <h1 class="slide-title" style="font-size: 3.8rem; margin-bottom: 1rem;">AI FOUNDRY</h1>
+      <p style="font-family: 'Geist Mono', monospace; color: #00f0ff; font-size: 1.25rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.5rem;">
+        RAISE AI CLUB - Responsible Artificial Intelligence
+      </p>
+      <p style="color: #94a3b8; max-width: 700px; margin: 0 auto; font-size: 1.1rem;">
+        Forging the next generation of AI innovators, engineering leaders, and startup entrepreneurs.
+      </p>
+    </div>
+    <div class="slide-footer">
+      <span>Executive Deck 2026</span>
+      <span>Slide 1 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: PROBLEM & MISSION -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Mission & Vision</span>
+      <span class="badge">Strategic Alignment</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Bridging Theory & Entrepreneurship</h2>
+      <div class="grid-2" style="margin-top: 2rem;">
+        <div class="card">
+          <h3>The Challenge</h3>
+          <p>Academic coursework provides strong foundations, but student engineers often lack startup incubation, multidisciplinary collaboration, and live deployment experience.</p>
+        </div>
+        <div class="card">
+          <h3>The AI Foundry Solution</h3>
+          <p>A student-led incubator bridging Technical R&D, Product Management, Creative Media, and Event Execution under prestigious faculty advisory.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>AI Foundry Overview</span>
+      <span>Slide 2 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: CLUB HIERARCHY -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Organizational Structure</span>
+      <span class="badge">Leadership</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Multidisciplinary Team Architecture</h2>
+      <div class="grid-3" style="margin-top: 2rem;">
+        <div class="card">
+          <h3>Executive Board</h3>
+          <p><strong>CEO</strong>: Syed Amaan<br><strong>COO</strong>: Suhil Khan<br><strong>CTO</strong>: Mallikarjuna DM</p>
+        </div>
+        <div class="card">
+          <h3>Functional Wings</h3>
+          <p>AI & Tech Team<br>Media & Marketing<br>Product & Startup Incubator<br>Event Operations</p>
+        </div>
+        <div class="card">
+          <h3>Faculty Mentors</h3>
+          <p><strong>Coordinator</strong>: Dr. Jayavrinda Vrindavanam V<br><strong>Advisors</strong>: Dr. M Lakshmanan, Dr. A. A. Nippun Kumaar</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Organizational Matrix</span>
+      <span>Slide 3 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: DIGITAL PLATFORM -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Web Platform</span>
+      <span class="badge">Next.js 16 CMS</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Autonomous Digital Ecosystem</h2>
+      <div class="grid-2" style="margin-top: 2rem;">
+        <div class="card">
+          <h3>Public Discovery Hub</h3>
+          <p>Interactive ASCII particle backgrounds, hackathon countdown tickers, mobile-first registration modals, project showcase, and dynamic photo galleries.</p>
+        </div>
+        <div class="card">
+          <h3>Google OAuth Admin CMS</h3>
+          <p>Whitelisted email security, real-time event publishing, CSV attendee exports, and zero-code page visibility toggles.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Platform Architecture</span>
+      <span>Slide 4 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: ZERO-COST ARCHITECTURE -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">DevOps & Cloud</span>
+      <span class="badge">$0.00 Infrastructure</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Engineering for Zero Maintenance</h2>
+      <div class="grid-3" style="margin-top: 2rem;">
+        <div class="card">
+          <h3>Vercel Edge Network</h3>
+          <p>Global CDN asset distribution with instant serverless API route execution and automated CI/CD deployments.</p>
+        </div>
+        <div class="card">
+          <h3>Dual-Tier Storage</h3>
+          <p>Upstash Serverless Redis in production paired with transparent local JSON file fallback for offline development.</p>
+        </div>
+        <div class="card">
+          <h3>NextAuth Security</h3>
+          <p>Cryptographic JWT sessions with email whitelisting ensuring only authorized executives access administrative endpoints.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Cloud Architecture</span>
+      <span>Slide 5 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: EVENTS & ROADMAP -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Roadmap 2026</span>
+      <span class="badge">Key Initiatives</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Upcoming Milestones</h2>
+      <div class="grid-3" style="margin-top: 2rem;">
+        <div class="card">
+          <h3>Q3 2026: Official Launch</h3>
+          <p>Inauguration ceremony, faculty keynote, and opening of recruitment portal for all engineering departments.</p>
+        </div>
+        <div class="card">
+          <h3>Q4 2026: AI Hackathon</h3>
+          <p>24-hour Responsible AI hackathon with corporate sponsorships, mentor tracks, and startup incubation grants.</p>
+        </div>
+        <div class="card">
+          <h3>Q1 2027: Venture Showcase</h3>
+          <p>Demo day featuring student-built AI MVPs pitched directly to Bengaluru angel investors and startup accelerators.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Operational Roadmap</span>
+      <span>Slide 6 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: TECH STACK MATRIX -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Technology Stack</span>
+      <span class="badge">Production Grade</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">Modern Tooling & Standards</h2>
+      <div class="grid-2" style="margin-top: 2rem;">
+        <div class="card">
+          <h3>Frontend Engineering</h3>
+          <p>Next.js 16, TypeScript, Tailwind CSS 4, Framer Motion, GSAP, Lucide React, CSS Custom Properties Theme Engine.</p>
+        </div>
+        <div class="card">
+          <h3>Backend & Storage</h3>
+          <p>Node.js Serverless Routes, Jose JWT Authentication, Upstash Redis KV, Local JSON Persistence, Rate Limiting Middleware.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Tech Specifications</span>
+      <span>Slide 7 / 8</span>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: CALL TO ACTION -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="badge">Dayananda Sagar University</span>
+      <span class="badge">Join Us</span>
+    </div>
+    <div class="slide-body" style="text-align: center;">
+      <h2 class="slide-title" style="font-size: 3.2rem; margin-bottom: 1.5rem;">Join the AI Revolution</h2>
+      <p style="color: #94a3b8; font-size: 1.2rem; max-width: 650px; margin: 0 auto 2rem auto;">
+        Innovate. Build. Lead. Discover how AI Foundry is shaping the entrepreneurial landscape at DSU.
+      </p>
+      <div style="display: inline-block; padding: 1rem 2.5rem; background: #00f0ff; color: #060918; font-family: 'Geist Mono', monospace; font-weight: 800; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.1em;">
+        Visit: aifoundry.club
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>AI Foundry &copy; 2026</span>
+      <span>Slide 8 / 8</span>
+    </div>
+  </section>
+
+</body>
+</html>

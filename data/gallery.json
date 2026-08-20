@@ -1,0 +1,104 @@
+[
+  {
+    "id": "gal-1787059600053",
+    "name": "project J",
+    "showOnHome": true,
+    "showOnGalleryPage": true,
+    "items": [
+      {
+        "id": "img-1787059614525",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "https://drive.google.com/drive/folders/1Zs8I-2b5oCNvm4tw5aXD0VdNg0rYF1yH"
+      },
+      {
+        "id": "img-1787059702117",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "https://drive.google.com/file/d/1Gw3MmCruktZyBGSjK356TfGY0qh8K-8_/view?usp=sharing"
+      },
+      {
+        "id": "img-1787059704147",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059704332",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059704491",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059704659",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      }
+    ]
+  },
+  {
+    "id": "gal-1787059712083",
+    "name": "New Event Gallery Album",
+    "showOnHome": true,
+    "showOnGalleryPage": true,
+    "items": [
+      {
+        "id": "img-1787059713427",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059713619",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059713795",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      }
+    ]
+  },
+  {
+    "id": "gal-1787059715315",
+    "name": "New Event Gallery Album",
+    "showOnHome": true,
+    "showOnGalleryPage": true,
+    "items": [
+      {
+        "id": "img-1787059718251",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059718411",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059718588",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      },
+      {
+        "id": "img-1787059718748",
+        "type": "image",
+        "name": "Event Photo",
+        "url": "/uploads/gallery/default.png"
+      }
+    ]
+  }
+]

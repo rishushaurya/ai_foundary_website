@@ -1,0 +1,19 @@
+[
+  {
+    "id": "about",
+    "title": "ABOUT AI FOUNDRY",
+    "paragraphs": [
+      "AI Foundry is the premier student innovation ecosystem established under the Department of Computer Science & Engineering (AI & ML) at Dayananda Sagar University (DSU), Bengaluru.",
+      "As Dayananda Sagar University boldly leads India's academic landscape as an AI-first institution, AI Foundry operates at the nexus of responsible artificial intelligence, deep tech engineering, and high-impact student entrepreneurship.",
+      "Branded as the RAISE AI CLUB (Responsible Artificial Intelligence), our mission is to build robust, ethical AI solutions, foster startup incubation, and empower student engineers across diverse specialized wings—from technical machine learning and product design to media outreach and event operations."
+    ]
+  },
+  {
+    "id": "inauguration",
+    "title": "CLUB INAUGURATION & VISION",
+    "paragraphs": [
+      "Inaugurated under the esteemed guidance of Dr. Jayavrinda Vrindavanam V, Chairperson of CSE (AI & ML), along with faculty advisors Dr. M Lakshmanan and Dr. A. A. Nippun Kumaar, the club unites visionary students and research mentors.",
+      "Through industry hackathons, venture pitch nights, and hands-on LLM bootcamps, AI Foundry equips undergraduates with real-world engineering and venture-building capabilities before graduation."
+    ]
+  }
+]

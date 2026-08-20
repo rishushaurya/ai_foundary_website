@@ -1,0 +1,35 @@
+{
+  "siteTitle": "AI Foundry | Dayananda Sagar University",
+  "defaultTheme": "monochrome",
+  "defaultAppearance": "dark",
+  "adminEmails": [
+    "amaan@gmail.com",
+    "suhil@gmail.com",
+    "mallikarjuna@gmail.com",
+    "coordinator.aiml@dsu.edu.in",
+    "admin@aifoundry.club",
+    "demo@aifoundry.club"
+  ],
+  "heroTagline": "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
+  "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders.",
+  "facultyHeading": "FACULTY MENTORS",
+  "studentHeading": "CLUB LEADERSHIP & TEAMS",
+  "developerHeading": "PLATFORM ARCHITECTS",
+  "facultyGridCols": 3,
+  "studentGridCols": 4,
+  "visiblePages": {
+    "about": true,
+    "events": true,
+    "team": true,
+    "gallery": true,
+    "recruit": true
+  },
+  "socialLinks": {
+    "instagram": "https://instagram.com/aifoundry_dsu",
+    "linkedin": "https://linkedin.com/company/aifoundry-dsu",
+    "github": "https://github.com/aifoundry-dsu",
+    "discord": "https://discord.gg/aifoundry",
+    "whatsapp": "https://chat.whatsapp.com/aifoundry",
+    "email": "aifoundry@dsu.edu.in"
+  }
+}

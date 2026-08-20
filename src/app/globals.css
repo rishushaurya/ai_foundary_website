@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "68832fb0ffba9b1995adac75-helveticanowdisplay-medium";
+  src: url("/fonts/helveticanowdisplay-medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "68832fb0ffba9b1995adac75-helvetica-now-display-regular";
+  src: url("/fonts/helvetica-now-display-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Core Design Tokens */
+:root {
+  --bg-primary: #050a14;
+  --bg-secondary: #0a1120;
+  --bg-surface: rgba(0, 210, 255, 0.05);
+  --bg-surface-hover: rgba(0, 210, 255, 0.12);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #00d2ff;
+  --accent-glow: rgba(0, 210, 255, 0.35);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(0, 210, 255, 0.4);
+  --card-bg: rgba(10, 17, 32, 0.85);
+  --nav-bg: rgba(5, 10, 20, 0.7);
+  --gradient-start: #00d2ff;
+  --gradient-end: #3b82f6;
+
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+}
+
+/* Sub-page Architectural Background matching Main Page Color */
+.subpage-bg {
+  background-color: #050a14 !important;
+  color: #ffffff !important;
+  background-image: 
+    linear-gradient(to bottom, rgba(5, 10, 20, 0.82), rgba(5, 10, 20, 0.92)),
+    url("/images/architectural-bg.jpg") !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Centering and Header Spacing for Sub-pages */
+.subpage-container {
+  min-height: 100vh !important;
+  width: 100% !important;
+  padding-top: 140px !important;
+  padding-bottom: 96px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+}
+
+.subpage-inner {
+  width: 100% !important;
+  max-width: 1100px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 48px !important;
+}
+
+/* Marquee continuous scroll animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050a14;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 210, 255, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.6);
+}
