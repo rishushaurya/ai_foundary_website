@@ -10,9 +10,15 @@ const JWT_SECRET = new TextEncoder().encode(
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
 
+  let body: any;
   try {
-    const body = await request.json();
-    const { email, password } = body;
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON request payload." }, { status: 400 });
+  }
+
+  try {
+    const { email, password } = body || {};
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "A valid email address is required" }, { status: 400 });

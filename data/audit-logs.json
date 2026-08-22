@@ -1,5 +1,41 @@
 [
   {
+    "id": "log-1787428128562-m1lu6",
+    "timestamp": "2026-08-22T19:48:48.562Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Admin Login Successful",
+    "details": "JWT session generated with passkey verification (7 days)",
+    "status": "success"
+  },
+  {
+    "id": "log-1787428110761-5nasu",
+    "timestamp": "2026-08-22T19:48:30.761Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Admin Login Successful",
+    "details": "JWT session generated with passkey verification (7 days)",
+    "status": "success"
+  },
+  {
+    "id": "log-1787428104826-fw0vt",
+    "timestamp": "2026-08-22T19:48:24.826Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Invalid Admin Password Attempt",
+    "details": "Incorrect administrator passkey supplied",
+    "status": "error"
+  },
+  {
+    "id": "log-1787427729902-evim8",
+    "timestamp": "2026-08-22T19:42:09.902Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
     "id": "log-1787427325733-2zkpx",
     "timestamp": "2026-08-22T19:35:25.733Z",
     "adminEmail": "admin@aifoundry.club",
