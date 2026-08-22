@@ -3,6 +3,23 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-23] - Gemini 3.7 Flash - Session 27
+**Description**: Implemented **Google Identity Services (GSI) & Cryptographic Google ID Token Authentication**:
+- **Cryptographic Google OAuth Backend Verification (`src/app/api/auth/google/route.ts`)**:
+  - Implemented real-time token validation against Google's OAuth2 verification endpoints.
+  - Verifies signature, issuer, audience, and `email_verified` status directly with Google.
+  - Cross-references verified email against `settings.adminEmails` whitelist and issues signed 7-day secure HTTP-Only `admin-token` JWT session.
+  - Automatically logs every login attempt with Google ID and IP address into `data/audit-logs.json`.
+- **Google 1-Click Identity Button (`src/app/admin/login/page.tsx`)**:
+  - Embedded Google Identity Services SDK (`https://accounts.google.com/gsi/client`) with official Google Sign-In button and One Tap authentication support.
+- **Verification & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `node diagnostics.js`: 4/4 checks passed.
+  - All public and admin endpoints verified on `http://localhost:3000`.
+**Build Status**: 100% operational. Secure Google Auth active and verified.
+
+---
+
 ## [2026-08-23] - Gemini 3.7 Flash - Session 26
 **Description**: Permanently resolved **`Cannot read properties of null (reading 'replaceWith')` and `Error page wrap not found`**:
 - **Global Fallback Containers & QuerySelector Interceptor (`src/app/layout.tsx`)**:
