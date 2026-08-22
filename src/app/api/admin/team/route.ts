@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getTeamMembers, saveTeamMembers, TeamMember } from "@/lib/data";
+import { logAdminAction } from "@/lib/audit-logger";
 
 export async function GET() {
   const members = await getTeamMembers();
@@ -22,6 +24,22 @@ export async function POST(request: Request) {
 
     members.push(newMember);
     await saveTeamMembers(members);
+
+    try {
+      revalidatePath("/team");
+      revalidatePath("/");
+    } catch {}
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    await logAdminAction({
+      adminEmail: "admin@aifoundry.club",
+      ip,
+      action: "Added Team Member",
+      target: newMember.name,
+      details: `${newMember.role} (${newMember.category})`,
+      status: "success",
+    });
+
     return NextResponse.json({ success: true, member: newMember });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -32,9 +50,12 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json();
 
-    // Supports both full array update (reordering) or single member update
     if (Array.isArray(body)) {
       await saveTeamMembers(body);
+      try {
+        revalidatePath("/team");
+        revalidatePath("/");
+      } catch {}
       return NextResponse.json({ success: true, members: body });
     }
 
@@ -48,6 +69,21 @@ export async function PUT(request: Request) {
 
     members[index] = { ...members[index], ...member };
     await saveTeamMembers(members);
+
+    try {
+      revalidatePath("/team");
+      revalidatePath("/");
+    } catch {}
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    await logAdminAction({
+      adminEmail: "admin@aifoundry.club",
+      ip,
+      action: "Updated Team Member",
+      target: member.name,
+      status: "success",
+    });
+
     return NextResponse.json({ success: true, member: members[index] });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -64,8 +100,24 @@ export async function DELETE(request: Request) {
     }
 
     const members = await getTeamMembers();
+    const target = members.find((m) => m.id === id);
     const filtered = members.filter((m) => m.id !== id);
     await saveTeamMembers(filtered);
+
+    try {
+      revalidatePath("/team");
+      revalidatePath("/");
+    } catch {}
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    await logAdminAction({
+      adminEmail: "admin@aifoundry.club",
+      ip,
+      action: "Deleted Team Member",
+      target: target?.name || id,
+      status: "warning",
+    });
+
     return NextResponse.json({ success: true, id });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

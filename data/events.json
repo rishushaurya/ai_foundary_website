@@ -1,27 +1,44 @@
 [
   {
-    "id": "evt-1787058593352",
-    "title": "new",
-    "description": "this is best",
-    "date": "2026-08-24T15:09",
-    "venue": "DSU Main Campus, Bangalore",
-    "image": "/uploads/events/default.png",
-    "status": "ongoing",
-    "registrationMode": "google-form",
-    "googleFormUrl": "https://www.googleapps.com/forms/about/",
-    "isCountdownEvent": true,
+    "id": "evt-1787422945876",
+    "title": "                                                           mutant",
+    "description": "faeeeeeeeeeeeeeeeeeeeeeeeeeStwuytgn7y weywqeuchxuyhn89hcm89 w3",
+    "date": "Oct 25, 2026",
+    "venue": "DSU Innovation Hall",
+    "image": "",
+    "status": "upcoming",
+    "registrationMode": "external",
     "showOnHome": true,
     "showOnEventPage": true,
-    "registrations": [
-      {
-        "id": "reg-1787059116593-x5bx",
-        "name": "rishu",
-        "email": "sagarbitian@gmail.com",
-        "phone": "89678342324",
-        "college": "Dayananda Sagar University",
-        "branch": "B.Tech CSE (AI & ML)",
-        "timestamp": "2026-08-18T13:18:36.593Z"
-      }
-    ]
+    "registrations": [],
+    "externalRegistrationUrl": "https://workspace.google.com/products/forms/",
+    "customQuestions": [],
+    "googleFormUrl": "https://workspace.google.com/products/forms/"
+  },
+  {
+    "id": "evt-1787422968691",
+    "title": "sdffsdfds",
+    "description": "fae RWRWE2ACAREAW",
+    "date": "Oct 26, 2026",
+    "venue": "DSU Innovation Hall",
+    "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBqGXvsvKNg8FLCw2KFq974LERIA0x-ed5scbtG-vr7_Erz1LXF0Kxo6IqAt4jUJjdeQwylLItjc3ZIlWy4POUMjToItuEgSL3auk47bkOyypTKJlgIVp-zH_xOVI1B5rjO0mLjpM2L8SLv_2EXACmgePorX1RlrdDiyzJr2_mfCFS0OtkGutcJDkKw7PWNzbGl59kAK4Vn_VSR3N7VpPY09StkEzS5Wmj2LWXxcNiNMtKDurLLha5S",
+    "status": "upcoming",
+    "registrationMode": "builtin",
+    "showOnHome": true,
+    "showOnEventPage": true,
+    "registrations": []
+  },
+  {
+    "id": "evt-1787423042844",
+    "title": "DFGD",
+    "description": "FDSASW WCERC",
+    "date": "AUG 21, 2026",
+    "venue": "DSU Innovation Hall",
+    "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBqGXvsvKNg8FLCw2KFq974LERIA0x-ed5scbtG-vr7_Erz1LXF0Kxo6IqAt4jUJjdeQwylLItjc3ZIlWy4POUMjToItuEgSL3auk47bkOyypTKJlgIVp-zH_xOVI1B5rjO0mLjpM2L8SLv_2EXACmgePorX1RlrdDiyzJr2_mfCFS0OtkGutcJDkKw7PWNzbGl59kAK4Vn_VSR3N7VpPY09StkEzS5Wmj2LWXxcNiNMtKDurLLha5S",
+    "status": "ongoing",
+    "registrationMode": "builtin",
+    "showOnHome": true,
+    "showOnEventPage": true,
+    "registrations": []
   }
 ]

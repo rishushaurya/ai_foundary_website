@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { RecruitmentEntry } from "@/lib/data";
-import { Download, Trash2, CheckCircle, AlertCircle, ExternalLink, Filter } from "lucide-react";
+import { Download, Trash2, CheckCircle2, AlertCircle, ExternalLink, Filter, UserPlus, Loader2 } from "lucide-react";
 
 export default function AdminRecruitmentPage() {
   const [entries, setEntries] = useState<RecruitmentEntry[]>([]);
@@ -65,39 +65,60 @@ export default function AdminRecruitmentPage() {
   });
 
   return (
-    <div className="space-y-6 font-mono text-white">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+    <div className="space-y-6">
+      {/* Header Bar */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black uppercase tracking-wider text-white">
-            RECRUITMENT CANDIDATES
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-[11px] font-extrabold uppercase tracking-wider mb-2 border border-cyan-200">
+            <UserPlus className="size-3 text-cyan-600" />
+            <span>Recruitment Portal</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Member Candidates &amp; Applications
           </h1>
-          <p className="text-xs text-slate-400 normal-case font-sans">
-            Review prospective member applications across Tech, Media, Product, and Event wings.
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Review prospective member submissions across AI Engineering, Design, Media, and Operations.
           </p>
         </div>
 
         <a
           href="/api/admin/export?type=recruitment"
-          className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-xs font-bold text-slate-300 bg-white/5 hover:bg-white/15 hover:border-cyan-400/50 shadow-sm transition-all cursor-pointer no-underline"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors no-underline"
         >
-          <Download className="size-3.5 text-cyan-400" />
+          <Download className="size-3.5 text-cyan-600" />
           <span>Export All Candidates CSV</span>
         </a>
       </div>
 
+      {notice && (
+        <div
+          className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
+            notice.type === "success"
+              ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+              : "bg-red-50 border border-red-200 text-red-800"
+          }`}
+        >
+          {notice.type === "success" ? (
+            <CheckCircle2 className="size-4 text-emerald-600" />
+          ) : (
+            <AlertCircle className="size-4 text-red-600" />
+          )}
+          <span>{notice.text}</span>
+        </div>
+      )}
+
       {/* Filter Tabs Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-white/15 bg-black/40 backdrop-blur-xl text-xs">
+      <div className="glass-card rounded-2xl p-4 border border-white/80 flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-2">
-          <Filter className="size-3.5 text-cyan-400" />
-          <span className="font-bold text-slate-300 uppercase">Filter by Wing:</span>
+          <Filter className="size-3.5 text-cyan-600" />
+          <span className="font-bold text-slate-700">Filter Wing:</span>
           <select
             value={selectedWingFilter}
             onChange={(e) => setSelectedWingFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-white/20 bg-slate-900 text-white focus:outline-none focus:border-cyan-400 text-xs"
+            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-semibold focus:outline-none focus:border-cyan-500"
           >
             <option value="all">All Wings</option>
-            <option value="AI & Tech Wing">AI &amp; Tech Wing</option>
+            <option value="AI & Tech Engineering Wing">AI &amp; Tech Engineering Wing</option>
             <option value="Product & Startup Wing">Product &amp; Startup Wing</option>
             <option value="Events & Operations Wing">Events &amp; Operations Wing</option>
             <option value="Design & Media Wing">Design &amp; Media Wing</option>
@@ -106,11 +127,11 @@ export default function AdminRecruitmentPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-300 uppercase">Status:</span>
+          <span className="font-bold text-slate-700">Status:</span>
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-white/20 bg-slate-900 text-white focus:outline-none focus:border-cyan-400 text-xs"
+            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-semibold focus:outline-none focus:border-cyan-500"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -121,93 +142,104 @@ export default function AdminRecruitmentPage() {
         </div>
       </div>
 
-      {/* Notices */}
-      {notice && (
-        <div
-          className={`p-3 rounded-2xl border text-xs flex items-center gap-2 font-bold uppercase ${
-            notice.type === "success"
-              ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
-              : "bg-red-950/60 border-red-500/40 text-red-300"
-          }`}
-        >
-          {notice.type === "success" ? <CheckCircle className="size-4" /> : <AlertCircle className="size-4" />}
-          <span>{notice.text}</span>
-        </div>
-      )}
-
-      {/* Candidate List */}
+      {/* Applications Cards List */}
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 rounded-2xl border border-white/10 bg-black/40 animate-pulse" />
-          ))}
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <Loader2 className="size-8 animate-spin text-cyan-600" />
+          <span className="text-xs font-bold">Loading candidate applications...</span>
         </div>
       ) : filteredEntries.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 text-xs border border-dashed border-white/20 rounded-3xl bg-black/30">
-          No candidate applications found matching the selected filters.
+        <div className="py-16 text-center rounded-3xl bg-white/50 border border-slate-200/60 text-slate-500 text-sm">
+          No recruitment applications found matching the current filters.
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredEntries.map((cand) => (
+          {filteredEntries.map((app) => (
             <div
-              key={cand.id}
-              className="p-6 rounded-3xl border border-white/15 bg-black/40 backdrop-blur-xl shadow-lg hover:border-cyan-400/40 space-y-3 transition-all"
+              key={app.id}
+              className="glass-card rounded-3xl p-6 border border-white/80 shadow-sm space-y-4"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-bold text-sm text-white uppercase">{cand.name}</h3>
-                  <p className="text-xs text-slate-400 font-sans">
-                    {cand.email} • {cand.phone} • {cand.year} ({cand.branch})
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <h3 className="text-base font-bold text-slate-900">{app.name}</h3>
+                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 text-[10px] font-extrabold uppercase">
+                      {app.preferredTeam}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {app.email} • {app.phone} • {app.branch} ({app.year})
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full">
-                    {cand.preferredTeam}
-                  </span>
                   <select
-                    value={cand.status}
-                    onChange={(e) => handleUpdateStatus(cand.id, e.target.value as any)}
-                    className="px-3 py-1 rounded-xl border border-white/20 text-[11px] bg-slate-900 text-white font-mono font-bold focus:outline-none focus:border-cyan-400"
+                    value={app.status || "pending"}
+                    onChange={(e) =>
+                      handleUpdateStatus(
+                        app.id,
+                        e.target.value as "pending" | "reviewed" | "accepted" | "rejected"
+                      )
+                    }
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border ${
+                      app.status === "accepted"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : app.status === "reviewed"
+                        ? "bg-blue-50 text-blue-800 border-blue-200"
+                        : app.status === "rejected"
+                        ? "bg-red-50 text-red-800 border-red-200"
+                        : "bg-amber-50 text-amber-800 border-amber-200"
+                    }`}
                   >
                     <option value="pending">Pending</option>
                     <option value="reviewed">Reviewed</option>
                     <option value="accepted">Accepted</option>
                     <option value="rejected">Rejected</option>
                   </select>
+
                   <button
-                    onClick={() => handleDelete(cand.id)}
-                    className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
-                    title="Delete application"
+                    onClick={() => handleDelete(app.id)}
+                    className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    title="Delete Application"
                   >
                     <Trash2 className="size-4" />
                   </button>
                 </div>
               </div>
 
-              {cand.skills && (
-                <p className="text-xs text-slate-200 font-sans">
-                  <strong className="text-slate-400 uppercase text-[10px] font-mono mr-1">Skills:</strong> {cand.skills}
-                </p>
-              )}
+              {/* Skills & Portfolio */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-2 border-t border-slate-100">
+                <div>
+                  <span className="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">
+                    Skills
+                  </span>
+                  <span className="text-slate-800 font-medium">{app.skills || "Not specified"}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">
+                    Portfolio / GitHub
+                  </span>
+                  {app.portfolioUrl ? (
+                    <a
+                      href={app.portfolioUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-cyan-600 font-semibold hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>{app.portfolioUrl}</span>
+                      <ExternalLink className="size-3" />
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">None provided</span>
+                  )}
+                </div>
+              </div>
 
-              {cand.whyJoin && (
-                <p className="text-xs text-slate-300 leading-relaxed normal-case font-sans">
-                  <strong className="text-slate-400 uppercase text-[10px] font-mono mr-1">Statement:</strong> {cand.whyJoin}
-                </p>
-              )}
-
-              {cand.portfolioUrl && (
-                <div className="pt-2">
-                  <a
-                    href={cand.portfolioUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-400 hover:text-cyan-300 hover:underline"
-                  >
-                    <span>View Portfolio / GitHub</span>
-                    <ExternalLink className="size-3" />
-                  </a>
+              {/* Why Join */}
+              {app.whyJoin && (
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-700 leading-relaxed">
+                  <span className="font-bold text-slate-900 block mb-1">Statement of Purpose:</span>
+                  {app.whyJoin}
                 </div>
               )}
             </div>

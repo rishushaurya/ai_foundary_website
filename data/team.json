@@ -17,9 +17,14 @@
     "category": "faculty",
     "affiliation": "Assistant Professor, CSE(AI and ML), DSU",
     "email": "lakshmanan-cse@dsu.edu.in",
-    "image": "/uploads/team/faculty-lakshmanan.png",
+    "image": "https://drive.google.com/file/d/1Gw3MmCruktZyBGSjK356TfGY0qh8K-8_/view?usp=sharing",
     "order": 2,
-    "showOnHome": true
+    "showOnHome": true,
+    "socialLinks": {
+      "linkedin": "",
+      "github": "",
+      "instagram": ""
+    }
   },
   {
     "id": "fac-03",

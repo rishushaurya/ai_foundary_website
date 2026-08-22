@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Events - Obsidian Foundry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface": "#1b1b1d",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed": "#e3e2e7",
+                      "surface-tint": "#005bc1",
+                      "on-background": "#1b1b1d",
+                      "tertiary": "#8a2bb9",
+                      "error-container": "#ffdad6",
+                      "primary-fixed-dim": "#adc6ff",
+                      "tertiary-container": "#a649d5",
+                      "on-secondary-fixed": "#1a1b1f",
+                      "on-tertiary-fixed": "#310048",
+                      "primary-fixed": "#d8e2ff",
+                      "on-secondary-container": "#626267",
+                      "surface-dim": "#dcd9dc",
+                      "background": "#fcf8fb",
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#c1c6d7",
+                      "on-error-container": "#93000a",
+                      "outline": "#717786",
+                      "tertiary-fixed": "#f6d9ff",
+                      "surface-container-high": "#eae7ea",
+                      "inverse-surface": "#303032",
+                      "tertiary-fixed-dim": "#e8b3ff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#001a41",
+                      "surface-variant": "#e4e2e4",
+                      "on-primary-fixed-variant": "#004493",
+                      "on-primary-container": "#fefcff",
+                      "surface-container-lowest": "#ffffff",
+                      "error": "#ba1a1a",
+                      "secondary-fixed-dim": "#c6c6cb",
+                      "on-secondary-fixed-variant": "#46464b",
+                      "primary-container": "#0070eb",
+                      "on-tertiary-container": "#fffbff",
+                      "inverse-on-surface": "#f3f0f2",
+                      "primary": "#0058bc",
+                      "surface": "#fcf8fb",
+                      "on-surface-variant": "#414755",
+                      "surface-container-low": "#f6f3f5",
+                      "inverse-primary": "#adc6ff",
+                      "surface-bright": "#fcf8fb",
+                      "secondary": "#5d5e63",
+                      "surface-container": "#f0edef",
+                      "secondary-container": "#e0dfe4",
+                      "on-tertiary-fixed-variant": "#7201a2",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#e4e2e4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "12px",
+                      "gutter": "24px",
+                      "xl": "64px",
+                      "lg": "40px",
+                      "md": "24px",
+                      "base": "8px",
+                      "margin": "32px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "display": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "label-sm": [
+                              "Hanken Grotesk"
+                      ],
+                      "headline-md": [
+                              "Hanken Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "letterSpacing": "0em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .mesh-bg {
+            background-color: #fcf8fb;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(213,100%,73%,0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(288,61%,67%,0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(213,100%,73%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(288,61%,67%,0.15) 0px, transparent 50%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body class="mesh-bg min-h-screen text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-8 py-3 bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg shadow-on-surface/5 rounded-full mt-4 mx-auto w-[95%] max-w-7xl hidden md:flex">
+<div class="font-display text-headline-md font-bold text-on-surface">Obsidian Foundry</div>
+<div class="flex gap-gutter font-label-md text-label-md">
+<a class="text-secondary font-medium hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-1 rounded-full" href="#">Models</a>
+<a class="text-secondary font-medium hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-1 rounded-full" href="#">Foundry</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 px-3 py-1 hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95" href="#">Events</a>
+<a class="text-secondary font-medium hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-1 rounded-full" href="#">Gallery</a>
+</div>
+<button class="bg-primary text-on-primary rounded-full px-6 py-2 font-label-md text-label-md hover:scale-105 hover:shadow-lg transition-all duration-300 active:scale-95">
+            Join Club
+        </button>
+</nav>
+<!-- Mobile Top Header -->
+<header class="md:hidden flex justify-between items-center px-margin py-md sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-sm">
+<div class="font-display text-headline-md font-bold text-on-surface">Obsidian Foundry</div>
+<button class="text-on-surface">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</header>
+<main class="max-w-7xl mx-auto px-margin md:px-xl py-xl space-y-xl">
+<!-- Hero Section -->
+<section class="flex flex-col items-center text-center space-y-md mt-md md:mt-xl">
+<h1 class="font-display text-display font-bold tracking-tight text-on-surface">Elevated Experiences</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl mx-auto">
+                Immerse yourself in high-caliber hackathons, intense deep-dive workshops, and visionary keynotes. Where intelligence meets execution.
+            </p>
+</section>
+<!-- Featured Event -->
+<section class="relative group">
+<div class="glass-card rounded-[2rem] overflow-hidden transition-transform duration-500 hover:scale-[1.01] hover:shadow-xl flex flex-col md:flex-row relative z-10">
+<div class="w-full md:w-3/5 h-64 md:h-auto relative">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A brightly lit, modern collaborative workspace with expansive glass windows showing a city skyline. Individuals are engaged in focused discussion around high-end monitors displaying complex code and data visualizations. The overall color palette is light and airy, emphasizing clean whites, subtle cool grays, and accents of electric blue. The atmosphere conveys intense intellectual focus and cutting-edge technological development." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqGXvsvKNg8FLCw2KFq974LERIA0x-ed5scbtG-vr7_Erz1LXF0Kxo6IqAt4jUJjdeQwylLItjc3ZIlWy4POUMjToItuEgSL3auk47bkOyypTKJlgIVp-zH_xOVI1B5rjO0mLjpM2L8SLv_2EXACmgePorX1RlrdDiyzJr2_mfCFS0OtkGutcJDkKw7PWNzbGl59kAK4Vn_VSR3N7VpPY09StkEzS5Wmj2LWXxcNiNMtKDurLLha5S"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/50 to-transparent md:bg-gradient-to-r"></div>
+<div class="absolute top-sm left-sm bg-error text-on-error px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1 shadow-md">
+<span class="w-2 h-2 rounded-full bg-on-error animate-pulse"></span>
+                        Live Now
+                    </div>
+</div>
+<div class="p-lg md:p-xl flex flex-col justify-center w-full md:w-2/5 bg-white/40 backdrop-blur-md">
+<div class="font-label-md text-label-md text-primary mb-2 uppercase tracking-wider">Masterclass</div>
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface mb-sm">Advanced Generative Architectures</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">
+                        Join lead researchers as they deconstruct the latest breakthroughs in multi-modal foundational models and their real-world deployment strategies.
+                    </p>
+<button class="bg-primary text-on-primary rounded-full px-8 py-3 font-label-md text-label-md w-max hover:scale-105 hover:bg-surface-tint hover:shadow-lg transition-all duration-300 active:scale-95 shadow-md flex items-center gap-2">
+                        Join Session
+                        <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Decorative blur behind featured card -->
+<div class="absolute -inset-4 bg-primary/10 blur-3xl rounded-full z-0 opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
+</section>
+<!-- Ongoing Section -->
+<section class="space-y-lg pt-xl">
+<div class="flex justify-between items-end border-b border-outline-variant/30 pb-sm">
+<h3 class="font-headline-md text-headline-md font-semibold text-on-surface">Ongoing Challenges</h3>
+<a class="font-label-md text-label-md text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Card 1 -->
+<div class="glass-card rounded-[1.5rem] p-md transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer">
+<div class="flex justify-between items-start mb-md">
+<div class="bg-tertiary-container/20 text-tertiary px-3 py-1 rounded-full font-label-sm text-label-sm">Hackathon</div>
+<div class="font-label-sm text-label-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="timer">timer</span>
+                            48h Remaining
+                        </div>
+</div>
+<h4 class="font-headline-md text-headline-md font-semibold mb-2 group-hover:text-primary transition-colors">Neural Interface Optimization</h4>
+<p class="font-body-md text-body-md text-secondary line-clamp-2">Optimize latency in real-time neural decoding streams for edge devices.</p>
+<div class="mt-md flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Close up of a stylized avatar representing a participant in a tech competition. Clean minimalist design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3ZfsYGo9gC9u9Okg31MaZgAZc0vkj9jKf0BLjDe2CDtu6OkjKwLvUL6iDAEXu8LGQlWznykvD9kGEIL3OJNMY-GsfKOgY5qxaxi3Vh0FzxT2BU4q8jNIGfgk75tALsVwqJtazO3h8grBUsftpYGWboyyCVdx5FZHje1m6q5FD_yp-8lYvzeTZEg19yku2MxXpzWoX6icqdlrvV1UnyAF3a8laTc8wklP8G5JmZLlFIoRhq8Ccy5oI"/>
+<img class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Close up of a stylized avatar representing a participant in a tech competition. Clean minimalist design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT_YeqN_FAF72K-IWdHwe3Ubo7v4KZBxlIiiKkpmc4cfdoHNhp-FDT6CXYEjREuKga1th9uSi_y7Ntso80c0M4PnJLilz8qOOxMlCD0AVba9SweNDOg4iYphgCdRyCvHemKJg7hhMpCS9-Y37GeWYXoP_iA6A5IbIzGziHHizRITksjUHGkNTaiiCcjYRBTK5qNhVcZtxk1LQ9h1v4w7wgGBGFnubL7eB6FKnOQgg8COj0B_dT-GOS"/>
+<img class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Close up of a stylized avatar representing a participant in a tech competition. Clean minimalist design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEdVRmlmzvMcMDnkLQedYu2QHAJkPYpaWH8tcbYRmFNf-9jch8nSLt875JIkHInrIFkFo8aNDOaDr76FvR-fZW85meaEaJ3ji6WCSbLZQdk44bM5hvNs5OVTtDye7s0V8wejEr3tcz9aSjx520OITTc-DQyYNe_wrGm6Yv5wqrlt3EaqtKCWpmIpoxOm5qud3GyvB5CDBAgQRf7zaZObgJpWU3G2A8OjpPQC5_yn3OoK8GWl0L-eTq"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-variant flex items-center justify-center font-label-sm text-label-sm text-secondary">+42</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-card rounded-[1.5rem] p-md transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer">
+<div class="flex justify-between items-start mb-md">
+<div class="bg-primary-container/20 text-primary px-3 py-1 rounded-full font-label-sm text-label-sm">Bounty</div>
+<div class="font-label-sm text-label-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="timer">timer</span>
+                            5 Days Left
+                        </div>
+</div>
+<h4 class="font-headline-md text-headline-md font-semibold mb-2 group-hover:text-primary transition-colors">Adversarial Prompt Mitigation</h4>
+<p class="font-body-md text-body-md text-secondary line-clamp-2">Design robust filters against complex prompt injection attacks on the v4 model.</p>
+<div class="mt-md flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Close up of a stylized avatar representing a participant in a tech competition. Clean minimalist design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLeNV6GpiEw5M2vOcNWr_rzm92Qi0005iHxncMLEDITYWqhRwaCDMVC9hZ11UxXzwAqXlNvw0anony_ibgTYxPoUO3XpuytJkCiS2qf6E4tnuqeeaqWZYckZbeDdLyg2Otv3w5dINkLDPutt4mk3oaxg3Lxc8wWf50RfI7asPW-oX2108QlaH4ky5B0cd2XlLu7SUZSzb1HnZ0Tz5uTFpKHV8K16DLmp-mbYKCFd-rSK3Er6-C6cH3"/>
+<img class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Close up of a stylized avatar representing a participant in a tech competition. Clean minimalist design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4R8veX6xB8wD1f14X8XuXm0QVdTRcFy73sWvgRGK6idaYJwSfDO8vnG9__pDKWEaQKa1Hng9bz6XVx7EPZL4597_xoBG_pr9pkUQq4XBOyrX1jduPOfzcxUw-89Lnsqb9zGOsf2IRWZpz0g6vJhJqFqeAWLARYVEQnuQi7hPXS81PI18iXmOLpV_TXxFCTtBRtAZjtG1clKNaq0mxrn3oq1RGPG0bP2F4OhK5pByG2u3LZoT8e2Am"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-variant flex items-center justify-center font-label-sm text-label-sm text-secondary">+18</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Upcoming & Archive Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-xl pt-xl pb-xl">
+<!-- Upcoming Stack -->
+<section class="lg:col-span-2 space-y-lg">
+<div class="border-b border-outline-variant/30 pb-sm">
+<h3 class="font-headline-md text-headline-md font-semibold text-on-surface">Upcoming Stack</h3>
+</div>
+<div class="space-y-4">
+<!-- Upcoming Item 1 -->
+<div class="glass-card rounded-[1.25rem] p-sm flex items-center gap-md transition-all duration-300 hover:scale-[1.01] hover:shadow-md cursor-pointer group">
+<div class="w-20 h-20 rounded-[1rem] bg-primary-fixed flex flex-col items-center justify-center text-primary shrink-0">
+<span class="font-label-md text-label-md uppercase">Oct</span>
+<span class="font-headline-lg text-headline-lg font-bold leading-none">12</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-[20px] font-semibold text-on-surface group-hover:text-primary transition-colors">Security Audit Livestream</h4>
+<p class="font-body-md text-[14px] text-secondary">A transparent look into our latest infrastructure review with top sec researchers.</p>
+</div>
+<button class="mr-sm p-2 rounded-full hover:bg-surface-variant transition-colors hidden md:block">
+<span class="material-symbols-outlined text-outline" data-icon="bookmark_add">bookmark_add</span>
+</button>
+</div>
+<!-- Upcoming Item 2 -->
+<div class="glass-card rounded-[1.25rem] p-sm flex items-center gap-md transition-all duration-300 hover:scale-[1.01] hover:shadow-md cursor-pointer group">
+<div class="w-20 h-20 rounded-[1rem] bg-tertiary-fixed flex flex-col items-center justify-center text-tertiary shrink-0">
+<span class="font-label-md text-label-md uppercase">Oct</span>
+<span class="font-headline-lg text-headline-lg font-bold leading-none">18</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-[20px] font-semibold text-on-surface group-hover:text-primary transition-colors">Founder's AMA</h4>
+<p class="font-body-md text-[14px] text-secondary">Q&amp;A session on the roadmap, ethics in AI, and upcoming features.</p>
+</div>
+<button class="mr-sm p-2 rounded-full hover:bg-surface-variant transition-colors hidden md:block">
+<span class="material-symbols-outlined text-outline" data-icon="bookmark_add">bookmark_add</span>
+</button>
+</div>
+<!-- Upcoming Item 3 -->
+<div class="glass-card rounded-[1.25rem] p-sm flex items-center gap-md transition-all duration-300 hover:scale-[1.01] hover:shadow-md cursor-pointer group">
+<div class="w-20 h-20 rounded-[1rem] bg-surface-variant flex flex-col items-center justify-center text-secondary shrink-0">
+<span class="font-label-md text-label-md uppercase">Nov</span>
+<span class="font-headline-lg text-headline-lg font-bold leading-none">02</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-[20px] font-semibold text-on-surface group-hover:text-primary transition-colors">Design Systems in AI</h4>
+<p class="font-body-md text-[14px] text-secondary">Workshop on crafting interfaces for non-deterministic outcomes.</p>
+</div>
+<button class="mr-sm p-2 rounded-full hover:bg-surface-variant transition-colors hidden md:block">
+<span class="material-symbols-outlined text-outline" data-icon="bookmark_add">bookmark_add</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Archive Minimal List -->
+<section class="space-y-lg">
+<div class="border-b border-outline-variant/30 pb-sm">
+<h3 class="font-headline-md text-headline-md font-semibold text-on-surface">Archive Vault</h3>
+</div>
+<div class="glass-card rounded-[1.5rem] p-md space-y-4">
+<a class="block group border-b border-outline-variant/20 pb-4 last:border-0 last:pb-0" href="#">
+<div class="font-label-sm text-[11px] text-secondary mb-1 uppercase tracking-wider">Keynote • Sept 2024</div>
+<h5 class="font-body-lg text-body-lg font-medium text-on-surface group-hover:text-primary transition-colors">The Next Generative Era</h5>
+</a>
+<a class="block group border-b border-outline-variant/20 pb-4 last:border-0 last:pb-0" href="#">
+<div class="font-label-sm text-[11px] text-secondary mb-1 uppercase tracking-wider">Workshop • Aug 2024</div>
+<h5 class="font-body-lg text-body-lg font-medium text-on-surface group-hover:text-primary transition-colors">Vector Databases from Scratch</h5>
+</a>
+<a class="block group border-b border-outline-variant/20 pb-4 last:border-0 last:pb-0" href="#">
+<div class="font-label-sm text-[11px] text-secondary mb-1 uppercase tracking-wider">Panel • Jul 2024</div>
+<h5 class="font-body-lg text-body-lg font-medium text-on-surface group-hover:text-primary transition-colors">Ethics in Large Scale Deployment</h5>
+</a>
+<a class="block group border-b border-outline-variant/20 pb-4 last:border-0 last:pb-0" href="#">
+<div class="font-label-sm text-[11px] text-secondary mb-1 uppercase tracking-wider">Fireside • Jun 2024</div>
+<h5 class="font-body-lg text-body-lg font-medium text-on-surface group-hover:text-primary transition-colors">Scaling Hardware for Inference</h5>
+</a>
+<button class="w-full text-center py-2 font-label-md text-label-md text-primary hover:bg-primary/5 rounded-lg transition-colors mt-2">
+                        Browse Full Archive
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-md px-margin flex flex-col md:flex-row justify-between items-center gap-sm bg-surface border-t border-outline-variant mt-xl">
+<div class="font-display text-label-md font-bold text-on-surface opacity-80 hover:opacity-100 transition-opacity">
+            © 2024 Obsidian Foundry. All rights reserved.
+        </div>
+<div class="flex gap-md font-label-sm text-label-sm">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Contact</a>
+</div>
+</footer>
+</body></html>

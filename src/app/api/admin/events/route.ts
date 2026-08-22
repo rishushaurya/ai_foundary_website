@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getEvents, saveEvents, EventData } from "@/lib/data";
+import { logAdminAction } from "@/lib/audit-logger";
 
 export async function GET() {
   const events = await getEvents();
@@ -26,6 +28,21 @@ export async function POST(request: Request) {
 
     events.push(newEvent);
     await saveEvents(events);
+
+    try {
+      revalidatePath("/events");
+      revalidatePath("/");
+    } catch {}
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    await logAdminAction({
+      adminEmail: "admin@aifoundry.club",
+      ip,
+      action: "Created New Event",
+      target: newEvent.title,
+      status: "success",
+    });
+
     return NextResponse.json({ success: true, event: newEvent });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -38,6 +55,10 @@ export async function PUT(request: Request) {
 
     if (Array.isArray(body)) {
       await saveEvents(body);
+      try {
+        revalidatePath("/events");
+        revalidatePath("/");
+      } catch {}
       return NextResponse.json({ success: true, events: body });
     }
 
@@ -49,7 +70,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    // Preserve existing registrations if not explicitly replaced
     const existingRegs = events[index].registrations || [];
     events[index] = {
       ...events[index],
@@ -58,6 +78,21 @@ export async function PUT(request: Request) {
     };
 
     await saveEvents(events);
+
+    try {
+      revalidatePath("/events");
+      revalidatePath("/");
+    } catch {}
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    await logAdminAction({
+      adminEmail: "admin@aifoundry.club",
+      ip,
+      action: "Updated Event",
+      target: event.title,
+      status: "success",
+    });
+
     return NextResponse.json({ success: true, event: events[index] });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -74,8 +109,24 @@ export async function DELETE(request: Request) {
     }
 
     const events = await getEvents();
+    const target = events.find((e) => e.id === id);
     const filtered = events.filter((e) => e.id !== id);
     await saveEvents(filtered);
+
+    try {
+      revalidatePath("/events");
+      revalidatePath("/");
+    } catch {}
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    await logAdminAction({
+      adminEmail: "admin@aifoundry.club",
+      ip,
+      action: "Deleted Event",
+      target: target?.title || id,
+      status: "warning",
+    });
+
     return NextResponse.json({ success: true, id });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { SiteSettings } from "@/lib/data";
-import { Save, Loader2, CheckCircle, AlertCircle, Plus, Trash2, Shield, Eye, Settings } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Trash2,
+  Shield,
+  Eye,
+  Sliders,
+} from "lucide-react";
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -44,7 +54,7 @@ export default function AdminSettingsPage() {
 
       if (!res.ok) throw new Error("Failed to save settings");
 
-      setNotice({ type: "success", text: "Site settings and permissions saved successfully" });
+      setNotice({ type: "success", text: "Site settings & admin permissions updated and synchronized!" });
     } catch (err: any) {
       setNotice({ type: "error", text: err.message || "Failed to save" });
     } finally {
@@ -74,7 +84,7 @@ export default function AdminSettingsPage() {
 
   if (loading || !settings) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh] text-cyan-400">
+      <div className="flex items-center justify-center min-h-[40vh] text-cyan-600">
         <Loader2 className="size-8 animate-spin" />
       </div>
     );
@@ -83,172 +93,91 @@ export default function AdminSettingsPage() {
   const pageKeys = ["about", "events", "team", "gallery", "recruit"] as const;
 
   return (
-    <div className="space-y-8 max-w-4xl font-mono text-white">
-      {/* Title */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+    <div className="space-y-6 max-w-4xl">
+      {/* Header Bar */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black uppercase tracking-wider text-white">
-            GLOBAL SITE SETTINGS &amp; SECURITY
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-[11px] font-extrabold uppercase tracking-wider mb-2 border border-cyan-200">
+            <Sliders className="size-3 text-cyan-600" />
+            <span>Platform Configuration</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Global Site Settings &amp; Security
           </h1>
-          <p className="text-xs text-slate-400 mt-1 font-sans">
-            Configure club branding, page visibility, and administrator Google accounts
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Configure club branding, page visibility toggles, and administrator Google accounts.
           </p>
         </div>
 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-black bg-cyan-400 hover:bg-cyan-300 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,210,255,0.4)] hover:scale-105 disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-md shadow-cyan-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-50"
         >
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-          <span>Save Changes</span>
+          <span>Save Settings</span>
         </button>
       </div>
 
       {notice && (
         <div
-          className={`flex items-center gap-2 p-3.5 rounded-2xl text-xs font-bold uppercase tracking-wide border ${
+          className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
             notice.type === "success"
-              ? "bg-emerald-950/60 text-emerald-300 border-emerald-500/40"
-              : "bg-red-950/60 text-red-300 border-red-500/40"
+              ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+              : "bg-red-50 border border-red-200 text-red-800"
           }`}
         >
-          {notice.type === "success" ? <CheckCircle className="size-4" /> : <AlertCircle className="size-4" />}
+          {notice.type === "success" ? (
+            <CheckCircle2 className="size-4 text-emerald-600" />
+          ) : (
+            <AlertCircle className="size-4 text-red-600" />
+          )}
           <span>{notice.text}</span>
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6 text-xs">
-        {/* 1. Page Visibility Manager */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-white/15 bg-black/40 backdrop-blur-xl shadow-xl space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/10 pb-2 text-cyan-400">
-            <Eye className="size-4" />
-            <h2 className="text-sm font-bold uppercase tracking-wider">
-              DYNAMIC PAGE VISIBILITY (SHOW / HIDE)
-            </h2>
-          </div>
-          <p className="text-slate-400 normal-case font-sans">
-            Toggle which pages are active in the visitor navigation bar. Unchecked pages will not appear to public visitors.
-          </p>
+      {/* ===== 1. SECURITY & ADMIN EMAILS WHITELIST ===== */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
+        <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Shield className="size-5 text-cyan-600" />
+          <span>Admin Whitelist Access Control</span>
+        </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 pt-2">
-            {pageKeys.map((key) => {
-              const isChecked = (settings.visiblePages as any)[key] ?? true;
-              return (
-                <label
-                  key={key}
-                  className={`flex items-center gap-2 p-3 rounded-2xl border cursor-pointer transition-all ${
-                    isChecked
-                      ? "border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold shadow-sm"
-                      : "border-white/10 bg-white/5 text-slate-500 opacity-60"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        visiblePages: {
-                          ...settings.visiblePages,
-                          [key]: e.target.checked,
-                        },
-                      })
-                    }
-                  />
-                  <span className="uppercase text-[11px]">{key}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+        <p className="text-xs text-slate-500 font-medium leading-relaxed">
+          Only users who authenticate via Google with the email addresses listed below are granted access to the CMS.
+        </p>
 
-        {/* 2. Club Branding & Meta Information */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-white/15 bg-black/40 backdrop-blur-xl shadow-xl space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/10 pb-2 text-cyan-400">
-            <Settings className="size-4" />
-            <h2 className="text-sm font-bold uppercase tracking-wider">
-              CLUB BRANDING &amp; UNIVERSITY
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">Site Title</label>
-              <input
-                type="text"
-                value={settings.siteTitle || "AI Foundry | Dayananda Sagar University"}
-                onChange={(e) => setSettings({ ...settings, siteTitle: e.target.value })}
-                className="w-full p-3 rounded-xl border border-white/20 bg-white/5 text-white focus:outline-none focus:border-cyan-400 transition-colors"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">Institution / University</label>
-              <input
-                type="text"
-                value="Dayananda Sagar University (DSU)"
-                readOnly
-                className="w-full p-3 rounded-xl border border-white/10 text-slate-500 bg-white/5 cursor-not-allowed"
-              />
-            </div>
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">Hero Tagline</label>
-              <input
-                type="text"
-                value={settings.heroTagline || "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE"}
-                onChange={(e) => setSettings({ ...settings, heroTagline: e.target.value })}
-                className="w-full p-3 rounded-xl border border-white/20 bg-white/5 text-white focus:outline-none focus:border-cyan-400 transition-colors font-bold"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Google OAuth Administrator Whitelist */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-white/15 bg-black/40 backdrop-blur-xl shadow-xl space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/10 pb-2 text-cyan-400">
-            <Shield className="size-4" />
-            <h2 className="text-sm font-bold uppercase tracking-wider">
-              GOOGLE OAUTH ADMIN WHITELIST
-            </h2>
-          </div>
-          <p className="text-slate-400 normal-case font-sans">
-            Only Google accounts listed below are granted access to this Admin Control Center.
-          </p>
-
+        <div className="space-y-3">
           <div className="flex gap-2">
             <input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="e.g. lead@dsu.edu.in"
-              className="flex-1 p-3 rounded-xl border border-white/20 bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+              placeholder="e.g. mentor@dsu.edu.in"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
             />
             <button
               type="button"
               onClick={handleAddEmail}
-              className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl border border-cyan-400/50 font-bold uppercase text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/60 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <Plus className="size-4" />
-              <span>Add</span>
+              <span>Authorize Email</span>
             </button>
           </div>
 
-          <div className="space-y-2 pt-2">
+          <div className="flex flex-wrap gap-2 pt-2">
             {settings.adminEmails.map((email) => (
               <div
                 key={email}
-                className="flex items-center justify-between p-3.5 rounded-2xl border border-white/15 bg-white/5"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800"
               >
-                <div className="flex items-center gap-2 text-white font-bold text-xs">
-                  <Shield className="size-3.5 text-cyan-400" />
-                  <span>{email}</span>
-                </div>
+                <span>{email}</span>
                 {settings.adminEmails.length > 1 && (
                   <button
                     type="button"
                     onClick={() => handleRemoveEmail(email)}
-                    className="p-1 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
-                    title="Remove access"
+                    className="text-slate-400 hover:text-red-600 transition-colors"
                   >
                     <Trash2 className="size-3.5" />
                   </button>
@@ -256,74 +185,97 @@ export default function AdminSettingsPage() {
               </div>
             ))}
           </div>
-        </div>
 
-        {/* 4. Social Links */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-white/15 bg-black/40 backdrop-blur-xl shadow-xl space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-cyan-400 border-b border-white/10 pb-2">
-            OFFICIAL SOCIAL HANDLES
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">LinkedIn URL</label>
-              <input
-                type="url"
-                value={settings.socialLinks?.linkedin || ""}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    socialLinks: { ...settings.socialLinks, linkedin: e.target.value },
-                  })
-                }
-                className="w-full p-3 rounded-xl border border-white/20 bg-white/5 text-white focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">Instagram URL</label>
-              <input
-                type="url"
-                value={settings.socialLinks?.instagram || ""}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    socialLinks: { ...settings.socialLinks, instagram: e.target.value },
-                  })
-                }
-                className="w-full p-3 rounded-xl border border-white/20 bg-white/5 text-white focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">GitHub Organization</label>
-              <input
-                type="url"
-                value={settings.socialLinks?.github || ""}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    socialLinks: { ...settings.socialLinks, github: e.target.value },
-                  })
-                }
-                className="w-full p-3 rounded-xl border border-white/20 bg-white/5 text-white focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-300 uppercase">Official Contact Email</label>
-              <input
-                type="email"
-                value={settings.socialLinks?.email || ""}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    socialLinks: { ...settings.socialLinks, email: e.target.value },
-                  })
-                }
-                className="w-full p-3 rounded-xl border border-white/20 bg-white/5 text-white focus:outline-none focus:border-cyan-400"
-              />
-            </div>
+          <div className="pt-4 border-t border-slate-100 space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Admin Security Passkey / Password
+            </label>
+            <input
+              type="text"
+              value={settings.adminPassword || "admin"}
+              onChange={(e) => setSettings({ ...settings, adminPassword: e.target.value })}
+              placeholder="e.g. foundry2026"
+              className="w-full sm:w-80 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
+            />
+            <p className="text-[11px] text-slate-400">
+              This passkey is required on the admin login screen alongside an authorized email address.
+            </p>
           </div>
         </div>
-      </form>
+      </div>
+
+      {/* ===== 2. PAGE VISIBILITY TOGGLES ===== */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
+        <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Eye className="size-5 text-cyan-600" />
+          <span>Public Page Visibility Toggles</span>
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          {pageKeys.map((key) => {
+            const isVisible = settings.visiblePages?.[key] ?? true;
+            return (
+              <label
+                key={key}
+                className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer"
+              >
+                <div>
+                  <span className="font-bold text-slate-900 uppercase block">/{key}</span>
+                  <span className="text-slate-500">Public navigation link &amp; route</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isVisible}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      visiblePages: {
+                        ...settings.visiblePages,
+                        [key]: e.target.checked,
+                      },
+                    })
+                  }
+                  className="size-4 accent-cyan-600 rounded"
+                />
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== 3. SECTION HEADINGS ===== */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
+        <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Sliders className="size-5 text-cyan-600" />
+          <span>Team Page Section Headings</span>
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              Faculty Section Title
+            </label>
+            <input
+              type="text"
+              value={settings.facultyHeading}
+              onChange={(e) => setSettings({ ...settings, facultyHeading: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              Student Leadership Title
+            </label>
+            <input
+              type="text"
+              value={settings.studentHeading}
+              onChange={(e) => setSettings({ ...settings, studentHeading: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

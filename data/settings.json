@@ -10,6 +10,7 @@
     "admin@aifoundry.club",
     "demo@aifoundry.club"
   ],
+  "adminPassword": "admin",
   "heroTagline": "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
   "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders.",
   "facultyHeading": "FACULTY MENTORS",
@@ -22,7 +23,7 @@
     "events": true,
     "team": true,
     "gallery": true,
-    "recruit": true
+    "recruit": false
   },
   "socialLinks": {
     "instagram": "https://instagram.com/aifoundry_dsu",
@@ -31,5 +32,152 @@
     "discord": "https://discord.gg/aifoundry",
     "whatsapp": "https://chat.whatsapp.com/aifoundry",
     "email": "aifoundry@dsu.edu.in"
+  },
+  "landingContent": {
+    "aboutHeading": "ABOUT US",
+    "aboutText": "To cultivate a vibrant community at DSU, fostering innovation in AI and entrepreneurship through collaborative projects.",
+    "missionHeading": "OUR MISSION",
+    "missionText": "Uniting minds, shaping tomorrow.",
+    "pillarsHeading": "OUR PILLARS",
+    "pillarsSubtext": "Our approach to innovation is built on three core strategies.",
+    "pillars": [
+      {
+        "id": "p1",
+        "title": "Innovation",
+        "description": "We encourage groundbreaking ideas and provide the resources for members to explore the frontiers of AI and business.",
+        "icon": "/images/asterisk-streamline-unicons.svg"
+      },
+      {
+        "id": "p2",
+        "title": "Collaboration",
+        "description": "We believe in the power of diverse minds working together, fostering a supportive environment for shared learning and growth.",
+        "icon": "/images/channel-streamline-unicons.svg"
+      },
+      {
+        "id": "p3",
+        "title": "Impact",
+        "description": "Our projects aim to solve real-world problems, making a tangible difference in the community and beyond.",
+        "icon": "/images/border-vertical-streamline-unicons.svg"
+      }
+    ],
+    "projectsHeading": "OUR PROJECTS",
+    "projectsSubtext": "Showcasing our creations. Explore our innovative projects, where theory meets practice in the exciting fields of AI and entrepreneurship.",
+    "projects": [
+      {
+        "id": "pr1",
+        "title": "Project Alpha",
+        "tag": "AI System",
+        "description": "An AI-powered solution for optimizing campus resource allocation, developed by our student engineers.",
+        "image": "/images/rectangle-902.png"
+      },
+      {
+        "id": "pr2",
+        "title": "Venture Beta",
+        "tag": "Agritech",
+        "description": "A student-led startup focusing on sustainable urban farming using intelligent automation and data analytics.",
+        "image": "/images/rectangle-902.png"
+      },
+      {
+        "id": "pr3",
+        "title": "Design Delta",
+        "tag": "Generative Art",
+        "description": "A creative project exploring the intersection of generative AI and digital art, showcasing student artistic talent.",
+        "image": "/images/image-1929.png"
+      },
+      {
+        "id": "pr4",
+        "title": "Research Gamma",
+        "tag": "FinTech & Ethics",
+        "description": "Cutting-edge research into explainable AI for ethical decision-making in financial technology.",
+        "image": "/images/rectangle-3.png"
+      }
+    ],
+    "approachHeading": "OUR APPROACH",
+    "approachSubtext": "Where your ambition meets innovation. We foster a dynamic environment where students transform ideas into impactful ventures.",
+    "approach": [
+      {
+        "id": "ap1",
+        "title": "Ideation",
+        "description": "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving.",
+        "image": "/images/rectangle-5.png"
+      },
+      {
+        "id": "ap2",
+        "title": "Development",
+        "description": "Providing tools, mentorship, and a collaborative space for building and refining AI solutions and business models."
+      },
+      {
+        "id": "ap3",
+        "title": "Launch",
+        "description": "Supporting projects through deployment, market entry, and continuous iteration for sustained success.",
+        "image": "/images/map.png"
+      },
+      {
+        "id": "ap4",
+        "title": "Mentorship",
+        "description": "Connecting students with industry experts and faculty advisors for invaluable guidance and insights."
+      },
+      {
+        "id": "ap5",
+        "title": "Community",
+        "description": "Building a strong network of innovators, fostering peer learning and collaborative opportunities.",
+        "image": "/images/rectangle-8.png"
+      }
+    ],
+    "stats": {
+      "members": "50 +",
+      "projects": "x 15",
+      "duration": "1 year",
+      "mentors": "+ 20",
+      "costReduction": "- 50%",
+      "innovationHours": "500 hrs"
+    },
+    "testimonialsHeading": "Hear it from our members.",
+    "testimonials": [
+      {
+        "id": "t1",
+        "name": "Aisha Sharma",
+        "role": "Student Founder, DSU",
+        "quote": "Ai Foundry transformed my understanding of AI and gave me the confidence to launch my own startup idea.",
+        "avatar": "/images/image-1931.png"
+      },
+      {
+        "id": "t2",
+        "name": "Rahul Verma",
+        "role": "Engineering Student, DSU",
+        "quote": "The collaborative environment here is unparalleled. I've learned so much from my peers and mentors.",
+        "avatar": "/images/image-1927.png"
+      },
+      {
+        "id": "t3",
+        "name": "Priya Singh",
+        "role": "Design Student, DSU",
+        "quote": "Being part of Ai Foundry has opened doors to incredible opportunities and a network I wouldn't have otherwise.",
+        "avatar": "/images/image-1928.png"
+      }
+    ],
+    "ctaHeading": "Ready to forge the future?",
+    "ctaButtonText": "Join Us",
+    "teamHeading": "Meet the minds behind AI Foundry.",
+    "teamSubheading": "OUR TEAM",
+    "teamDescription": "The dedicated faculty mentors and student executives guiding our club's vision and fostering a culture of innovation at Dayananda Sagar University.",
+    "teamMembers": [
+      {
+        "id": "tm-1",
+        "name": "Dr. Jayavrinda Vrindavanam V",
+        "role": "Chief Patron & Dean",
+        "bio": "Dean, School of Engineering, DSU",
+        "image": "https://imgs.search.brave.com/e66FICOfAhl4lNH_s7g9zGUDAv8ScJNIaWy3tztqL4o/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5hc3NldHR5cGUu/Y29tL2RlY2Nhbmhl/cmFsZC9pbXBvcnQv/c2l0ZXMvZGgvZmls/ZXMvZ2FsbGVyeV9p/bWFnZXMvMjAyMi8w/Mi8xMS9TaGFrdGlt/YWFuJTIwRmFjdHMl/MjAoNCkuanBnP3c9/dW5kZWZpbmVk",
+        "profileUrl": "/team"
+      },
+      {
+        "id": "tm-2",
+        "name": "Dr. Girisha G S",
+        "role": "Faculty Advisor & Mentor",
+        "bio": "Professor & Head, Dept of CSE (AI & ML), DSU",
+        "image": "https://imgs.search.brave.com/e66FICOfAhl4lNH_s7g9zGUDAv8ScJNIaWy3tztqL4o/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5hc3NldHR5cGUu/Y29tL2RlY2Nhbmhl/cmFsZC9pbXBvcnQv/c2l0ZXMvZGgvZmls/ZXMvZ2FsbGVyeV9p/bWFnZXMvMjAyMi8w/Mi8xMS9TaGFrdGlt/YWFuJTIwRmFjdHMl/MjAoNCkuanBnP3c9/dW5kZWZpbmVk",
+        "profileUrl": "/team"
+      }
+    ]
   }
 }

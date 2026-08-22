@@ -1,0 +1,137 @@
+[
+  {
+    "id": "log-1787427325733-2zkpx",
+    "timestamp": "2026-08-22T19:35:25.733Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787427162659-84jii",
+    "timestamp": "2026-08-22T19:32:42.659Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787425863116-b8tsh",
+    "timestamp": "2026-08-22T19:11:03.116Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: tyeryseryerysytdtytyr...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787425147536-47sxa",
+    "timestamp": "2026-08-22T18:59:07.536Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "                                                           mutant",
+    "status": "success"
+  },
+  {
+    "id": "log-1787425137556-vof00",
+    "timestamp": "2026-08-22T18:58:57.556Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "                                                           mutant",
+    "status": "success"
+  },
+  {
+    "id": "log-1787424372887-yg4mo",
+    "timestamp": "2026-08-22T18:46:12.887Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "                                                           mutant",
+    "status": "success"
+  },
+  {
+    "id": "log-1787423461151-6pfv9",
+    "timestamp": "2026-08-22T18:31:01.151Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: tyeryseryerysytdtytyr...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787423059612-3c6l4",
+    "timestamp": "2026-08-22T18:24:19.612Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Created New Event",
+    "target": "DFGD",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422981021-yzxev",
+    "timestamp": "2026-08-22T18:23:01.021Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Created New Event",
+    "target": "sdffsdfds",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422967277-ofr8m",
+    "timestamp": "2026-08-22T18:22:47.278Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Created New Event",
+    "target": "                                                           mutant",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422498011-cdgls",
+    "timestamp": "2026-08-22T18:14:58.011Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Landing & About Content",
+    "details": "Saved 2 content sections",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422497989-o7v8j",
+    "timestamp": "2026-08-22T18:14:57.989Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: tyeryseryerysytdtytyr...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422465202-snx46",
+    "timestamp": "2026-08-22T18:14:25.202Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Team Member",
+    "target": "Dr. M Lakshmanan",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422458919-zuwpp",
+    "timestamp": "2026-08-22T18:14:18.919Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Team Member",
+    "target": "Dr. M Lakshmanan",
+    "status": "success"
+  },
+  {
+    "id": "log-1787422407591-ulu6l",
+    "timestamp": "2026-08-22T18:13:27.591Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  }
+]

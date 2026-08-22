@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { EventData, EventRegistration } from "@/lib/data";
+import { EventData, EventRegistration, EventCustomQuestion } from "@/lib/data";
+import { normalizeImageUrl } from "@/lib/image-helper";
 import {
   Plus,
   Trash2,
@@ -9,11 +10,13 @@ import {
   Save,
   X,
   Loader2,
-  CheckCircle,
+  CheckCircle2,
   AlertCircle,
-  Download,
   Users,
   Calendar,
+  Sparkles,
+  Link as LinkIcon,
+  HelpCircle,
 } from "lucide-react";
 
 export default function AdminEventsPage() {
@@ -65,12 +68,12 @@ export default function AdminEventsPage() {
 
       if (!res.ok) throw new Error("Failed to save event");
 
-      setNotice({ type: "success", text: "Event updated successfully" });
+      setNotice({ type: "success", text: "Event updated and synchronized live!" });
       setIsModalOpen(false);
       setActiveEvent(null);
       await fetchEvents();
     } catch (err: any) {
-      setNotice({ type: "error", text: err.message || "Failed to save" });
+      setNotice({ type: "error", text: err.message || "Failed to save event" });
     } finally {
       setSaving(false);
     }
@@ -83,7 +86,7 @@ export default function AdminEventsPage() {
       const res = await fetch(`/api/admin/events?id=${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       setEvents((prev) => prev.filter((e) => e.id !== id));
-      setNotice({ type: "success", text: "Event removed" });
+      setNotice({ type: "success", text: "Event removed successfully" });
     } catch (err: any) {
       setNotice({ type: "error", text: err.message || "Delete failed" });
     }
@@ -94,275 +97,435 @@ export default function AdminEventsPage() {
       id: `evt-${Date.now()}`,
       title: "",
       description: "",
-      date: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16),
-      venue: "DSU Main Campus, Bangalore",
-      image: "/uploads/events/default.png",
+      date: "Oct 25, 2026",
+      venue: "DSU Innovation Hall",
+      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBqGXvsvKNg8FLCw2KFq974LERIA0x-ed5scbtG-vr7_Erz1LXF0Kxo6IqAt4jUJjdeQwylLItjc3ZIlWy4POUMjToItuEgSL3auk47bkOyypTKJlgIVp-zH_xOVI1B5rjO0mLjpM2L8SLv_2EXACmgePorX1RlrdDiyzJr2_mfCFS0OtkGutcJDkKw7PWNzbGl59kAK4Vn_VSR3N7VpPY09StkEzS5Wmj2LWXxcNiNMtKDurLLha5S",
       status: "upcoming",
       registrationMode: "builtin",
-      googleFormUrl: "",
-      isCountdownEvent: false,
+      externalRegistrationUrl: "",
       showOnHome: true,
       showOnEventPage: true,
+      customQuestions: [],
       registrations: [],
     });
     setIsModalOpen(true);
   };
 
-  const openEditModal = (event: EventData) => {
+  const openEditModal = (evt: EventData) => {
     setActiveEvent({
-      ...event,
-      date: new Date(event.date).toISOString().slice(0, 16),
+      ...evt,
+      registrationMode: evt.registrationMode || "builtin",
+      externalRegistrationUrl: evt.externalRegistrationUrl || evt.googleFormUrl || "",
+      customQuestions: evt.customQuestions || [],
     });
     setIsModalOpen(true);
   };
 
+  const addCustomQuestion = () => {
+    if (!activeEvent) return;
+    const newQ: EventCustomQuestion = {
+      id: `q-${Date.now()}`,
+      label: "",
+      type: "text",
+      required: false,
+    };
+    setActiveEvent({
+      ...activeEvent,
+      customQuestions: [...(activeEvent.customQuestions || []), newQ],
+    });
+  };
+
+  const removeCustomQuestion = (qId: string) => {
+    if (!activeEvent) return;
+    setActiveEvent({
+      ...activeEvent,
+      customQuestions: (activeEvent.customQuestions || []).filter((q) => q.id !== qId),
+    });
+  };
+
   return (
-    <div className="space-y-6 font-mono text-white">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+    <div className="space-y-6">
+      {/* Header Bar */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black uppercase tracking-wider text-white">
-            EVENT MANAGEMENT
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-[11px] font-extrabold uppercase tracking-wider mb-2 border border-cyan-200">
+            <Calendar className="size-3 text-cyan-600" />
+            <span>Event Management</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Events, Hackathons &amp; Masterclasses
           </h1>
-          <p className="text-xs text-slate-400 normal-case font-sans">
-            Create workshops, toggle registration modes, and export attendee lists.
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Publish upcoming initiatives, manage registration links, and customize registration questions.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <a
-            href="/api/admin/export?type=events"
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-xs font-bold text-slate-300 bg-white/5 hover:bg-white/15 hover:border-cyan-400/50 shadow-sm transition-all cursor-pointer no-underline"
-          >
-            <Download className="size-3.5 text-cyan-400" />
-            <span>Export CSV</span>
-          </a>
-
-          <button
-            onClick={openNewEventModal}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider bg-cyan-400 hover:bg-cyan-300 text-black transition-all hover:scale-105 cursor-pointer shadow-[0_0_15px_rgba(0,210,255,0.4)]"
-          >
-            <Plus className="size-4" />
-            <span>Create Event</span>
-          </button>
-        </div>
+        <button
+          onClick={openNewEventModal}
+          className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-md shadow-cyan-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        >
+          <Plus className="size-4" />
+          <span>New Event</span>
+        </button>
       </div>
 
-      {/* Notices */}
       {notice && (
         <div
-          className={`p-3 rounded-2xl border text-xs flex items-center gap-2 font-bold uppercase ${
+          className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
             notice.type === "success"
-              ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300"
-              : "bg-red-950/60 border-red-500/40 text-red-300"
+              ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+              : "bg-red-50 border border-red-200 text-red-800"
           }`}
         >
-          {notice.type === "success" ? <CheckCircle className="size-4" /> : <AlertCircle className="size-4" />}
+          {notice.type === "success" ? (
+            <CheckCircle2 className="size-4 text-emerald-600" />
+          ) : (
+            <AlertCircle className="size-4 text-red-600" />
+          )}
           <span>{notice.text}</span>
         </div>
       )}
 
-      {/* Events List */}
+      {/* Events Table / Card List */}
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 rounded-2xl border border-white/10 bg-black/40 animate-pulse" />
-          ))}
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <Loader2 className="size-8 animate-spin text-cyan-600" />
+          <span className="text-xs font-bold">Loading events...</span>
+        </div>
+      ) : events.length === 0 ? (
+        <div className="py-16 text-center rounded-3xl bg-white/50 border border-slate-200/60 text-slate-500 text-sm">
+          No events created yet. Click "+ New Event" above to create one.
         </div>
       ) : (
-        <div className="space-y-3">
-          {events.map((evt) => (
-            <div
-              key={evt.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-3xl border border-white/15 bg-black/40 backdrop-blur-xl shadow-lg hover:border-cyan-400/50 transition-all gap-4"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
-                      evt.status === "ended"
-                        ? "bg-slate-900 text-slate-400 border-slate-700"
-                        : "bg-cyan-950/60 text-cyan-300 border-cyan-500/40"
-                    }`}
-                  >
-                    {evt.status}
-                  </span>
-                  {evt.isCountdownEvent && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-950/60 border border-amber-500/40 text-amber-300">
-                      Countdown Ticker
-                    </span>
-                  )}
-                  <h3 className="font-bold text-sm text-white uppercase">{evt.title}</h3>
-                </div>
-                <p className="text-xs text-slate-300 font-sans">
-                  {new Date(evt.date).toLocaleString()} • Mode:{" "}
-                  <strong className="text-white">{evt.registrationMode}</strong> •{" "}
-                  <span className="text-cyan-400 font-bold">{(evt.registrations || []).length} Registered</span>
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <button
-                  onClick={() => setViewingRegsEvent(evt)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/15 text-xs font-bold text-slate-300 hover:border-cyan-400 hover:bg-cyan-950/30 transition-colors cursor-pointer"
-                  title="View Registered Attendees"
-                >
-                  <Users className="size-3.5 text-cyan-400" />
-                  <span>({(evt.registrations || []).length})</span>
-                </button>
-                <button
-                  onClick={() => openEditModal(evt)}
-                  className="p-2.5 rounded-xl border border-white/15 hover:border-cyan-400 text-slate-300 hover:text-cyan-400 hover:bg-cyan-950/30 transition-colors cursor-pointer"
-                  title="Edit Event"
-                >
-                  <Edit2 className="size-3.5" />
-                </button>
-                <button
-                  onClick={() => handleDeleteEvent(evt.id)}
-                  className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-950/40 transition-colors cursor-pointer"
-                  title="Delete Event"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="glass-card rounded-3xl p-6 border border-white/80 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase tracking-wider">
+                  <th className="pb-3 px-3">Event Title</th>
+                  <th className="pb-3 px-3">Status</th>
+                  <th className="pb-3 px-3">Home Spotlight</th>
+                  <th className="pb-3 px-3">Date</th>
+                  <th className="pb-3 px-3">Venue</th>
+                  <th className="pb-3 px-3 text-center">Registrations</th>
+                  <th className="pb-3 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {events.map((evt) => (
+                  <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-4 px-3 font-bold text-slate-900">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                          <img
+                            src={normalizeImageUrl(evt.image, "/images/rectangle-899.png")}
+                            alt={evt.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <span className="block text-sm font-bold text-slate-900">{evt.title}</span>
+                          <span className="text-[11px] text-slate-500 line-clamp-1">{evt.description}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                          evt.status === "upcoming"
+                            ? "bg-cyan-50 text-cyan-800 border border-cyan-200"
+                            : evt.status === "ongoing"
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                        }`}
+                      >
+                        {evt.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                          evt.showOnHome !== false
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {evt.showOnHome !== false ? "Visible on Home" : "Hidden on Home"}
+                      </span>
+                    </td>
+                    <td className="py-4 px-3 text-slate-600 font-medium whitespace-nowrap">{evt.date}</td>
+                    <td className="py-4 px-3 text-slate-600 font-medium">{evt.venue}</td>
+                    <td className="py-4 px-3 text-center">
+                      <button
+                        onClick={() => setViewingRegsEvent(evt)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 text-[11px] transition-colors cursor-pointer"
+                      >
+                        <Users className="size-3 text-cyan-600" />
+                        <span>{(evt.registrations || []).length} Attendees</span>
+                      </button>
+                    </td>
+                    <td className="py-4 px-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openEditModal(evt)}
+                          className="p-1.5 rounded-lg hover:bg-cyan-50 text-slate-500 hover:text-cyan-700 transition-colors cursor-pointer"
+                          title="Edit Event"
+                        >
+                          <Edit2 className="size-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEvent(evt.id)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                          title="Delete Event"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* Edit / Add Modal */}
+      {/* ===== EDIT / ADD EVENT MODAL ===== */}
       {isModalOpen && activeEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-          <div className="w-full max-w-lg rounded-3xl border border-white/20 bg-black/85 backdrop-blur-2xl p-6 sm:p-8 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h2 className="text-base font-bold uppercase text-white">
-                {events.some((e) => e.id === activeEvent.id) ? "Edit Event" : "Create New Event"}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full border border-slate-200 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900">
+                {events.some((e) => e.id === activeEvent.id) ? "Edit Event Details" : "Create New Event"}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+              >
                 <X className="size-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveEvent} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Event Title *</label>
-                <input
-                  type="text"
-                  required
-                  value={activeEvent.title}
-                  onChange={(e) => setActiveEvent({ ...activeEvent, title: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 bg-white/5 focus:outline-none focus:border-cyan-400 focus:bg-white/10 text-white transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Description *</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={activeEvent.description}
-                  onChange={(e) => setActiveEvent({ ...activeEvent, description: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 bg-white/5 focus:outline-none focus:border-cyan-400 focus:bg-white/10 text-white leading-relaxed transition-colors"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Date &amp; Time *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Event Title *</label>
                   <input
-                    type="datetime-local"
+                    type="text"
                     required
-                    value={activeEvent.date}
-                    onChange={(e) => setActiveEvent({ ...activeEvent, date: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 bg-white/5 focus:outline-none focus:border-cyan-400 focus:bg-white/10 text-white transition-colors"
+                    value={activeEvent.title}
+                    onChange={(e) => setActiveEvent({ ...activeEvent, title: e.target.value })}
+                    placeholder="e.g. AI Foundry Hackathon Sprint"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Status</label>
+                  <label className="block font-bold text-slate-700 mb-1">Event Status *</label>
                   <select
                     value={activeEvent.status}
-                    onChange={(e) => setActiveEvent({ ...activeEvent, status: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 bg-slate-900 focus:outline-none focus:border-cyan-400 text-white transition-colors"
+                    onChange={(e) =>
+                      setActiveEvent({
+                        ...activeEvent,
+                        status: e.target.value as "upcoming" | "ongoing" | "ended",
+                      })
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
                   >
                     <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="ended">Ended (Closed)</option>
+                    <option value="ongoing">Ongoing Challenge</option>
+                    <option value="ended">Ended / Archived</option>
                   </select>
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Date String *</label>
+                  <input
+                    type="text"
+                    required
+                    value={activeEvent.date}
+                    onChange={(e) => setActiveEvent({ ...activeEvent, date: e.target.value })}
+                    placeholder="e.g. Oct 25, 2026"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Venue / Location *</label>
+                  <input
+                    type="text"
+                    required
+                    value={activeEvent.venue}
+                    onChange={(e) => setActiveEvent({ ...activeEvent, venue: e.target.value })}
+                    placeholder="e.g. DSU Innovation Hall / Online"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Venue Location</label>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Event Image (Google Drive link / Direct image URL)
+                </label>
                 <input
                   type="text"
-                  value={activeEvent.venue}
-                  onChange={(e) => setActiveEvent({ ...activeEvent, venue: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 bg-white/5 focus:outline-none focus:border-cyan-400 focus:bg-white/10 text-white transition-colors"
+                  value={activeEvent.image}
+                  onChange={(e) => setActiveEvent({ ...activeEvent, image: e.target.value })}
+                  placeholder="https://drive.google.com/file/d/... or /images/..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-mono text-[11px] text-slate-700 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
-              <div className="p-4 rounded-2xl border border-white/15 bg-white/5 space-y-3">
-                <label className="block text-[10px] uppercase font-bold text-cyan-400">Registration Mode</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-slate-300">
-                    <input
-                      type="radio"
-                      name="regMode"
-                      checked={activeEvent.registrationMode === "builtin"}
-                      onChange={() => setActiveEvent({ ...activeEvent, registrationMode: "builtin" })}
-                    />
-                    <span>Built-in Form (Stored in CMS)</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-slate-300">
-                    <input
-                      type="radio"
-                      name="regMode"
-                      checked={activeEvent.registrationMode === "google-form"}
-                      onChange={() => setActiveEvent({ ...activeEvent, registrationMode: "google-form" })}
-                    />
-                    <span>External Google Form</span>
-                  </label>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  value={activeEvent.description}
+                  onChange={(e) => setActiveEvent({ ...activeEvent, description: e.target.value })}
+                  placeholder="Comprehensive event briefing, tracks, and requirements..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
+                />
+              </div>
+
+              {/* ===== REGISTRATION SETTINGS ===== */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex items-center gap-2">
+                  <LinkIcon className="size-4 text-cyan-600" />
+                  <span className="font-extrabold uppercase tracking-wider text-slate-800">
+                    Registration Mode &amp; Link
+                  </span>
                 </div>
 
-                {activeEvent.registrationMode === "google-form" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] uppercase font-bold text-slate-300 mb-1">Google Form URL</label>
-                    <input
-                      type="url"
-                      placeholder="https://forms.gle/..."
-                      value={activeEvent.googleFormUrl || ""}
-                      onChange={(e) => setActiveEvent({ ...activeEvent, googleFormUrl: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-white/20 bg-black/50 text-white"
-                    />
+                    <label className="block font-bold text-slate-700 mb-1">Mode</label>
+                    <select
+                      value={activeEvent.registrationMode || "builtin"}
+                      onChange={(e) =>
+                        setActiveEvent({
+                          ...activeEvent,
+                          registrationMode: e.target.value as "builtin" | "external",
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                    >
+                      <option value="builtin">Built-in Form Portal</option>
+                      <option value="external">External Registration Link (Unstop / Devfolio / Google Forms)</option>
+                    </select>
+                  </div>
+
+                  {activeEvent.registrationMode === "external" && (
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">External Registration URL</label>
+                      <input
+                        type="url"
+                        value={activeEvent.externalRegistrationUrl || activeEvent.googleFormUrl || ""}
+                        onChange={(e) =>
+                          setActiveEvent({
+                            ...activeEvent,
+                            externalRegistrationUrl: e.target.value,
+                            googleFormUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://unstop.com/... or https://forms.gle/..."
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-mono text-[11px] text-slate-900 focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Built-in Custom Question Builder */}
+                {activeEvent.registrationMode === "builtin" && (
+                  <div className="pt-3 border-t border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                        <HelpCircle className="size-3.5 text-cyan-600" />
+                        <span>Custom Registration Questions ({activeEvent.customQuestions?.length || 0})</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={addCustomQuestion}
+                        className="px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-[10px] font-bold hover:bg-cyan-200 transition-colors cursor-pointer"
+                      >
+                        + Add Question
+                      </button>
+                    </div>
+
+                    {(activeEvent.customQuestions || []).map((q, qIdx) => (
+                      <div key={q.id} className="p-3 rounded-xl bg-white border border-slate-200 flex items-center gap-3">
+                        <div className="flex-1 space-y-1">
+                          <input
+                            type="text"
+                            value={q.label}
+                            onChange={(e) => {
+                              const updated = [...(activeEvent.customQuestions || [])];
+                              updated[qIdx].label = e.target.value;
+                              setActiveEvent({ ...activeEvent, customQuestions: updated });
+                            }}
+                            placeholder="Question label (e.g. GitHub profile or Team name)"
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900"
+                          />
+                        </div>
+                        <select
+                          value={q.type}
+                          onChange={(e) => {
+                            const updated = [...(activeEvent.customQuestions || [])];
+                            updated[qIdx].type = e.target.value as "text" | "select" | "textarea";
+                            setActiveEvent({ ...activeEvent, customQuestions: updated });
+                          }}
+                          className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-700"
+                        >
+                          <option value="text">Text Input</option>
+                          <option value="textarea">Textarea</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => removeCustomQuestion(q.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="countdownCheck"
-                  checked={activeEvent.isCountdownEvent || false}
-                  onChange={(e) => setActiveEvent({ ...activeEvent, isCountdownEvent: e.target.checked })}
-                />
-                <label htmlFor="countdownCheck" className="text-slate-300 cursor-pointer">
-                  Feature as primary Countdown Ticker on Home &amp; Events pages
+              {/* Toggles */}
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={activeEvent.showOnHome !== false}
+                    onChange={(e) => setActiveEvent({ ...activeEvent, showOnHome: e.target.checked })}
+                    className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                  />
+                  <span>Show in Homepage Spotlight</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={activeEvent.showOnEventPage !== false}
+                    onChange={(e) => setActiveEvent({ ...activeEvent, showOnEventPage: e.target.checked })}
+                    className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                  />
+                  <span>Show on Events Page</span>
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-full text-slate-400 hover:text-white cursor-pointer"
+                  className="px-4 py-2 rounded-full font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold uppercase tracking-wider bg-cyan-400 hover:bg-cyan-300 text-black cursor-pointer shadow-[0_0_15px_rgba(0,210,255,0.4)] disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-6 py-2.5 rounded-full font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-md shadow-cyan-600/20 cursor-pointer disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                   <span>Save Event</span>
@@ -373,50 +536,55 @@ export default function AdminEventsPage() {
         </div>
       )}
 
-      {/* Registrations Attendee Modal */}
+      {/* ===== REGISTRATIONS VIEWER MODAL ===== */}
       {viewingRegsEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-black/85 backdrop-blur-2xl p-6 sm:p-8 space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full border border-slate-200 shadow-2xl space-y-6 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <span className="text-[10px] uppercase font-bold text-cyan-400">ATTENDEE ROSTER</span>
-                <h2 className="text-base font-bold uppercase text-white">{viewingRegsEvent.title}</h2>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-700">
+                  Attendee Roster
+                </span>
+                <h2 className="text-xl font-bold text-slate-900">{viewingRegsEvent.title}</h2>
               </div>
-              <button onClick={() => setViewingRegsEvent(null)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button
+                onClick={() => setViewingRegsEvent(null)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+              >
                 <X className="size-5" />
               </button>
             </div>
 
-            <div className="flex justify-end">
-              <a
-                href={`/api/admin/export?type=events&eventId=${viewingRegsEvent.id}`}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-white/20 text-xs font-bold text-slate-300 bg-white/5 hover:bg-white/15 transition-colors no-underline"
-              >
-                <Download className="size-3.5 text-cyan-400" />
-                <span>Export Event CSV</span>
-              </a>
-            </div>
-
-            {(!viewingRegsEvent.registrations || viewingRegsEvent.registrations.length === 0) ? (
-              <div className="text-center py-12 text-slate-400 text-xs">
-                No registrations received yet for this event.
+            {(viewingRegsEvent.registrations || []).length === 0 ? (
+              <div className="py-12 text-center text-slate-400 font-medium text-xs">
+                No students registered for this event yet.
               </div>
             ) : (
-              <div className="space-y-2">
-                {viewingRegsEvent.registrations.map((reg, idx) => (
-                  <div
-                    key={reg.id || idx}
-                    className="p-3.5 rounded-2xl border border-white/15 bg-white/5 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1"
-                  >
-                    <div>
-                      <strong className="text-white uppercase block">{reg.name}</strong>
-                      <span className="text-slate-400 font-sans">{reg.email} • {reg.phone}</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {reg.college} • {reg.branch}
-                    </span>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase tracking-wider">
+                      <th className="pb-2 px-2">Name</th>
+                      <th className="pb-2 px-2">Email</th>
+                      <th className="pb-2 px-2">Phone</th>
+                      <th className="pb-2 px-2">Branch / College</th>
+                      <th className="pb-2 px-2">Registered At</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {viewingRegsEvent.registrations?.map((reg) => (
+                      <tr key={reg.id} className="hover:bg-slate-50">
+                        <td className="py-3 px-2 font-bold text-slate-900">{reg.name}</td>
+                        <td className="py-3 px-2 text-cyan-700 font-mono text-[11px]">{reg.email}</td>
+                        <td className="py-3 px-2 font-mono text-[11px] text-slate-600">{reg.phone}</td>
+                        <td className="py-3 px-2 text-slate-600">{reg.branch}</td>
+                        <td className="py-3 px-2 text-slate-400 font-mono text-[10px]">
+                          {new Date(reg.timestamp).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

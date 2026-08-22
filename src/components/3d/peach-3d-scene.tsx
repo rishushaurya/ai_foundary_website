@@ -57,7 +57,7 @@ export function Peach3DScene() {
       return await requestPromise;
     };
 
-    // 2. Load 3D WebGL script safely
+    // 2. Load 3D WebGL script into document.head (never body) to prevent React removeChild DOM conflicts
     const scriptId = "pw-3d-script";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -68,7 +68,7 @@ export function Peach3DScene() {
         (window as any).__pw3DReady = true;
         window.dispatchEvent(new Event("pw3dready"));
       };
-      document.body.appendChild(script);
+      document.head.appendChild(script);
     } else if ((window as any).__pw3DReady) {
       window.dispatchEvent(new Event("pw3dready"));
     }
@@ -79,8 +79,10 @@ export function Peach3DScene() {
       ref={containerRef}
       className="fixed inset-0 w-screen h-screen z-0 pointer-events-none"
       style={{ top: 0, left: 0, right: 0, bottom: 0 }}
+      suppressHydrationWarning
     >
-      <div className="pwb-scene w-full h-full" id="ijsk" />
+      <div className="pwb-scene w-full h-full" id="ijsk" suppressHydrationWarning />
+      <div className="pwb-error-page-wrap hidden" style={{ display: "none" }} suppressHydrationWarning />
     </div>
   );
 }

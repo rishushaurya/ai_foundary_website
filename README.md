@@ -17,10 +17,11 @@
 ```
 ai-foundary-website/
 ├── data/                                 # Zero-cost local JSON storage
+│   ├── audit-logs.json                   # Security & administrative audit logs
 │   ├── blog.json                         # Technical articles & publications
 │   ├── content.json                      # Hero, About, and Mission text
 │   ├── events.json                       # Upcoming/Past events & registrations
-│   ├── gallery.json                      # Photos, albums, and video links
+│   ├── gallery.json                      # Photos, albums, and direct image links
 │   ├── projects.json                     # AI & Startup project showcases
 │   ├── recruitment.json                  # Member application entries
 │   ├── settings.json                     # Site config, admin emails, page toggles
@@ -28,36 +29,45 @@ ai-foundary-website/
 ├── public/                               # Static assets & uploads
 │   ├── college-logo.png                  # Dayananda Sagar University emblem
 │   ├── club-logo.png                     # AI Foundry (RAISE AI CLUB) logo
-│   └── uploads/                          # Dynamically uploaded images/media
+│   └── images/                           # Static imagery & 3D models
 ├── src/
 │   ├── app/                              # Next.js 16 App Router
 │   │   ├── about/page.tsx                # About AI Foundry & DSU Vision
-│   │   ├── admin/                        # Google OAuth-protected CMS
-│   │   │   ├── content/page.tsx          # Hero & About copy editor
+│   │   ├── admin/                        # OAuth/JWT-protected CMS
+│   │   │   ├── audit-logs/page.tsx       # Immutable security audit trail
 │   │   │   ├── events/page.tsx           # Event management & registrations
-│   │   │   ├── gallery/page.tsx          # Media library & albums
-│   │   │   ├── login/page.tsx            # Google OAuth sign-in portal
-│   │   │   ├── settings/page.tsx         # Page toggles, themes & whitelist
+│   │   │   ├── gallery/page.tsx          # Media library & direct image links
+│   │   │   ├── landing/page.tsx          # Dedicated Hero & Landing Page CMS
+│   │   │   ├── login/page.tsx            # Administrator sign-in portal
+│   │   │   ├── recruitment/page.tsx      # Member candidate application review
+│   │   │   ├── settings/page.tsx         # Page toggles, whitelist & security
 │   │   │   ├── team/page.tsx             # Team hierarchy & member cards
-│   │   │   ├── layout.tsx                # Admin sidebar shell
+│   │   │   ├── layout.tsx                # Spacious light glassmorphic admin shell
 │   │   │   └── page.tsx                  # Dashboard analytics & quick actions
 │   │   ├── api/                          # Next.js Serverless Route Handlers
 │   │   │   ├── admin/                    # Protected admin REST endpoints
-│   │   │   ├── auth/                     # Google OAuth & session verification
-│   │   │   └── events/register/route.ts  # Public event registration handler
-│   │   ├── blog/page.tsx                 # Technical articles list (toggleable)
-│   │   ├── contact/page.tsx              # Campus map & contact form (toggleable)
+│   │   │   ├── auth/                     # Session verification & JWT issuing
+│   │   │   ├── events/register/route.ts  # Public event registration handler
+│   │   │   └── recruit/submit/route.ts   # Anti-bot protected application handler
 │   │   ├── events/page.tsx               # Events catalog & registration modal
-│   │   ├── gallery/page.tsx              # Photo & video gallery (toggleable)
-│   │   ├── projects/page.tsx             # AI & Startup project showcases
-│   │   ├── recruit/page.tsx              # Join AI Foundry recruitment portal
+│   │   ├── gallery/page.tsx              # Photo & video gallery with direct links
+│   │   ├── privacy/page.tsx              # Privacy policy & data protection
+│   │   ├── recruit/page.tsx              # Bot-shielded recruitment portal
 │   │   ├── team/page.tsx                 # Full leadership & team directory
+│   │   ├── terms/page.tsx                # Terms of participation & code of conduct
 │   │   ├── globals.css                   # Tailwind 4 theme & CSS variable tokens
-│   │   ├── layout.tsx                    # Root layout with ASCII canvas & Nav
-│   │   └── page.tsx                      # Main landing page
+│   │   ├── layout.tsx                    # Root layout with smart floating nav
+│   │   └── page.tsx                      # Main landing page (0ms session cached)
 │   ├── components/
-│   │   ├── admin/                        # CMS management UI components
-│   │   └── ui/                           # High-aesthetic visitor UI components
+│   │   ├── 3d/                           # WebGL 3D canvas components
+│   │   ├── home/                         # Landing page views & hero components
+│   │   └── ui/                           # High-aesthetic Light Glassmorphic UI
+│   └── lib/
+│       ├── audit-logger.ts               # Security audit trail helper
+│       ├── data.ts                       # Core data types & accessors
+│       ├── image-helper.ts               # Direct image URL streaming normalizer
+│       ├── local-db.ts                   # Upstash Redis + Local JSON fallback
+│       └── rate-limiter.ts               # Sliding window IP rate limiter
 │   │       ├── ascii-grid-background.tsx # Interactive canvas particle backdrop
 │   │       ├── event-countdown.tsx       # Live ticker for featured event
 │   │       ├── liquid-glass-nav.tsx      # Frosted glass navbar & theme picker

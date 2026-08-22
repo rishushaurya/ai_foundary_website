@@ -56,6 +56,14 @@ export interface EventDownload {
   url: string;
 }
 
+export interface EventCustomQuestion {
+  id: string;
+  label: string;
+  type: "text" | "select" | "textarea";
+  options?: string[];
+  required: boolean;
+}
+
 export interface EventRegistration {
   id: string;
   name: string;
@@ -64,6 +72,7 @@ export interface EventRegistration {
   college: string;
   branch: string;
   timestamp: string;
+  customAnswers?: Record<string, string>;
 }
 
 export interface EventData {
@@ -75,7 +84,8 @@ export interface EventData {
   image: string;
   images?: string[];
   status: "upcoming" | "ongoing" | "ended";
-  registrationMode: "builtin" | "google-form";
+  registrationMode: "builtin" | "external" | "google-form";
+  externalRegistrationUrl?: string;
   googleFormUrl?: string;
   registrationDeadline?: string;
   isCountdownEvent?: boolean;
@@ -83,6 +93,7 @@ export interface EventData {
   showOnEventPage?: boolean;
   links?: EventLink[];
   downloads?: EventDownload[];
+  customQuestions?: EventCustomQuestion[];
   registrations?: EventRegistration[];
 }
 
@@ -119,29 +130,25 @@ export async function saveContent(content: ContentSection[]): Promise<boolean> {
   return writeData("content.json", content);
 }
 
-// ---- Gallery ----
+// ---- Gallery Interfaces ----
 export interface GalleryItem {
   id: string;
   type: "image" | "video";
-  url: string;
   name: string;
+  url: string;
+  thumbnail?: string;
 }
 
 export interface GallerySection {
   id: string;
   name: string;
-  showOnHome: boolean;
+  showOnHome?: boolean;
   showOnGalleryPage?: boolean;
   items: GalleryItem[];
 }
 
 export async function getGallerySections(): Promise<GallerySection[]> {
   return readData<GallerySection[]>("gallery.json", []);
-}
-
-export async function getHomeGallerySections(): Promise<GallerySection[]> {
-  const sections = await getGallerySections();
-  return sections.filter((s) => s.showOnHome && s.items.length > 0);
 }
 
 export async function saveGallerySections(sections: GallerySection[]): Promise<boolean> {
@@ -172,7 +179,7 @@ export async function saveRecruitmentEntries(entries: RecruitmentEntry[]): Promi
   return writeData("recruitment.json", entries);
 }
 
-// ---- Settings ----
+// ---- Settings & Landing Visual Customization ----
 export interface VisiblePagesConfig {
   about: boolean;
   events: boolean;
@@ -190,11 +197,85 @@ export interface SiteSocialLinks {
   email?: string;
 }
 
+export interface LandingPillarItem {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface LandingProjectItem {
+  id: string;
+  title: string;
+  tag: string;
+  description: string;
+  image: string;
+}
+
+export interface LandingApproachItem {
+  id: string;
+  title: string;
+  description: string;
+  image?: string;
+}
+
+export interface LandingStatsConfig {
+  members: string;
+  projects: string;
+  duration: string;
+  mentors: string;
+  costReduction: string;
+  innovationHours: string;
+}
+
+export interface LandingTestimonialItem {
+  id: string;
+  quote: string;
+  name: string;
+  role: string;
+  avatar: string;
+}
+
+export interface LandingTeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  image: string;
+  profileUrl?: string;
+}
+
+export interface LandingCustomContent {
+  aboutHeading?: string;
+  aboutText?: string;
+  missionHeading?: string;
+  missionText?: string;
+  pillarsHeading?: string;
+  pillarsSubtext?: string;
+  pillars?: LandingPillarItem[];
+  projectsHeading?: string;
+  projectsSubtext?: string;
+  projects?: LandingProjectItem[];
+  approachHeading?: string;
+  approachSubtext?: string;
+  approach?: LandingApproachItem[];
+  stats?: LandingStatsConfig;
+  testimonialsHeading?: string;
+  testimonials?: LandingTestimonialItem[];
+  teamHeading?: string;
+  teamSubheading?: string;
+  teamDescription?: string;
+  teamMembers?: LandingTeamMember[];
+  ctaHeading?: string;
+  ctaButtonText?: string;
+}
+
 export interface SiteSettings {
   siteTitle: string;
   defaultTheme: string;
   defaultAppearance: string;
   adminEmails: string[];
+  adminPassword?: string;
   heroTagline: string;
   heroSubtext: string;
   facultyHeading: string;
@@ -204,6 +285,7 @@ export interface SiteSettings {
   studentGridCols: number;
   visiblePages: VisiblePagesConfig;
   socialLinks: SiteSocialLinks;
+  landingContent?: LandingCustomContent;
 }
 
 export async function getSettings(): Promise<SiteSettings> {
@@ -233,6 +315,120 @@ export async function getSettings(): Promise<SiteSettings> {
       discord: "https://discord.gg/aifoundry",
       whatsapp: "https://chat.whatsapp.com/aifoundry",
       email: "aifoundry@dsu.edu.in",
+    },
+    landingContent: {
+      aboutHeading: "ABOUT US",
+      aboutText: "To cultivate a vibrant community at DSU, fostering innovation in AI and entrepreneurship through collaborative projects.",
+      missionHeading: "OUR MISSION",
+      missionText: "Uniting minds, shaping tomorrow.",
+      pillarsHeading: "OUR PILLARS",
+      pillarsSubtext: "Our approach to innovation is built on three core strategies.",
+      pillars: [
+        {
+          id: "p1",
+          title: "Innovation",
+          description: "We encourage groundbreaking ideas and provide the resources for members to explore the frontiers of AI and business.",
+          icon: "/images/asterisk-streamline-unicons.svg",
+        },
+        {
+          id: "p2",
+          title: "Collaboration",
+          description: "We believe in the power of diverse minds working together, fostering a supportive environment for shared learning and growth.",
+          icon: "/images/channel-streamline-unicons.svg",
+        },
+        {
+          id: "p3",
+          title: "Impact",
+          description: "Our projects aim to solve real-world problems, making a tangible difference in the community and beyond.",
+          icon: "/images/border-vertical-streamline-unicons.svg",
+        },
+      ],
+      projectsHeading: "OUR PROJECTS",
+      projectsSubtext: "Explore our innovative projects, where theory meets practice in the exciting fields of AI and entrepreneurship, driving real change.",
+      projects: [
+        {
+          id: "proj1",
+          title: "Project Alpha",
+          tag: "AI & ML",
+          description: "An AI-powered solution for optimizing campus resource allocation, developed by our student engineers.",
+          image: "/images/rectangle-902.png",
+        },
+        {
+          id: "proj2",
+          title: "Venture Beta",
+          tag: "Incubation",
+          description: "A student-led startup focusing on sustainable urban farming using intelligent automation and data analytics.",
+          image: "/images/image-1929.png",
+        },
+        {
+          id: "proj3",
+          title: "Research Gamma",
+          tag: "Research",
+          description: "Cutting-edge research into explainable AI for ethical decision-making in financial technology.",
+          image: "/images/rectangle-3.png",
+        },
+      ],
+      approachHeading: "OUR APPROACH",
+      approachSubtext: "We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures.",
+      approach: [
+        {
+          id: "app1",
+          title: "Ideation",
+          description: "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving.",
+          image: "/images/rectangle-5.png",
+        },
+        {
+          id: "app2",
+          title: "Development",
+          description: "Providing tools, mentorship, and a collaborative space for building and refining AI solutions and business models.",
+        },
+        {
+          id: "app3",
+          title: "Launch",
+          description: "Supporting projects through deployment, market entry, and continuous iteration for sustained success.",
+          image: "/images/map.png",
+        },
+        {
+          id: "app4",
+          title: "Community",
+          description: "Building a strong network of innovators, fostering peer learning and collaborative opportunities.",
+          image: "/images/rectangle-8.png",
+        },
+      ],
+      stats: {
+        members: "50 +",
+        projects: "x 15",
+        duration: "1 year",
+        mentors: "+ 20",
+        costReduction: "- 50%",
+        innovationHours: "500 hrs",
+      },
+      testimonialsHeading: "Hear it from our members.",
+      testimonials: [
+        {
+          id: "t1",
+          name: "Aisha Sharma",
+          role: "Student Founder, DSU",
+          quote: "Ai Foundry transformed my understanding of AI and gave me the confidence to launch my own startup idea.",
+          avatar: "/images/image-1931.png",
+        },
+        {
+          id: "t2",
+          name: "Rahul Verma",
+          role: "Engineering Student, DSU",
+          quote: "The collaborative environment here is unparalleled. I've learned so much from my peers and mentors.",
+          avatar: "/images/image-1927.png",
+        },
+        {
+          id: "t3",
+          name: "Priya Singh",
+          role: "Design Student, DSU",
+          quote: "Being part of Ai Foundry has opened doors to incredible opportunities and a network I wouldn't have otherwise.",
+          avatar: "/images/image-1928.png",
+        },
+      ],
+      ctaHeading: "Ready to forge the future?",
+      ctaButtonText: "Join Us",
     },
   });
 }

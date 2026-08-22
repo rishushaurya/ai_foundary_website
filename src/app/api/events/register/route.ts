@@ -4,7 +4,7 @@ import { getEvents, saveEvents, EventRegistration } from "@/lib/data";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { eventId, name, email, phone, college, branch } = body;
+    const { eventId, name, email, phone, college, branch, customAnswers } = body;
 
     if (!eventId || !name || !email || !phone) {
       return NextResponse.json(
@@ -53,13 +53,14 @@ export async function POST(request: Request) {
     }
 
     const newRegistration: EventRegistration = {
-      id: `reg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: `reg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       name: name.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
       college: (college || "Dayananda Sagar University").trim(),
       branch: (branch || "CSE").trim(),
       timestamp: new Date().toISOString(),
+      customAnswers: customAnswers || {},
     };
 
     existingRegistrations.push(newRegistration);

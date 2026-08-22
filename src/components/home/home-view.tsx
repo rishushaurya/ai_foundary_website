@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Peach3DScene } from "@/components/3d/peach-3d-scene";
 import { RegistrationModal } from "@/components/ui/registration-modal";
-import { TeamMember, EventData, GallerySection } from "@/lib/data";
+import { TeamMember, EventData, GallerySection, LandingCustomContent } from "@/lib/data";
+import { normalizeImageUrl } from "@/lib/image-helper";
 import { Calendar, MapPin, ArrowRight, Image as ImageIcon, MapPin as LocationIcon, Mail } from "lucide-react";
 import { LinkedinIcon, InstagramIcon, GithubIcon, TwitterIcon } from "@/components/ui/icons";
 
@@ -14,6 +16,7 @@ interface HomeViewProps {
   gallerySections: GallerySection[];
   heroTagline: string;
   aboutText: string;
+  landingContent?: LandingCustomContent;
 }
 
 export function HomeView({
@@ -22,10 +25,15 @@ export function HomeView({
   gallerySections,
   heroTagline,
   aboutText,
+  landingContent,
 }: HomeViewProps) {
+  const router = useRouter();
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showPreloader, setShowPreloader] = useState(true);
+  
+  // Instant Session Caching: If 3D has already loaded once in this session, skip preloader immediately (0ms delay)
+  const isAlreadyLoaded = typeof window !== "undefined" && Boolean((window as any).__aifoundry3dInitialized);
+  const [isLoading, setIsLoading] = useState(!isAlreadyLoaded);
+  const [showPreloader, setShowPreloader] = useState(!isAlreadyLoaded);
 
   const navigateTo = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
@@ -37,32 +45,47 @@ export function HomeView({
         return;
       }
     }
-    window.location.href = href;
+    router.push(href);
   };
 
   useEffect(() => {
-    // 1. Clean any lingering query parameter from the URL right away so refresh is clean
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const scrollToId = urlParams.get("scrollTo");
       if (scrollToId) {
         window.history.replaceState({}, document.title, window.location.pathname);
+        if (scrollToId === "about") {
+          setTimeout(() => {
+            const aboutEl = document.getElementById("about-section");
+            if (aboutEl) aboutEl.scrollIntoView({ behavior: "smooth" });
+          }, 350);
+        }
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       }
-      // Always guarantee opening at top hero section on load
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
+      // If already initialized in this session, ensure instant 0ms reveal
+      if ((window as any).__aifoundry3dInitialized) {
+        setIsLoading(false);
+        setShowPreloader(false);
+        return;
+      }
     }
 
     let isFinished = false;
     const startTime = Date.now();
-    // 3.2s guarantees 3D WebGL shaders and GLB models are compiled and rendered to screen buffer
-    const minLoadTime = 3200;
+    // Fast, responsive 3D initialization check
+    const minLoadTime = 250;
 
     const finishLoading = () => {
       if (isFinished) return;
       isFinished = true;
+      if (typeof window !== "undefined") {
+        (window as any).__aifoundry3dInitialized = true;
+      }
       requestAnimationFrame(() => {
         setIsLoading(false);
-        setTimeout(() => setShowPreloader(false), 700);
+        setTimeout(() => setShowPreloader(false), 300);
       });
     };
 
@@ -84,13 +107,13 @@ export function HomeView({
         clearInterval(interval);
         finishLoading();
       }
-    }, 100);
+    }, 40);
 
-    // Safety fallback timer
+    // Fast safety fallback timer to guarantee seamless reveal
     const maxFallbackTimer = setTimeout(() => {
       clearInterval(interval);
       finishLoading();
-    }, 4500);
+    }, 600);
 
     return () => {
       clearInterval(interval);
@@ -125,49 +148,52 @@ export function HomeView({
   return (
     <div id="pwb-body-wrap" className="relative min-h-screen">
       {/* ===== FULL-PAGE SKELETON PRELOADER ===== */}
-      {showPreloader && (
-        <div
-          className="fixed inset-0 z-[999999] flex flex-col justify-between p-6 sm:p-10 bg-white transition-opacity duration-700"
-          style={{ opacity: isLoading ? 1 : 0, pointerEvents: isLoading ? "auto" : "none" }}
-        >
-          {/* Top Header Skeleton */}
-          <div className="flex items-center justify-between max-w-7xl mx-auto w-full pt-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
-              <div className="w-28 h-5 rounded-md bg-slate-200 animate-pulse"></div>
-            </div>
-            <div className="hidden md:flex items-center gap-6 px-8 py-3 rounded-full bg-slate-100/80 backdrop-blur-md">
-              <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-              <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-              <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-              <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-              <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-            </div>
-            <div className="w-24 h-9 rounded-full bg-slate-200 animate-pulse"></div>
+      <div
+        className="fixed inset-0 z-[999999] flex flex-col justify-between p-6 sm:p-10 bg-white transition-opacity duration-700"
+        style={{
+          opacity: isLoading ? 1 : 0,
+          pointerEvents: isLoading ? "auto" : "none",
+          display: showPreloader ? "flex" : "none",
+        }}
+        suppressHydrationWarning
+      >
+        {/* Top Header Skeleton */}
+        <div className="flex items-center justify-between max-w-7xl mx-auto w-full pt-4" suppressHydrationWarning>
+          <div className="flex items-center gap-3" suppressHydrationWarning>
+            <div className="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
+            <div className="w-28 h-5 rounded-md bg-slate-200 animate-pulse"></div>
+          </div>
+          <div className="hidden md:flex items-center gap-6 px-8 py-3 rounded-full bg-slate-100/80 backdrop-blur-md" suppressHydrationWarning>
+            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
+          </div>
+          <div className="w-24 h-9 rounded-full bg-slate-200 animate-pulse"></div>
+        </div>
+
+        {/* Central Hero Skeleton */}
+        <div className="max-w-4xl mx-auto w-full my-auto space-y-8" suppressHydrationWarning>
+          <div className="space-y-4" suppressHydrationWarning>
+            <div className="w-full h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
+            <div className="w-4/5 h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
+            <div className="w-2/3 h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
           </div>
 
-          {/* Central Hero Skeleton */}
-          <div className="max-w-4xl mx-auto w-full my-auto space-y-8">
-            <div className="space-y-4">
-              <div className="w-full h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
-              <div className="w-4/5 h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
-              <div className="w-2/3 h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
-            </div>
-
-            {/* Buttons Skeleton */}
-            <div className="flex items-center gap-4 pt-4">
-              <div className="w-32 h-11 rounded-xl bg-slate-200 animate-pulse"></div>
-              <div className="w-36 h-11 rounded-xl bg-slate-200 animate-pulse"></div>
-            </div>
-          </div>
-
-          {/* Bottom Indicators Skeleton */}
-          <div className="flex items-end justify-between max-w-7xl mx-auto w-full pb-4">
-            <div className="w-20 h-4 rounded bg-slate-200 animate-pulse"></div>
-            <div className="w-64 h-4 rounded bg-slate-200 animate-pulse hidden sm:block"></div>
+          {/* Buttons Skeleton */}
+          <div className="flex items-center gap-4 pt-4" suppressHydrationWarning>
+            <div className="w-32 h-11 rounded-xl bg-slate-200 animate-pulse"></div>
+            <div className="w-36 h-11 rounded-xl bg-slate-200 animate-pulse"></div>
           </div>
         </div>
-      )}
+
+        {/* Bottom Indicators Skeleton */}
+        <div className="flex items-end justify-between max-w-7xl mx-auto w-full pb-4" suppressHydrationWarning>
+          <div className="w-20 h-4 rounded bg-slate-200 animate-pulse"></div>
+          <div className="w-64 h-4 rounded bg-slate-200 animate-pulse hidden sm:block"></div>
+        </div>
+      </div>
 
       {/* 3D WebGL Canvas Layer */}
       <Peach3DScene />
@@ -384,7 +410,7 @@ export function HomeView({
               </div>
             </div>
 
-            {/* Frosted Glass Large Event Cards (Middle Aligned, Generously Spaced in Proper Order) */}
+            {/* Frosted Glass Large Event Cards (Exact Requested Hierarchy: Status+Date -> Title -> Image -> Desc -> Venue -> Register) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full" id="events-card-grid">
               {events
                 .filter((e) => e.showOnHome !== false)
@@ -398,28 +424,27 @@ export function HomeView({
                   return (
                     <div
                       key={evt.id}
-                      className="min-h-[420px] flex flex-col justify-between items-center text-center p-8 sm:p-9 rounded-2xl border border-white/15 backdrop-blur-2xl transition-all duration-300 hover:border-cyan-400/60 hover:scale-[1.02] group"
+                      className="min-h-[460px] flex flex-col justify-between p-7 sm:p-8 rounded-3xl border border-white/15 backdrop-blur-2xl transition-all duration-300 hover:border-cyan-400/60 hover:scale-[1.02] group"
                       style={{
-                        backgroundColor: "rgba(255, 255, 255, 0.07)",
+                        backgroundColor: "rgba(255, 255, 255, 0.08)",
                         boxShadow: "0 12px 36px rgba(0, 0, 0, 0.35)",
                       }}
                     >
-                      {/* Top Section */}
-                      <div className="w-full flex flex-col items-center">
-                        {/* 1. Status Badge & Date Centered */}
-                        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-                          <span className="px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-cyan-950/80 text-cyan-400 border border-cyan-500/40 font-mono shadow-sm">
+                      <div className="w-full flex flex-col">
+                        {/* 1. Status Badge & Date Side-by-Side with Gap */}
+                        <div className="flex items-center justify-between w-full mb-4">
+                          <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-950/90 text-cyan-300 border border-cyan-500/40 font-mono shadow-sm">
                             {evt.status}
                           </span>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-300 font-mono">
+                          <div className="flex items-center gap-1.5 text-xs text-slate-300 font-mono font-bold">
                             <Calendar className="size-3.5 text-cyan-400" />
                             <span>{dateStr}</span>
                           </div>
                         </div>
 
-                        {/* 2. Event Title Centered with Good Space */}
+                        {/* 2. Event Title in Bold */}
                         <h3
-                          className="text-2xl font-bold text-white uppercase tracking-tight leading-snug group-hover:text-cyan-300 transition-colors line-clamp-2 mb-4 text-center"
+                          className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight leading-snug group-hover:text-cyan-300 transition-colors line-clamp-2 mb-4"
                           style={{
                             fontFamily: '"68832fb0ffba9b1995adac75-helveticanowdisplay-medium", "Helvetica Neue", sans-serif',
                           }}
@@ -427,56 +452,65 @@ export function HomeView({
                           {evt.title}
                         </h3>
 
-                        {/* 3. Event Info / Description Centered with Good Space */}
-                        <p className="text-slate-300 text-sm font-normal leading-relaxed line-clamp-3 mb-5 max-w-sm mx-auto text-center">
+                        {/* 3. Event Image with Direct Image Normalization */}
+                        <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-4 border border-white/10 bg-black/40 shadow-inner">
+                          <img
+                            src={normalizeImageUrl(evt.image)}
+                            alt={evt.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+
+                        {/* 4. Event Description with Proper Gap */}
+                        <p className="text-slate-300 text-xs sm:text-sm font-normal leading-relaxed line-clamp-3 mb-4">
                           {evt.description}
                         </p>
 
-                        {/* 4. Place / Venue Centered with Good Space */}
-                        <div className="flex items-center justify-center gap-1.5 text-xs text-cyan-300 font-mono mb-2">
+                        {/* 5. Location / Venue */}
+                        <div className="flex items-center gap-1.5 text-xs text-cyan-300 font-mono font-semibold mb-2">
                           <MapPin className="size-3.5 text-cyan-400 flex-shrink-0" />
                           <span className="truncate">{evt.venue}</span>
                         </div>
                       </div>
 
-                      {/* 5. Registration Button Centered at Bottom */}
-                      <div className="pt-6 mt-4 border-t border-white/10 w-full flex justify-center">
-                        {evt.registrationMode === "google-form" && evt.googleFormUrl ? (
+                      {/* 6. Registration Button */}
+                      <div className="pt-5 mt-4 border-t border-white/10 w-full flex justify-center">
+                        {evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl) ? (
                           <a
-                            href={evt.googleFormUrl}
+                            href={evt.externalRegistrationUrl || evt.googleFormUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="no-underline cursor-pointer transition-transform hover:scale-105 w-full max-w-xs flex items-center justify-center gap-2"
+                            className="no-underline cursor-pointer transition-transform hover:scale-105 w-full flex items-center justify-center gap-2"
                             style={{
                               padding: "14px 24px",
                               backgroundColor: "#ffffff",
-                              borderRadius: "8px",
+                              borderRadius: "12px",
                               height: "48px",
                               boxShadow: "0 4px 15px rgba(255, 255, 255, 0.2)",
                             }}
                           >
-                            <span style={{ color: "#000000", fontWeight: 700, fontSize: "14px", letterSpacing: "0.5px" }}>
-                              Register Form
+                            <span style={{ color: "#000000", fontWeight: 800, fontSize: "13px", letterSpacing: "0.5px" }}>
+                              Register (External)
                             </span>
-                            <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "20px", height: "20px" }} />
+                            <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "18px", height: "18px" }} />
                           </a>
                         ) : (
                           <button
                             onClick={() => setSelectedEvent(evt)}
-                            className="cursor-pointer transition-transform hover:scale-105 w-full max-w-xs flex items-center justify-center gap-2"
+                            className="cursor-pointer transition-transform hover:scale-105 w-full flex items-center justify-center gap-2"
                             style={{
                               padding: "14px 24px",
                               backgroundColor: "#ffffff",
-                              borderRadius: "8px",
+                              borderRadius: "12px",
                               height: "48px",
                               border: "none",
                               boxShadow: "0 4px 15px rgba(255, 255, 255, 0.2)",
                             }}
                           >
-                            <span style={{ color: "#000000", fontWeight: 700, fontSize: "14px", letterSpacing: "0.5px" }}>
+                            <span style={{ color: "#000000", fontWeight: 800, fontSize: "13px", letterSpacing: "0.5px" }}>
                               Register Now
                             </span>
-                            <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "20px", height: "20px" }} />
+                            <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "18px", height: "18px" }} />
                           </button>
                         )}
                       </div>
@@ -1032,20 +1066,20 @@ export function HomeView({
 
         <div className="pwb-anchor" id="i3owk-2-2-2-3"></div>
 
-        {/* ===== SLIDE 10: LEADERSHIP & FACULTY (WHITE BACKGROUND AS IN ORIGINAL DESIGN) ===== */}
+        {/* ===== SLIDE 10: LEADERSHIP & FACULTY (DYNAMICALLY BOUND TO CMS) ===== */}
         <div className="pwb-flex-grid-wrap" id="ilwyn-2-2-3-4-2">
           <div className="pwb-flex-grid-wrap" id="i1lwz-5-2-3-4-2">
             <p
               className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
               id="ispyh-2-3-2-3-2-2-2-3-2-2-4-4-2"
             >
-              OUR TEAM
+              {landingContent?.teamSubheading || "OUR TEAM"}
             </p>
             <h1
               className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
               id="ispyh-2-2-2-3-2-3-4-2"
             >
-              Meet the minds behind AI Foundry.
+              {landingContent?.teamHeading || "Meet the minds behind AI Foundry."}
             </h1>
           </div>
           <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-3-3-4-2">
@@ -1061,8 +1095,8 @@ export function HomeView({
                   className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
                   id="ispyh-2-2-2-4-4-2-4-4-2-2"
                 >
-                  The dedicated faculty and student executives guiding our club&apos;s
-                  vision and fostering a culture of innovation at Dayananda Sagar University.
+                  {landingContent?.teamDescription ||
+                    "The dedicated faculty mentors and student executives guiding our club's vision and fostering a culture of innovation at Dayananda Sagar University."}
                 </p>
               </div>
               <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-2-3-4-2-2-2">
@@ -1102,62 +1136,64 @@ export function HomeView({
               </div>
             </div>
             <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-4-5-2-2">
-              {/* Faculty Lead */}
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-2-3-3-2">
-                <div className="pw-block-style" id="ipkvji-4-2-2-3-3-2">
-                  <img
-                    className="pw-image-style"
-                    src="/images/rectangle-899.png"
-                    loading="lazy"
-                    id="ib8xjf"
-                    alt={facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam V"}
-                  />
-                </div>
-                <div className="pw-block-style" id="ipkvji-4-3-2-2-3-3-2">
-                  <div className="pw-block-style" id="ipkvji-4-3-2-2-3-3-2-4">
-                    <h3
-                      className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
-                      id="ispyh-2-2-2-4-4-2-2-2-3-3-2-4"
+              {(landingContent?.teamMembers && landingContent.teamMembers.length > 0
+                ? landingContent.teamMembers
+                : [
+                    {
+                      id: "tm-1",
+                      name: facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam V",
+                      role: facultyAdvisors[0]?.role || "Club Coordinator & Professor",
+                      image: "/images/rectangle-899.png",
+                    },
+                    {
+                      id: "tm-2",
+                      name: executiveLeads[0]?.name || "Syed Amaan",
+                      role: executiveLeads[0]?.role || "Chief Executive Officer",
+                      image: "/images/rectangle-898.png",
+                    },
+                  ]
+              ).map((member, idx) => (
+                <div
+                  key={member.id || idx}
+                  className="pwb-flex-grid-wrap"
+                  id={idx === 0 ? "i1lwz-2-4-2-2-3-2-2-3-3-2" : "i1lwz-2-4-2-2-3-2-2-3-3-2-2"}
+                >
+                  <div
+                    className="pw-block-style"
+                    id={idx === 0 ? "ipkvji-4-2-2-3-3-2" : "ipkvji-4-2-2-3-3-2-2"}
+                  >
+                    <img
+                      className="pw-image-style"
+                      src={member.image || (idx === 0 ? "/images/rectangle-899.png" : "/images/rectangle-898.png")}
+                      loading="lazy"
+                      id={idx === 0 ? "ib8xjf" : "ib8xjf-2"}
+                      alt={member.name}
+                    />
+                  </div>
+                  <div
+                    className="pw-block-style"
+                    id={idx === 0 ? "ipkvji-4-3-2-2-3-3-2" : "ipkvji-4-3-2-2-3-3-2-3"}
+                  >
+                    <div
+                      className="pw-block-style"
+                      id={idx === 0 ? "ipkvji-4-3-2-2-3-3-2-4" : "ipkvji-4-3-2-2-3-3-2-4-2"}
                     >
-                      {facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam V"}
-                    </h3>
-                    <p
-                      className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                      id="ispyh-2-2-2-4-4-2-2-2-3-3-2-2-3"
-                    >
-                      {facultyAdvisors[0]?.role || "Club Coordinator & Professor"}
-                    </p>
+                      <h3
+                        className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
+                        id={idx === 0 ? "ispyh-2-2-2-4-4-2-2-2-3-3-2-4" : "ispyh-2-2-2-4-4-2-2-2-3-3-2-4-2"}
+                      >
+                        {member.name}
+                      </h3>
+                      <p
+                        className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
+                        id={idx === 0 ? "ispyh-2-2-2-4-4-2-2-2-3-3-2-2-3" : "ispyh-2-2-2-4-4-2-2-2-3-3-2-2-3-2"}
+                      >
+                        {member.role}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              {/* Student Executive Lead */}
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-2-3-3-2-2">
-                <div className="pw-block-style" id="ipkvji-4-2-2-3-3-2-2">
-                  <img
-                    className="pw-image-style"
-                    src="/images/rectangle-898.png"
-                    loading="lazy"
-                    id="ib8xjf-2"
-                    alt={executiveLeads[0]?.name || "Syed Amaan"}
-                  />
-                </div>
-                <div className="pw-block-style" id="ipkvji-4-3-2-2-3-3-2-3">
-                  <div className="pw-block-style" id="ipkvji-4-3-2-2-3-3-2-4-2">
-                    <h3
-                      className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
-                      id="ispyh-2-2-2-4-4-2-2-2-3-3-2-4-2"
-                    >
-                      {executiveLeads[0]?.name || "Syed Amaan"}
-                    </h3>
-                    <p
-                      className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                      id="ispyh-2-2-2-4-4-2-2-2-3-3-2-2-3-2"
-                    >
-                      {executiveLeads[0]?.role || "Chief Executive Officer"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1420,19 +1456,19 @@ export function HomeView({
       </div>
 
       {/* Hidden PeachWeb Runtime Initialization Container */}
-      <div id="pwb-loading-wrap" style={{ display: "none" }}>
-        <div className="pwb-flex-grid-wrap" id="im3p5">
-          <div className="pwb-loading-bar" id="iw9p8">
-            <svg id="i1g4c" width="162" height="162">
-              <circle id="i8t08" />
-              <circle className="pwb-loading-bar-circle" id="ihfw6" />
+      <div id="pwb-loading-wrap" style={{ display: "none" }} suppressHydrationWarning>
+        <div className="pwb-flex-grid-wrap" id="im3p5" suppressHydrationWarning>
+          <div className="pwb-loading-bar" id="iw9p8" suppressHydrationWarning>
+            <svg id="i1g4c" width="162" height="162" suppressHydrationWarning>
+              <circle id="i8t08" suppressHydrationWarning />
+              <circle className="pwb-loading-bar-circle" id="ihfw6" suppressHydrationWarning />
             </svg>
-            <div id="ispyh-2-3-2-3-3-2-4">AI FOUNDRY</div>
-            <div className="pwb-loading-bar-text" id="ijg95">100%</div>
+            <div id="ispyh-2-3-2-3-3-2-4" suppressHydrationWarning>AI FOUNDRY</div>
+            <div className="pwb-loading-bar-text" id="ijg95" suppressHydrationWarning>100%</div>
           </div>
         </div>
-        <div className="pwb-flex-grid-wrap" id="ieupsz">
-          <img src="/images/pw-badge-dark.svg" loading="lazy" id="igqob3" alt="" />
+        <div className="pwb-flex-grid-wrap" id="ieupsz" suppressHydrationWarning>
+          <img src="/images/pw-badge-dark.svg" loading="lazy" id="igqob3" alt="" suppressHydrationWarning />
         </div>
       </div>
 

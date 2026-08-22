@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Visual Archives - Obsidian Foundry</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface": "#1b1b1d",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed": "#e3e2e7",
+                      "surface-tint": "#005bc1",
+                      "on-background": "#1b1b1d",
+                      "tertiary": "#8a2bb9",
+                      "error-container": "#ffdad6",
+                      "primary-fixed-dim": "#adc6ff",
+                      "tertiary-container": "#a649d5",
+                      "on-secondary-fixed": "#1a1b1f",
+                      "on-tertiary-fixed": "#310048",
+                      "primary-fixed": "#d8e2ff",
+                      "on-secondary-container": "#626267",
+                      "surface-dim": "#dcd9dc",
+                      "background": "#fcf8fb",
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#c1c6d7",
+                      "on-error-container": "#93000a",
+                      "outline": "#717786",
+                      "tertiary-fixed": "#f6d9ff",
+                      "surface-container-high": "#eae7ea",
+                      "inverse-surface": "#303032",
+                      "tertiary-fixed-dim": "#e8b3ff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#001a41",
+                      "surface-variant": "#e4e2e4",
+                      "on-primary-fixed-variant": "#004493",
+                      "on-primary-container": "#fefcff",
+                      "surface-container-lowest": "#ffffff",
+                      "error": "#ba1a1a",
+                      "secondary-fixed-dim": "#c6c6cb",
+                      "on-secondary-fixed-variant": "#46464b",
+                      "primary-container": "#0070eb",
+                      "on-tertiary-container": "#fffbff",
+                      "inverse-on-surface": "#f3f0f2",
+                      "primary": "#0058bc",
+                      "surface": "#fcf8fb",
+                      "on-surface-variant": "#414755",
+                      "surface-container-low": "#f6f3f5",
+                      "inverse-primary": "#adc6ff",
+                      "surface-bright": "#fcf8fb",
+                      "secondary": "#5d5e63",
+                      "surface-container": "#f0edef",
+                      "secondary-container": "#e0dfe4",
+                      "on-tertiary-fixed-variant": "#7201a2",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#e4e2e4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "12px",
+                      "gutter": "24px",
+                      "xl": "64px",
+                      "lg": "40px",
+                      "md": "24px",
+                      "base": "8px",
+                      "margin": "32px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "label-md": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "body-lg": ["Hanken Grotesk"],
+                      "display": ["Hanken Grotesk"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "label-sm": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "display": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "0em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .marquee-container {
+            display: flex;
+            overflow: hidden;
+            user-select: none;
+            gap: 2rem;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        
+        .marquee-content {
+            display: flex;
+            flex-shrink: 0;
+            justify-content: space-around;
+            min-width: 100%;
+            gap: 2rem;
+            animation: scroll 40s linear infinite;
+        }
+
+        .marquee-container:hover .marquee-content {
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(calc(-100% - 2rem)); }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body class="bg-[#F5F5F7] text-on-surface min-h-screen flex flex-col font-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-8 py-3 bg-white/70 backdrop-blur-xl rounded-full mt-4 mx-auto w-[95%] max-w-7xl border border-white/20 shadow-sm shadow-lg shadow-on-surface/5">
+<div class="font-display text-headline-md font-bold text-on-surface">Obsidian Foundry</div>
+<!-- Desktop Nav -->
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-secondary font-medium font-label-md text-label-md hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-2 rounded-lg" href="#">Models</a>
+<a class="text-secondary font-medium font-label-md text-label-md hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-2 rounded-lg" href="#">Foundry</a>
+<a class="text-secondary font-medium font-label-md text-label-md hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-2 rounded-lg" href="#">Events</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md hover:scale-105 hover:bg-white/10 transition-all duration-300 active:scale-95 px-3 py-2 rounded-lg" href="#">Gallery</a>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-md text-label-md hover:scale-[1.02] hover:brightness-105 shadow-md transition-all duration-200">Join Club</button>
+</nav>
+<main class="flex-grow w-full max-w-[1440px] mx-auto px-margin py-xl flex flex-col gap-xl">
+<!-- Header Section -->
+<header class="text-center max-w-3xl mx-auto space-y-md">
+<h1 class="font-display text-display text-on-surface">Visual Archives</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Documentation of latest hardware deployments and AI environments. A glimpse into the pristine architecture of tomorrow's compute infrastructure.</p>
+</header>
+<!-- Infinite Marquee Section -->
+<section class="w-[100vw] relative left-1/2 -translate-x-1/2 py-lg">
+<div class="marquee-container">
+<!-- Group 1 -->
+<div class="marquee-content">
+<div class="w-[400px] h-[300px] rounded-xl overflow-hidden glass-card shrink-0 group relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A pristine, brightly lit server room featuring towering racks of futuristic quantum computers. The hardware is sleek, minimalist white metal with soft pulsing cyan light indicators. The environment feels sterile, high-tech, and airy, embodying a modern light-mode aesthetic. Depth is achieved through glass panels and reflections on the polished floor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCno37PBf-IofpcBssvd211qr-1fBZowVpgZQFvCaYtGJ-hUmQnttresfpck5cD52IgzgaDNVvSw8r3y119PiTCsMbec-__31_G2qOvvPlNBHmHC7P3hyE22CxZIX36s3a7RncvsSLvmH5HO1Bvo7dDiKgT4OUgcUqSJvqa43ymPRZC8bWGoAgY7oHXCx820UI5HHAIGtbCPCC4YAjOwHqNo-uqeDrQxfgyLdkDT0OUiTysodKxts7C"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-md">
+<span class="text-white font-label-md">Quantum Core Alpha</span>
+</div>
+</div>
+<div class="w-[300px] h-[400px] rounded-xl overflow-hidden glass-card shrink-0 group relative -mt-8">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A glowing 3D visualization of a neural mesh network floating in a bright, minimalist space. Soft white and pale blue nodes connect with delicate, glass-like threads. The lighting is diffused and ethereal, creating a sense of calm intelligence and digital precision within a light-themed, high-fidelity environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwYSbCsAaVKDgia4pKmYyDIcslukXp5HWCZ1BuM6T-i-7syzPck8c5gviDiHNB_Q9blyT3geqwyNfBjts7HiMdUhfpkuQalsc7JV_FcLniovnauwPjO0Rj1UEe1Z6sKZDYmqt2xrY9wC1RyGsb20ZXx2HSkFrRbXWBUZLYGbozaoAGGUvn_BJ1VCHImuLYvOoTDg3DBqwkbkh75olX2rkV1izt8bdlyT7WY_EqL7GK6LFSjw2Q2cVi"/>
+</div>
+<div class="w-[450px] h-[350px] rounded-xl overflow-hidden glass-card shrink-0 group relative mt-4">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A close-up view of a crystalline silicon processor chip resting on a frosted glass surface. The chip emits a faint, bioluminescent violet glow, indicating AI processing states. The background is softly blurred, emphasizing the premium hardware aesthetic and clean, white-dominant color palette of the laboratory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApDmaZv3rWItZdxUBbBEHo8gnZ898yKZmAFriPMeNWAT0AS36dvIEI_yogVfkpqgHKTNHFGD_ff48zNae5qaEaGVaYXaI8l3oAcBofcoshKo-7WJdpN5WUBMpDhapqifCuV2UBd3zZpojayI309UPR4X--hCEdObTUpbsfXgmxQUl7PEItYSlZy5dm_2ZScOkP1TxxXbyV8Ig2X_NTNPNqlEQnCBT_u4dgUkAOm_WFvrZvGaKS5EBb"/>
+</div>
+<div class="w-[350px] h-[300px] rounded-xl overflow-hidden glass-card shrink-0 group relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="An expansive, open-plan AI research facility with floor-to-ceiling windows letting in abundant natural light. The interior is minimalist, with floating glass desks and holographic displays projecting subtle data streams. The mood is sophisticated and focused, utilizing a soft grey and white palette with electric blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNdLmdttfmdurV64wre9CoakpZ_XBaez1ePRprAwOP6zH4agodWqjb7KW07Rb-TsUM_Qy2WGIf_6xHQXNBxuC6DSq2AdPVyqpZE6ZPH8kMDZKBR3wLgNbr2wGXUrch-YIQcMIA8C3ekgiBgJJlI7wQ4xMing2IKKTUjaA0lYZlrI1P83J--LC1_IS5Nb56by_ezt5GFvPR57lOJ2fKaQS-WLNRd7dlWW7HEuKDkwjEnm6vioplYLQr"/>
+</div>
+</div>
+<!-- Group 2 (Duplicate for seamless loop) -->
+<div aria-hidden="true" class="marquee-content">
+<div class="w-[400px] h-[300px] rounded-xl overflow-hidden glass-card shrink-0 group relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A pristine, brightly lit server room featuring towering racks of futuristic quantum computers. The hardware is sleek, minimalist white metal with soft pulsing cyan light indicators. The environment feels sterile, high-tech, and airy, embodying a modern light-mode aesthetic. Depth is achieved through glass panels and reflections on the polished floor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACpb6BHeHfXykFJJxRHBItDZzo6Yur2o0Iod7pigfKcj1JTTzRzfNHs4G2FBt0GTq7Mhxz9a9arTbFS26PD_EpwpyHRo1_Sh-hZwbGymebLuivnwV0Dm-x29n6pSxWOAQr1we9OIj3geYGoNquqkpr-j_NwM4kFW_R6bL1dfelHxWB6kt_-iw4LKUCwfkrNloZUZ-bK8kokmTT7LCTedD8GKeh76-OvNU-JhwfcN4JPBB7Uzr3wz-D"/>
+</div>
+<div class="w-[300px] h-[400px] rounded-xl overflow-hidden glass-card shrink-0 group relative -mt-8">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A glowing 3D visualization of a neural mesh network floating in a bright, minimalist space. Soft white and pale blue nodes connect with delicate, glass-like threads. The lighting is diffused and ethereal, creating a sense of calm intelligence and digital precision within a light-themed, high-fidelity environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVmvyZi6dE6QQFb8y8V0rQkeRH_S3UBtmHDw12JaZv_CNNIflh5o-TXTwtAC3egyspNi3hPbPmPkfl4lAIxD4n4GqwExR3OiDoreRbxPXOPLPc_kcpAd1MlB11lmsLqNud4RJbKih3-JqGodN2lGnSslzSMXUrA_ZMmrX7zFwl50Njon4_PChAKA6PxRbMtVn3mxbqoCG2d2w2nZDYMHS3bzoya7CXGOgZhSgEDdaRgrad_zHdJhrQ"/>
+</div>
+<div class="w-[450px] h-[350px] rounded-xl overflow-hidden glass-card shrink-0 group relative mt-4">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="A close-up view of a crystalline silicon processor chip resting on a frosted glass surface. The chip emits a faint, bioluminescent violet glow, indicating AI processing states. The background is softly blurred, emphasizing the premium hardware aesthetic and clean, white-dominant color palette of the laboratory." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMx9CfAcNbUp3MTFtQL6FInC9UC_GWvvhtmV0OZEnlGSOtTXX_BINVazvVET9x2R2u69pKdChYrY1rr5XGP4Tpd9Gm4DDKu_khLN1Jr2XbEuC3BDQ0Z9ygvvTopxbyiipbBhFPSyUTVwodeSxb-LWrEcQBfb6yexWNlU1jRKT1_Cjfudw54mHXO5ZUlbPUT7sbOmAylaswBF_GxN5hHhJE6vPAgvltGrOiYFtiDUgbYZR6Yv2tY0Nv"/>
+</div>
+<div class="w-[350px] h-[300px] rounded-xl overflow-hidden glass-card shrink-0 group relative">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="An expansive, open-plan AI research facility with floor-to-ceiling windows letting in abundant natural light. The interior is minimalist, with floating glass desks and holographic displays projecting subtle data streams. The mood is sophisticated and focused, utilizing a soft grey and white palette with electric blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKYFGORHMcFL-vEugFpSu_HFm_0BVPyftMhnNe15vs84LgWgfpyb1PP5xiL-1rdK3Tx2AnjKDZstrmd_qrd8r0plf-YAadpTxSbCLbxm2OwjadqYzVnP2DjMTKS_nNWIkDSObss-bu_Z9pRXTRzHdAEGC6gEWDSzXQ_4YAxcvZUfQY3yyIyYXvHFykFB6_PvfxkpiIy7my6uhAa5a6Ar3NsL8MS0eA-H5BWZXfba810BsG9jI5_O6z"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Albums Grid -->
+<section class="space-y-lg">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Categorized Archives</h2>
+<button class="flex items-center gap-2 text-primary font-label-md text-label-md hover:bg-primary-container/20 px-4 py-2 rounded-full transition-colors">
+                    Filter <span class="material-symbols-outlined text-[18px]">filter_list</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Album Card 1 -->
+<div class="glass-card rounded-xl overflow-hidden group cursor-pointer">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Abstract macro photography of fiber optic cables glowing with intense white and blue light against a soft grey background. The light spills across the frame creating a luminous, airy aesthetic typical of high-end tech environments. The image emphasizes digital speed and connectivity in a pristine light-mode style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV5eG_aDjaxNPvOGJSPEEQysc9VUBPwPGG7_rriV4YamsnuoKly0Y5VOJuzBy9Tsbk1epd0mdyzR-Yy8ZAysYFYCHDAGGzt94Rt8hvJxmradriBDPJlTahFar1HiCCOS0oWADOtkuxJzPKAp7tp79Z0vKLcbFP8eT28B7Q46gEHVnsiMMP6symUxdmhhr9ufmqYDpf8gOHv3M07mR5OGTp0qmnfnVXKpug8og-xsRxkXjC1kdAj8LI"/>
+<div class="absolute inset-0 bg-white/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</div>
+<div class="p-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Network Topology</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Visualizing the intricate connections of our global neural routing mesh.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-secondary tracking-widest uppercase">Infrastructure</span>
+</div>
+</div>
+</div>
+<!-- Album Card 2 -->
+<div class="glass-card rounded-xl overflow-hidden group cursor-pointer">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A sleek, metallic robotic arm assembling intricate electronic components in a hyper-clean manufacturing facility. The scene is lit with bright, diffused studio lighting, casting soft shadows. The overall mood is sterile, efficient, and technologically advanced, utilizing a monochromatic white and grey palette with subtle blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN6_eGMCx4wo-xCYWvPmbGY0ikWEaRGx3R9H7KzuhcS-tHwSia4GpuMHJ0TE-zbS9dbWxNZnaExS3boHmzMRLNLNeLbNTci0B-plUUkxBhcSLFl5Xl9Yj4aVRBQhD6aMi-2Im0eGKdjCFhqN6N9zpYGGyLlpTZk2oLbJd72hwT7fL0xMx9WtkHHwf3x1AC8eApjteNZFxQUyeHcCxdjSvvSvtxfTSt7RfSGXEGidb15yGUUSKw_M0K"/>
+<div class="absolute inset-0 bg-white/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</div>
+<div class="p-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Hardware Assembly</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Precision robotics engineering the next generation of compute units.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-secondary tracking-widest uppercase">Robotics</span>
+</div>
+</div>
+</div>
+<!-- Album Card 3 -->
+<div class="glass-card rounded-xl overflow-hidden group cursor-pointer">
+<div class="h-48 relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A conceptual rendering of artificial intelligence processing data, shown as glowing geometric shapes (cubes and spheres) suspended in a vast, bright white void. The shapes emit a soft, diffused violet and electric blue aura, representing calm intelligence. The composition is minimalist and spacious, perfectly fitting a premium light-mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgaslXewU4SckLjMwpJTkbhhvvPIAR7koN6Rvt0QpYuXKcP6XfJDdkgqGw163l1YeRq-4CrKcBy3olyWC_Mn6b6d3fw1e4iEhMIFdiYLUV__ZCTmHPz5Py5U8Tj7m_Ne9mv0ZQUAwRWHQfg6J1v8hXjS16yb0d_YXdd4ZRrQDj9QN4jlqbjdgRES5gA5AfFfNb9ypG7pl3uKF-aiEageyewFAvuhw7nZXx_Mrds0vPIJbeq0dR7_Rj"/>
+<div class="absolute inset-0 bg-white/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</div>
+<div class="p-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Algorithmic Forms</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Abstract representations of deep learning models during training phases.</p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-surface-container rounded-full font-label-sm text-label-sm text-secondary tracking-widest uppercase">Software</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-md px-margin flex flex-col md:flex-row justify-between items-center gap-sm bg-surface border-t border-outline-variant mt-xl">
+<div class="font-display text-label-md font-bold text-on-surface">Obsidian Foundry</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">© 2024 Obsidian Foundry. All rights reserved.</div>
+<div class="flex gap-4">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200 opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200 opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200 opacity-80 hover:opacity-100" href="#">Contact</a>
+</div>
+</footer>
+</body></html>

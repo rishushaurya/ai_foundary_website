@@ -19,6 +19,7 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
     college: "Dayananda Sagar University",
     branch: "B.Tech CSE (AI & ML)",
   });
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -29,7 +30,15 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
       try {
         const saved = localStorage.getItem(`aifoundry:reg:${event.id}`);
         if (saved) {
-          setFormData((prev) => ({ ...prev, ...JSON.parse(saved) }));
+          const parsed = JSON.parse(saved);
+          setFormData({
+            name: parsed.name || "",
+            email: parsed.email || "",
+            phone: parsed.phone || "",
+            college: parsed.college || "Dayananda Sagar University",
+            branch: parsed.branch || "B.Tech CSE (AI & ML)",
+          });
+          setCustomAnswers(parsed.customAnswers || {});
         }
       } catch {}
       setStatus("idle");
@@ -37,15 +46,25 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
     }
   }, [event, isOpen]);
 
-  // Keystroke-level persistence
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
     setFormData(updated);
 
     if (event) {
       try {
-        localStorage.setItem(`aifoundry:reg:${event.id}`, JSON.stringify(updated));
+        localStorage.setItem(`aifoundry:reg:${event.id}`, JSON.stringify({ ...updated, customAnswers }));
+      } catch {}
+    }
+  };
+
+  const handleCustomAnswerChange = (questionId: string, value: string) => {
+    const updatedAnswers = { ...customAnswers, [questionId]: value };
+    setCustomAnswers(updatedAnswers);
+
+    if (event) {
+      try {
+        localStorage.setItem(`aifoundry:reg:${event.id}`, JSON.stringify({ ...formData, customAnswers: updatedAnswers }));
       } catch {}
     }
   };
@@ -64,6 +83,7 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
         body: JSON.stringify({
           eventId: event.id,
           ...formData,
+          customAnswers,
         }),
       });
 
@@ -94,7 +114,7 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 bg-slate-900/80 backdrop-blur-md"
         />
 
         {/* Modal Container */}
@@ -102,26 +122,21 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="relative w-full max-w-lg rounded-2xl border p-6 sm:p-8 shadow-2xl z-10 font-mono"
-          style={{
-            background: "var(--bg-secondary)",
-            borderColor: "var(--border)",
-            color: "var(--text-primary)",
-          }}
+          className="relative w-full max-w-lg rounded-3xl border border-white/80 p-6 sm:p-8 shadow-2xl z-10 bg-white/95 backdrop-blur-2xl text-slate-900 font-sans max-h-[90vh] overflow-y-auto"
         >
           {/* Header */}
-          <div className="flex items-start justify-between border-b pb-4 mb-6" style={{ borderColor: "var(--border)" }}>
+          <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-6">
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400">
-                EVENT REGISTRATION
+              <span className="text-[10px] uppercase font-black tracking-widest text-cyan-600">
+                EVENT REGISTRATION PORTAL
               </span>
-              <h2 className="text-base sm:text-lg font-bold uppercase mt-1 line-clamp-1">
+              <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-1 line-clamp-1">
                 {event.title}
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
             >
               <X className="size-5" />
             </button>
@@ -129,15 +144,16 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
 
           {status === "success" ? (
             <div className="py-8 flex flex-col items-center text-center space-y-4">
-              <CheckCircle className="size-16 text-emerald-400 animate-bounce" />
-              <h3 className="text-xl font-bold uppercase">Registration Confirmed</h3>
-              <p className="text-xs text-slate-400 max-w-sm normal-case">
-                We have registered <strong className="text-white">{formData.email}</strong> for {event.title}. Check your inbox for orientation guidelines.
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <CheckCircle className="size-8" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900">Registration Confirmed!</h3>
+              <p className="text-xs text-slate-600 max-w-sm leading-relaxed">
+                We have confirmed your registration for <strong className="text-slate-900">{event.title}</strong>. Orientation details have been sent to <span className="font-semibold text-cyan-700">{formData.email}</span>.
               </p>
               <button
                 onClick={onClose}
-                className="mt-4 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest cursor-pointer"
-                style={{ background: "var(--accent)", color: "#000" }}
+                className="mt-4 px-6 py-2.5 rounded-full text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Close Window
               </button>
@@ -145,14 +161,14 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {status === "error" && (
-                <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 flex items-center gap-2">
-                  <AlertCircle className="size-4 flex-shrink-0" />
+                <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex items-center gap-2 font-bold">
+                  <AlertCircle className="size-4 flex-shrink-0 text-red-600" />
                   <span>{errorMessage}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Full Name *
                 </label>
                 <input
@@ -162,14 +178,13 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="e.g. Aryan Sharma"
-                  className="w-full px-3.5 py-2.5 rounded-xl border bg-black/40 focus:outline-none focus:border-cyan-400 transition-colors"
-                  style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500 transition-colors"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Email Address *
                   </label>
                   <input
@@ -178,13 +193,13 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="student@dsu.edu.in"
-                    className="w-full px-3.5 py-2.5 rounded-xl border bg-black/40 focus:outline-none focus:border-cyan-400 transition-colors"
-                    style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
+                    placeholder="name@dsu.edu.in"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500 transition-colors"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Phone Number *
                   </label>
                   <input
@@ -193,58 +208,106 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="10-digit mobile"
-                    className="w-full px-3.5 py-2.5 rounded-xl border bg-black/40 focus:outline-none focus:border-cyan-400 transition-colors"
-                    style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
+                    placeholder="+91 9876543210"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500 transition-colors"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">
-                  College / University
-                </label>
-                <input
-                  type="text"
-                  name="college"
-                  value={formData.college}
-                  onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl border bg-black/40 focus:outline-none focus:border-cyan-400 transition-colors"
-                  style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    College / University
+                  </label>
+                  <input
+                    type="text"
+                    name="college"
+                    value={formData.college}
+                    onChange={handleChange}
+                    placeholder="Dayananda Sagar University"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Department / Branch
+                  </label>
+                  <input
+                    type="text"
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
+                    placeholder="B.Tech CSE (AI & ML)"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500 transition-colors"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">
-                  Branch / Department
-                </label>
-                <input
-                  type="text"
-                  name="branch"
-                  value={formData.branch}
-                  onChange={handleChange}
-                  placeholder="e.g. B.Tech CSE (AI & ML)"
-                  className="w-full px-3.5 py-2.5 rounded-xl border bg-black/40 focus:outline-none focus:border-cyan-400 transition-colors"
-                  style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
-                />
-              </div>
+              {/* Dynamic Custom Questions */}
+              {event.customQuestions && event.customQuestions.length > 0 && (
+                <div className="pt-2 border-t border-slate-100 space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Additional Event Questions
+                  </span>
+                  {event.customQuestions.map((q) => (
+                    <div key={q.id}>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        {q.label} {q.required && "*"}
+                      </label>
+                      {q.type === "textarea" ? (
+                        <textarea
+                          rows={2}
+                          required={q.required}
+                          value={customAnswers[q.id] || ""}
+                          onChange={(e) => handleCustomAnswerChange(q.id, e.target.value)}
+                          placeholder="Your answer..."
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:border-cyan-500 transition-colors"
+                        />
+                      ) : q.type === "select" && q.options ? (
+                        <select
+                          required={q.required}
+                          value={customAnswers[q.id] || ""}
+                          onChange={(e) => handleCustomAnswerChange(q.id, e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-semibold focus:outline-none focus:border-cyan-500 transition-colors"
+                        >
+                          <option value="">Select option</option>
+                          {q.options.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          required={q.required}
+                          value={customAnswers[q.id] || ""}
+                          onChange={(e) => handleCustomAnswerChange(q.id, e.target.value)}
+                          placeholder="Your answer..."
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-semibold focus:outline-none focus:border-cyan-500 transition-colors"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-              <div className="pt-2 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white cursor-pointer"
+                  className="px-5 py-2.5 rounded-full font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
-                  style={{ background: "var(--accent)", color: "#000" }}
+                  className="px-6 py-2.5 rounded-full font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-md shadow-cyan-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  {status === "loading" && <Loader2 className="size-4 animate-spin" />}
-                  <span>Submit Registration</span>
+                  {status === "loading" && <Loader2 className="size-3.5 animate-spin" />}
+                  <span>Confirm Registration</span>
                 </button>
               </div>
             </form>
