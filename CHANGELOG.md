@@ -3,6 +3,22 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-23] - Gemini 3.7 Flash - Session 28
+**Description**: Added **`sagarbitian@gmail.com` to Admin Whitelist & Cleaned Production Cache Headers**:
+- **Admin Email Authorization**: Added `sagarbitian@gmail.com` directly to `data/settings.json` administrator whitelist.
+- **Production Asset Cache Isolation (`next.config.ts`)**:
+  - Removed broad `/:all*(json|js)` cache rule that was caching dynamic JSON APIs and RSC routing chunks on Vercel edge CDN.
+  - Set `X-Frame-Options: SAMEORIGIN` to allow Google Identity popup frames to initialize without CORS/CSP blocking.
+  - Isolated static caching strictly to `/images/`, `/fonts/`, and `/models/`.
+- **Environment Documentation (`.env.example`)**:
+  - Updated with exact variable names: `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `JWT_SECRET`, `ADMIN_PASSWORD`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+- **Verification & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `node diagnostics.js`: 4/4 checks passed.
+**Build Status**: 100% operational. Whitelist updated, CDN cache rules hardened.
+
+---
+
 ## [2026-08-23] - Gemini 3.7 Flash - Session 27
 **Description**: Implemented **Google Identity Services (GSI) & Cryptographic Google ID Token Authentication**:
 - **Cryptographic Google OAuth Backend Verification (`src/app/api/auth/google/route.ts`)**:

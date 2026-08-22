@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     const securityHeaders = [
       {
         key: "X-Frame-Options",
-        value: "DENY",
+        value: "SAMEORIGIN",
       },
       {
         key: "X-Content-Type-Options",
@@ -45,17 +45,6 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|woff|woff2|ttf|css|js|glb|json)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: isProd
-              ? "public, max-age=31536000, immutable"
-              : "no-cache, no-store, must-revalidate",
-          },
-        ],
-      },
-      {
         source: "/images/:path*",
         headers: [
           {
@@ -68,6 +57,17 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/fonts/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: isProd
+              ? "public, max-age=31536000, immutable"
+              : "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/models/:path*",
         headers: [
           {
             key: "Cache-Control",
