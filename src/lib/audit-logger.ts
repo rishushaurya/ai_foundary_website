@@ -59,3 +59,18 @@ export async function logAdminAction(entry: Omit<AuditLogEntry, "id" | "timestam
 export async function getAuditLogs(): Promise<AuditLogEntry[]> {
   return readData<AuditLogEntry[]>("audit-logs.json", []);
 }
+
+/**
+ * Purges all historical audit logs and writes an initial reset entry
+ */
+export async function clearAuditLogs(adminEmail: string = "priyanshushaurya9431@gmail.com"): Promise<boolean> {
+  const initialLog: AuditLogEntry = {
+    id: `log-${Date.now()}-init`,
+    timestamp: new Date().toISOString(),
+    adminEmail,
+    action: "Audit Trail Cleared & Initialized",
+    details: "Historical logs purged by administrator. Fresh audit logging active.",
+    status: "success",
+  };
+  return writeData("audit-logs.json", [initialLog]);
+}

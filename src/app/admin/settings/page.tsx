@@ -62,28 +62,68 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleAddEmail = () => {
+  const handleAddEmail = async () => {
     if (!newEmail || !settings) return;
     const clean = newEmail.trim().toLowerCase();
-    if (settings.adminEmails.includes(clean)) return;
+    if (!clean.includes("@") || !clean.includes(".")) {
+      setNotice({ type: "error", text: "Please enter a valid Google account email address." });
+      return;
+    }
+    if (settings.adminEmails.includes(clean)) {
+      setNotice({ type: "error", text: `${clean} is already in the authorized administrator whitelist.` });
+      return;
+    }
 
-    setSettings({
+    const updatedEmails = [...settings.adminEmails, clean];
+    const updatedSettings = {
       ...settings,
-      adminEmails: [...settings.adminEmails, clean],
-    });
+      adminEmails: updatedEmails,
+    };
+
+    setSettings(updatedSettings);
     setNewEmail("");
+    setNotice({ type: "success", text: `Authorizing ${clean}...` });
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedSettings),
+      });
+      if (!res.ok) throw new Error("Failed to save whitelist update");
+      setNotice({ type: "success", text: `Successfully authorized and saved ${clean} to admin whitelist!` });
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message || "Failed to persist whitelist update" });
+    }
   };
 
-  const handleRemoveEmail = (emailToRemove: string) => {
+  const handleRemoveEmail = async (emailToRemove: string) => {
     if (!settings) return;
     if (emailToRemove.toLowerCase() === "priyanshushaurya9431@gmail.com") {
       setNotice({ type: "error", text: "priyanshushaurya9431@gmail.com is permanently authorized as the root administrator." });
       return;
     }
-    setSettings({
+
+    const updatedEmails = settings.adminEmails.filter((e) => e.toLowerCase() !== emailToRemove.toLowerCase());
+    const updatedSettings = {
       ...settings,
-      adminEmails: settings.adminEmails.filter((e) => e !== emailToRemove),
-    });
+      adminEmails: updatedEmails,
+    };
+
+    setSettings(updatedSettings);
+    setNotice({ type: "success", text: `Revoking access for ${emailToRemove}...` });
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedSettings),
+      });
+      if (!res.ok) throw new Error("Failed to save whitelist update");
+      setNotice({ type: "success", text: `Revoked access for ${emailToRemove} and updated whitelist.` });
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message || "Failed to persist whitelist revocation" });
+    }
   };
 
   if (loading || !settings) {

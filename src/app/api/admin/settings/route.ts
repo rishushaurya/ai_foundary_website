@@ -45,16 +45,45 @@ async function handleSaveSettings(request: Request) {
       revalidatePath("/recruit");
     } catch {}
 
-    // Security Audit Log
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
     const adminEmail = await getAdminEmailFromRequest(request);
-    await logAdminAction({
-      adminEmail,
-      ip,
-      action: "Updated Site Settings & Hero",
-      details: `Hero: ${merged.heroTagline?.substring(0, 30)}...`,
-      status: "success",
-    });
+
+    // Detect Whitelist Additions & Removals for Security Audit Trail
+    const currentEmails = (current.adminEmails || []).map((e) => e.trim().toLowerCase());
+    const addedEmails = normalizedEmails.filter((e) => !currentEmails.includes(e));
+    const removedEmails = currentEmails.filter((e) => !normalizedEmails.includes(e));
+
+    if (addedEmails.length > 0) {
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Authorized Admin Whitelist",
+        target: addedEmails.join(", "),
+        details: `Granted full administrative Google access to: ${addedEmails.join(", ")}`,
+        status: "success",
+      });
+    }
+
+    if (removedEmails.length > 0) {
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Revoked Admin Whitelist",
+        target: removedEmails.join(", "),
+        details: `Revoked administrative access from: ${removedEmails.join(", ")}`,
+        status: "warning",
+      });
+    }
+
+    if (addedEmails.length === 0 && removedEmails.length === 0) {
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Updated Global Site Settings",
+        details: `Branding: ${merged.siteTitle} | Tagline: ${merged.heroTagline?.substring(0, 30)}...`,
+        status: "success",
+      });
+    }
 
     return NextResponse.json({ success: true, settings: merged });
   } catch (err: any) {

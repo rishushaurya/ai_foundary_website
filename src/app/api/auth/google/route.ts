@@ -83,7 +83,6 @@ export async function POST(request: Request) {
 
     const isWhitelisted =
       cleanEmail === "priyanshushaurya9431@gmail.com" ||
-      cleanEmail === "sagarbitian@gmail.com" ||
       allowedEmails.includes(cleanEmail);
 
     if (!isWhitelisted) {

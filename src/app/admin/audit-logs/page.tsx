@@ -54,13 +54,32 @@ export default function AdminAuditLogsPage() {
           </p>
         </div>
 
-        <button
-          onClick={fetchLogs}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
-        >
-          <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh Logs</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchLogs}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={async () => {
+              if (confirm("Are you sure you want to purge historical audit logs? This will reset the audit trail.")) {
+                try {
+                  const res = await fetch("/api/admin/audit-logs", { method: "DELETE" });
+                  if (res.ok) {
+                    const data = await res.json();
+                    setLogs(data.logs || []);
+                  }
+                } catch {}
+              }
+            }}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-red-200 bg-red-50 text-xs font-bold text-red-700 hover:bg-red-100 shadow-xs transition-colors cursor-pointer"
+          >
+            <span>Purge Logs</span>
+          </button>
+        </div>
       </div>
 
       {/* Search Filter Box */}
