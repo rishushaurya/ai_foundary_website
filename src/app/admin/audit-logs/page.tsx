@@ -7,7 +7,9 @@ import { Shield, Search, RefreshCw, Loader2, CheckCircle2, AlertCircle, Clock, G
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [purging, setPurging] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const fetchLogs = async () => {
     try {
@@ -21,6 +23,31 @@ export default function AdminAuditLogsPage() {
       // ignore
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePurgeLogs = async () => {
+    if (!confirm("Are you sure you want to purge historical audit logs? This action can only be authorized by root administrator (priyanshushaurya9431@gmail.com).")) {
+      return;
+    }
+
+    setPurging(true);
+    setNotice(null);
+
+    try {
+      const res = await fetch("/api/admin/audit-logs", { method: "DELETE" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to purge audit logs");
+      }
+
+      setNotice({ type: "success", text: "Audit trail purged and initialized successfully!" });
+      setLogs(data.logs || []);
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message || "Access Denied: Only root administrator can purge logs." });
+    } finally {
+      setPurging(false);
     }
   };
 
@@ -57,30 +84,42 @@ export default function AdminAuditLogsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+            disabled={loading}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
           </button>
 
           <button
-            onClick={async () => {
-              if (confirm("Are you sure you want to purge historical audit logs? This will reset the audit trail.")) {
-                try {
-                  const res = await fetch("/api/admin/audit-logs", { method: "DELETE" });
-                  if (res.ok) {
-                    const data = await res.json();
-                    setLogs(data.logs || []);
-                  }
-                } catch {}
-              }
-            }}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-red-200 bg-red-50 text-xs font-bold text-red-700 hover:bg-red-100 shadow-xs transition-colors cursor-pointer"
+            onClick={handlePurgeLogs}
+            disabled={purging}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-red-200 bg-red-50 text-xs font-bold text-red-700 hover:bg-red-100 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            title="Root Administrator Only"
           >
+            {purging ? <Loader2 className="size-3.5 animate-spin" /> : null}
             <span>Purge Logs</span>
           </button>
         </div>
       </div>
+
+      {/* Notice Banner */}
+      {notice && (
+        <div
+          className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
+            notice.type === "success"
+              ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+              : "bg-red-50 border border-red-200 text-red-800"
+          }`}
+        >
+          {notice.type === "success" ? (
+            <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="size-4 text-red-600 shrink-0" />
+          )}
+          <span>{notice.text}</span>
+        </div>
+      )}
 
       {/* Search Filter Box */}
       <div className="glass-card rounded-2xl p-4 border border-white/80 flex items-center gap-3">
