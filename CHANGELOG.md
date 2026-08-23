@@ -3,6 +3,25 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-23] - Gemini 3.7 Flash - Session 34
+**Description**: Complete **Upstash Redis Cloud Integration**, **Dynamic Rendering**, and **Universal Audit Trail Wiring**:
+- **Universal Audit Trail Integration across ALL Administrative Operations**:
+  - `src/app/api/admin/events/route.ts`: Added audit logging for batch updates & reordering (`"Reordered / Batch Updated Events"`).
+  - `src/app/api/admin/team/route.ts`: Added audit logging for batch updates & reordering (`"Reordered / Batch Updated Team"`).
+  - `src/app/api/admin/recruitment/route.ts`: Added audit logging for candidate status updates (`"Updated Applicant Status"`) and candidate deletions (`"Deleted Recruitment Application"`).
+  - `src/app/api/admin/export/route.ts`: Added audit logging for CSV data exports (`"Exported Recruitment CSV"`, `"Exported Event Registrations CSV"`).
+  - `src/app/api/admin/upload/route.ts`: Added audit logging for media file uploads (`"Uploaded Media File"`).
+- **Next.js Dynamic Server Execution (`src/app/page.tsx`, `src/app/events/page.tsx`, `src/app/team/page.tsx`, `src/app/gallery/page.tsx`)**:
+  - Enforced `export const dynamic = "force-dynamic"` and `export const revalidate = 0` on public pages consuming live Redis database data, ensuring real-time zero-delay updates.
+- **Admin Email Extraction & Upstash Cloud Persistence**:
+  - Enhanced `getAdminEmailFromRequest` in `src/lib/audit-logger.ts` to inspect both `cookies()` and raw headers with root admin fallback.
+  - Connected and seeded live Upstash Redis database with all 7 data sets.
+- **Verification & Deployment**:
+  - `npm run build`: Compiled with 0 errors across 36 routes.
+  - Pushed to `origin/main` (`2306a0c`).
+
+---
+
 ## [2026-08-23] - Gemini 3.7 Flash - Session 33
 **Description**: Purged **Historical Audit Logs**, Implemented **Audit Log Management & Deletion Endpoints**, and Enhanced **Instant Admin Whitelist Persistence**:
 - **Audit Log Trail Clean-Up & Management (`data/audit-logs.json`, `src/lib/audit-logger.ts`, `src/app/api/admin/audit-logs/route.ts`, `src/app/admin/audit-logs/page.tsx`)**:
