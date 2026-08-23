@@ -5,18 +5,40 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { VisiblePagesConfig } from "@/lib/data";
 
 export function LightNavbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [visiblePages, setVisiblePages] = useState<VisiblePagesConfig>({
+    about: true,
+    events: true,
+    team: true,
+    gallery: true,
+    recruit: true,
+  });
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
+
+    async function loadPublicSettings() {
+      try {
+        const res = await fetch("/api/public/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.visiblePages) {
+            setVisiblePages(data.visiblePages);
+          }
+        }
+      } catch {}
+    }
+    loadPublicSettings();
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -33,12 +55,14 @@ export function LightNavbar() {
     router.push("/?scrollTo=about");
   };
 
-  const navLinks = [
-    { name: "About", href: "/about", onClick: handleAboutClick },
-    { name: "Events", href: "/events" },
-    { name: "Team", href: "/team" },
-    { name: "Gallery", href: "/gallery" },
+  const allNavLinks = [
+    { key: "about", name: "About", href: "/about", onClick: handleAboutClick },
+    { key: "events", name: "Events", href: "/events" },
+    { key: "team", name: "Team", href: "/team" },
+    { key: "gallery", name: "Gallery", href: "/gallery" },
   ];
+
+  const navLinks = allNavLinks.filter((link) => visiblePages[link.key as keyof VisiblePagesConfig] !== false);
 
   return (
     <>
@@ -88,42 +112,44 @@ export function LightNavbar() {
           </div>
 
           {/* Center Links Pill Navbar with Balanced Internal Padding & Spacing */}
-          <nav
-            id="imob0j-3-3-2-2"
-            className="hidden md:inline-flex items-center justify-center px-8 sm:px-10 h-[50px] rounded-full bg-black/65 backdrop-blur-2xl border border-white/25 shadow-2xl transition-all duration-200 gap-6 sm:gap-8 relative z-50 pointer-events-auto"
-            style={{ pointerEvents: "auto" }}
-          >
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href));
-              if (link.onClick) {
+          {navLinks.length > 0 && (
+            <nav
+              id="imob0j-3-3-2-2"
+              className="hidden md:inline-flex items-center justify-center px-8 sm:px-10 h-[50px] rounded-full bg-black/65 backdrop-blur-2xl border border-white/25 shadow-2xl transition-all duration-200 gap-6 sm:gap-8 relative z-50 pointer-events-auto"
+              style={{ pointerEvents: "auto" }}
+            >
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href));
+                if (link.onClick) {
+                  return (
+                    <button
+                      key={link.name}
+                      type="button"
+                      onClick={link.onClick}
+                      className="px-2 py-1 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 text-white/90 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] cursor-pointer bg-transparent border-none p-0 focus:outline-none shrink-0 pointer-events-auto"
+                      style={{ pointerEvents: "auto", cursor: "pointer" }}
+                    >
+                      {link.name}
+                    </button>
+                  );
+                }
                 return (
-                  <button
+                  <Link
                     key={link.name}
-                    type="button"
-                    onClick={link.onClick}
-                    className="px-2 py-1 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 text-white/90 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] cursor-pointer bg-transparent border-none p-0 focus:outline-none shrink-0 pointer-events-auto"
+                    href={link.href}
+                    className={`px-2 py-1 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 shrink-0 pointer-events-auto cursor-pointer ${
+                      isActive
+                        ? "text-[#ffab00] font-black drop-shadow-[0_0_10px_rgba(255,171,0,0.8)]"
+                        : "text-white/90 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                    }`}
                     style={{ pointerEvents: "auto", cursor: "pointer" }}
                   >
                     {link.name}
-                  </button>
+                  </Link>
                 );
-              }
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`px-2 py-1 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 shrink-0 pointer-events-auto cursor-pointer ${
-                    isActive
-                      ? "text-[#ffab00] font-black drop-shadow-[0_0_10px_rgba(255,171,0,0.8)]"
-                      : "text-white/90 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-                  }`}
-                  style={{ pointerEvents: "auto", cursor: "pointer" }}
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
+              })}
+            </nav>
+          )}
 
           {/* Right Action 'Join Us' Button */}
           <div
@@ -131,20 +157,22 @@ export function LightNavbar() {
             className="flex items-center gap-3 relative z-50 pointer-events-auto"
             style={{ pointerEvents: "auto" }}
           >
-            <Link
-              href="/recruit"
-              id="i1lwz-2-2-2-2-2-2"
-              className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg bg-[#ebe9e5] text-black text-xs sm:text-sm font-black tracking-tight shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 group border-none cursor-pointer pointer-events-auto"
-              style={{ pointerEvents: "auto", cursor: "pointer" }}
-            >
-              <span id="ispyh-2-3-2-2-2-2">Join Us</span>
-              <img
-                src="/images/group-1597882162.svg"
-                alt=""
-                className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                id="igs5df"
-              />
-            </Link>
+            {visiblePages.recruit !== false && (
+              <Link
+                href="/recruit"
+                id="i1lwz-2-2-2-2-2-2"
+                className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg bg-[#ebe9e5] text-black text-xs sm:text-sm font-black tracking-tight shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 group border-none cursor-pointer pointer-events-auto"
+                style={{ pointerEvents: "auto", cursor: "pointer" }}
+              >
+                <span id="ispyh-2-3-2-2-2-2">Join Us</span>
+                <img
+                  src="/images/group-1597882162.svg"
+                  alt=""
+                  className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  id="igs5df"
+                />
+              </Link>
+            )}
 
             {/* Mobile Hamburger Toggle */}
             <button
@@ -207,16 +235,18 @@ export function LightNavbar() {
               })}
             </div>
 
-            <div className="pt-4 border-t border-white/10">
-              <Link
-                href="/recruit"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 rounded-xl text-center text-sm font-black text-black bg-[#ebe9e5] hover:bg-white shadow-md flex items-center justify-center gap-2"
-              >
-                <span>Join AI Foundry</span>
-                <img src="/images/group-1597882162.svg" alt="" className="w-4 h-4" />
-              </Link>
-            </div>
+            {visiblePages.recruit !== false && (
+              <div className="pt-4 border-t border-white/10">
+                <Link
+                  href="/recruit"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-3 rounded-xl text-center text-sm font-black text-black bg-[#ebe9e5] hover:bg-white shadow-md flex items-center justify-center gap-2"
+                >
+                  <span>Join AI Foundry</span>
+                  <img src="/images/group-1597882162.svg" alt="" className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

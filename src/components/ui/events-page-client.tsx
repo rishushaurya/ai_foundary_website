@@ -21,7 +21,29 @@ export function EventsPageClient({ events }: EventsPageClientProps) {
     );
   };
 
+  const getEventRegistrationStatus = (evt: EventData) => {
+    const isEnded = evt.status === "ended" || evt.isRegistrationOpen === false;
+    const isFutureStart = evt.registrationStartDate && new Date(evt.registrationStartDate).getTime() > Date.now();
+    const isPastDeadline = evt.registrationDeadline && new Date(evt.registrationDeadline).getTime() < Date.now();
+
+    if (isEnded || isPastDeadline) {
+      return { canApply: false, label: evt.closedMessage || "Applications Closed", reason: "closed" };
+    }
+    if (isFutureStart) {
+      return { canApply: false, label: "Opening Soon", reason: "future" };
+    }
+    return {
+      canApply: true,
+      label: evt.registrationMode === "external" ? "Register (External)" : "Register Now",
+      reason: "open",
+    };
+  };
+
   const handleRegisterClick = (evt: EventData) => {
+    const regStatus = getEventRegistrationStatus(evt);
+    if (!regStatus.canApply) {
+      return;
+    }
     if (evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl)) {
       window.open(evt.externalRegistrationUrl || evt.googleFormUrl, "_blank");
       return;
@@ -119,21 +141,32 @@ export function EventsPageClient({ events }: EventsPageClientProps) {
                 </div>
 
                 <div>
-                  <button
-                    onClick={() => handleRegisterClick(featuredEvent)}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full px-8 py-3.5 text-xs sm:text-sm font-black shadow-lg shadow-cyan-600/20 hover:scale-105 hover:from-cyan-500 hover:to-blue-500 transition-all duration-300 active:scale-95 cursor-pointer"
-                  >
-                    <span>
-                      {featuredEvent.registrationMode === "external"
-                        ? "Register (External)"
-                        : "Register Now"}
-                    </span>
-                    {featuredEvent.registrationMode === "external" ? (
-                      <ExternalLink className="size-4" />
-                    ) : (
-                      <ArrowRight className="size-4" />
-                    )}
-                  </button>
+                  {(() => {
+                    const regStatus = getEventRegistrationStatus(featuredEvent);
+                    if (!regStatus.canApply) {
+                      return (
+                        <button
+                          disabled
+                          className="inline-flex items-center gap-2 bg-slate-300 text-slate-500 rounded-full px-8 py-3.5 text-xs sm:text-sm font-black cursor-not-allowed shadow-none"
+                        >
+                          <span>{regStatus.label}</span>
+                        </button>
+                      );
+                    }
+                    return (
+                      <button
+                        onClick={() => handleRegisterClick(featuredEvent)}
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full px-8 py-3.5 text-xs sm:text-sm font-black shadow-lg shadow-cyan-600/20 hover:scale-105 hover:from-cyan-500 hover:to-blue-500 transition-all duration-300 active:scale-95 cursor-pointer"
+                      >
+                        <span>{regStatus.label}</span>
+                        {featuredEvent.registrationMode === "external" ? (
+                          <ExternalLink className="size-4" />
+                        ) : (
+                          <ArrowRight className="size-4" />
+                        )}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

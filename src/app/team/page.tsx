@@ -1,4 +1,5 @@
 import React from "react";
+import { notFound } from "next/navigation";
 import { getFaculty, getExecutives, getTeamWings, getSettings } from "@/lib/data";
 import { NewTeamView } from "@/components/ui/new-team-view";
 import { LightFooter } from "@/components/ui/light-footer";
@@ -19,6 +20,10 @@ export default async function TeamPage() {
     getTeamWings(),
   ]);
 
+  if (settings.visiblePages?.team === false) {
+    notFound();
+  }
+
   return (
     <div className="mesh-bg min-h-screen flex flex-col justify-between">
       <NewTeamView
@@ -27,7 +32,7 @@ export default async function TeamPage() {
         executives={executives}
         wings={wings}
       />
-      <LightFooter />
+      <LightFooter visiblePages={settings.visiblePages} socialLinks={settings.socialLinks} />
     </div>
   );
 }

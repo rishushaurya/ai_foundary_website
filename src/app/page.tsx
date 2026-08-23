@@ -34,6 +34,8 @@ export default async function HomePage() {
       heroTagline={settings.heroTagline || "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE"}
       aboutText={aboutText}
       landingContent={settings.landingContent}
+      socialLinks={settings.socialLinks}
+      visiblePages={settings.visiblePages}
     />
   );
 }

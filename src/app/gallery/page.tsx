@@ -1,5 +1,6 @@
 import React from "react";
-import { getGallerySections } from "@/lib/data";
+import { notFound } from "next/navigation";
+import { getGallerySections, getSettings } from "@/lib/data";
 import { NewGalleryView } from "@/components/ui/new-gallery-view";
 import { LightFooter } from "@/components/ui/light-footer";
 
@@ -12,12 +13,19 @@ export const metadata = {
 };
 
 export default async function GalleryPage() {
-  const sections = await getGallerySections();
+  const [sections, settings] = await Promise.all([
+    getGallerySections(),
+    getSettings(),
+  ]);
+
+  if (settings.visiblePages?.gallery === false) {
+    notFound();
+  }
 
   return (
     <div className="mesh-bg min-h-screen flex flex-col justify-between">
       <NewGalleryView sections={sections} />
-      <LightFooter />
+      <LightFooter visiblePages={settings.visiblePages} socialLinks={settings.socialLinks} />
     </div>
   );
 }

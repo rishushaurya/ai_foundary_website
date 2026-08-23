@@ -87,7 +87,10 @@ export interface EventData {
   registrationMode: "builtin" | "external" | "google-form";
   externalRegistrationUrl?: string;
   googleFormUrl?: string;
+  isRegistrationOpen?: boolean;
+  registrationStartDate?: string;
   registrationDeadline?: string;
+  closedMessage?: string;
   isCountdownEvent?: boolean;
   showOnHome?: boolean;
   showOnEventPage?: boolean;
@@ -192,6 +195,7 @@ export interface SiteSocialLinks {
   instagram?: string;
   linkedin?: string;
   github?: string;
+  twitter?: string;
   discord?: string;
   whatsapp?: string;
   email?: string;
@@ -219,13 +223,26 @@ export interface LandingApproachItem {
   image?: string;
 }
 
+export interface LandingProcessItem {
+  id?: string;
+  num: string;
+  title: string;
+  desc: string;
+}
+
 export interface LandingStatsConfig {
   members: string;
+  membersLabel?: string;
   projects: string;
+  projectsLabel?: string;
   duration: string;
+  durationLabel?: string;
   mentors: string;
+  mentorsLabel?: string;
   costReduction: string;
+  costReductionLabel?: string;
   innovationHours: string;
+  innovationHoursLabel?: string;
 }
 
 export interface LandingTestimonialItem {
@@ -246,8 +263,14 @@ export interface LandingTeamMember {
 }
 
 export interface LandingCustomContent {
+  heroBadge?: string;
+  heroTagline?: string;
+  heroSubtext?: string;
+  heroDepartment?: string;
+  aboutBadge?: string;
   aboutHeading?: string;
   aboutText?: string;
+  aboutSecondaryText?: string;
   missionHeading?: string;
   missionText?: string;
   pillarsHeading?: string;
@@ -259,6 +282,9 @@ export interface LandingCustomContent {
   approachHeading?: string;
   approachSubtext?: string;
   approach?: LandingApproachItem[];
+  processHeading?: string;
+  process?: LandingProcessItem[];
+  statsHeading?: string;
   stats?: LandingStatsConfig;
   testimonialsHeading?: string;
   testimonials?: LandingTestimonialItem[];
@@ -267,6 +293,7 @@ export interface LandingCustomContent {
   teamDescription?: string;
   teamMembers?: LandingTeamMember[];
   ctaHeading?: string;
+  ctaDescription?: string;
   ctaButtonText?: string;
 }
 

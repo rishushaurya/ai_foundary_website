@@ -12,6 +12,7 @@ import {
   Shield,
   Eye,
   Sliders,
+  Sparkles,
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -312,6 +313,147 @@ export default function AdminSettingsPage() {
               value={settings.studentHeading}
               onChange={(e) => setSettings({ ...settings, studentHeading: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ===== 4. SOCIAL MEDIA & COMMUNITY LINKS (CONNECT & FOLLOW) ===== */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
+        <div>
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+            <Sparkles className="size-5 text-cyan-600" />
+            <span>Connect &amp; Follow (Footer &amp; Social Links)</span>
+          </h2>
+          <p className="text-xs text-slate-500 font-medium mt-2">
+            Configure the live URLs for footer &apos;Connect &amp; Follow&apos; buttons across the website.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              LinkedIn Profile / Page URL
+            </label>
+            <input
+              type="url"
+              value={settings.socialLinks?.linkedin || ""}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  socialLinks: {
+                    ...settings.socialLinks,
+                    linkedin: e.target.value,
+                  },
+                })
+              }
+              placeholder="https://linkedin.com/company/aifoundry-dsu"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              Instagram Profile URL
+            </label>
+            <input
+              type="url"
+              value={settings.socialLinks?.instagram || ""}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  socialLinks: {
+                    ...settings.socialLinks,
+                    instagram: e.target.value,
+                  },
+                })
+              }
+              placeholder="https://instagram.com/aifoundry_dsu"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              GitHub Organization URL
+            </label>
+            <input
+              type="url"
+              value={settings.socialLinks?.github || ""}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  socialLinks: {
+                    ...settings.socialLinks,
+                    github: e.target.value,
+                  },
+                })
+              }
+              placeholder="https://github.com/aifoundry-dsu"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              X (Twitter) Profile URL
+            </label>
+            <input
+              type="url"
+              value={settings.socialLinks?.twitter || ""}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  socialLinks: {
+                    ...settings.socialLinks,
+                    twitter: e.target.value,
+                  },
+                })
+              }
+              placeholder="https://x.com/aifoundry_dsu"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              Official Contact Email
+            </label>
+            <input
+              type="email"
+              value={settings.socialLinks?.email || ""}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  socialLinks: {
+                    ...settings.socialLinks,
+                    email: e.target.value,
+                  },
+                })
+              }
+              placeholder="info@aifoundry.com"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block font-bold uppercase tracking-wider text-slate-700">
+              Discord / Community Invite URL
+            </label>
+            <input
+              type="url"
+              value={settings.socialLinks?.discord || ""}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  socialLinks: {
+                    ...settings.socialLinks,
+                    discord: e.target.value,
+                  },
+                })
+              }
+              placeholder="https://discord.gg/aifoundry"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
             />
           </div>
         </div>

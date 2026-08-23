@@ -1,5 +1,6 @@
 import React from "react";
-import { getEvents } from "@/lib/data";
+import { notFound } from "next/navigation";
+import { getEvents, getSettings } from "@/lib/data";
 import { EventsPageClient } from "@/components/ui/events-page-client";
 import { LightFooter } from "@/components/ui/light-footer";
 
@@ -12,12 +13,16 @@ export const metadata = {
 };
 
 export default async function EventsPage() {
-  const events = await getEvents();
+  const [events, settings] = await Promise.all([getEvents(), getSettings()]);
+
+  if (settings.visiblePages?.events === false) {
+    notFound();
+  }
 
   return (
     <div className="mesh-bg min-h-screen flex flex-col justify-between">
       <EventsPageClient events={events} />
-      <LightFooter />
+      <LightFooter visiblePages={settings.visiblePages} socialLinks={settings.socialLinks} />
     </div>
   );
 }

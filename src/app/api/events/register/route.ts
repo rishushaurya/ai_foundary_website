@@ -44,10 +44,26 @@ export async function POST(request: Request) {
 
     const targetEvent = events[eventIndex];
 
-    // Check if event is closed
-    if (targetEvent.status === "ended") {
+    // Check if event registration is disabled or ended
+    if (targetEvent.status === "ended" || targetEvent.isRegistrationOpen === false) {
       return NextResponse.json(
-        { error: "Registrations for this event have closed." },
+        { error: targetEvent.closedMessage || "Applications for this event are currently closed." },
+        { status: 400 }
+      );
+    }
+
+    // Check start date window
+    if (targetEvent.registrationStartDate && new Date(targetEvent.registrationStartDate).getTime() > Date.now()) {
+      return NextResponse.json(
+        { error: "Applications for this event have not opened yet." },
+        { status: 400 }
+      );
+    }
+
+    // Check deadline
+    if (targetEvent.registrationDeadline && new Date(targetEvent.registrationDeadline).getTime() < Date.now()) {
+      return NextResponse.json(
+        { error: "The application deadline for this event has passed." },
         { status: 400 }
       );
     }

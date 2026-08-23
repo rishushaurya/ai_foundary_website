@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { EventData, EventRegistration, EventCustomQuestion } from "@/lib/data";
+import { EventData, EventCustomQuestion } from "@/lib/data";
 import { normalizeImageUrl } from "@/lib/image-helper";
 import {
   Plus,
@@ -18,6 +18,9 @@ import {
   Link as LinkIcon,
   HelpCircle,
   Download,
+  Clock,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 export default function AdminEventsPage() {
@@ -104,6 +107,10 @@ export default function AdminEventsPage() {
       status: "upcoming",
       registrationMode: "builtin",
       externalRegistrationUrl: "",
+      isRegistrationOpen: true,
+      registrationStartDate: "",
+      registrationDeadline: "",
+      closedMessage: "Applications Closed",
       showOnHome: true,
       showOnEventPage: true,
       customQuestions: [],
@@ -117,6 +124,10 @@ export default function AdminEventsPage() {
       ...evt,
       registrationMode: evt.registrationMode || "builtin",
       externalRegistrationUrl: evt.externalRegistrationUrl || evt.googleFormUrl || "",
+      isRegistrationOpen: evt.isRegistrationOpen !== false,
+      registrationStartDate: evt.registrationStartDate || "",
+      registrationDeadline: evt.registrationDeadline || "",
+      closedMessage: evt.closedMessage || "Applications Closed",
       customQuestions: evt.customQuestions || [],
     });
     setIsModalOpen(true);
@@ -157,7 +168,7 @@ export default function AdminEventsPage() {
             Events, Hackathons &amp; Masterclasses
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Publish upcoming initiatives, manage registration links, and customize registration questions.
+            Publish upcoming initiatives, manage registration open/closed status, deadlines, and questions.
           </p>
         </div>
 
@@ -205,6 +216,7 @@ export default function AdminEventsPage() {
                 <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase tracking-wider">
                   <th className="pb-3 px-3">Event Title</th>
                   <th className="pb-3 px-3">Status</th>
+                  <th className="pb-3 px-3">Applications</th>
                   <th className="pb-3 px-3">Home Spotlight</th>
                   <th className="pb-3 px-3">Date</th>
                   <th className="pb-3 px-3">Venue</th>
@@ -213,78 +225,93 @@ export default function AdminEventsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {events.map((evt) => (
-                  <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-3 font-bold text-slate-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-                          <img
-                            src={normalizeImageUrl(evt.image, "/images/rectangle-899.png")}
-                            alt={evt.title}
-                            className="w-full h-full object-cover"
-                          />
+                {events.map((evt) => {
+                  const isClosed = evt.isRegistrationOpen === false || evt.status === "ended";
+                  return (
+                    <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-4 px-3 font-bold text-slate-900">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                            <img
+                              src={normalizeImageUrl(evt.image, "/images/rectangle-899.png")}
+                              alt={evt.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <span className="block text-sm font-bold text-slate-900">{evt.title}</span>
+                            <span className="text-[11px] text-slate-500 line-clamp-1">{evt.description}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="block text-sm font-bold text-slate-900">{evt.title}</span>
-                          <span className="text-[11px] text-slate-500 line-clamp-1">{evt.description}</span>
+                      </td>
+                      <td className="py-4 px-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                            evt.status === "upcoming"
+                              ? "bg-cyan-50 text-cyan-800 border border-cyan-200"
+                              : evt.status === "ongoing"
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              : "bg-slate-100 text-slate-600 border border-slate-200"
+                          }`}
+                        >
+                          {evt.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-3">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            isClosed
+                              ? "bg-red-100 text-red-800 border border-red-200"
+                              : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          }`}
+                        >
+                          {isClosed ? <Lock className="size-2.5" /> : <Unlock className="size-2.5" />}
+                          <span>{isClosed ? "Closed" : "Open"}</span>
+                        </span>
+                      </td>
+                      <td className="py-4 px-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            evt.showOnHome !== false
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          {evt.showOnHome !== false ? "Visible on Home" : "Hidden on Home"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-3 text-slate-600 font-medium whitespace-nowrap">{evt.date}</td>
+                      <td className="py-4 px-3 text-slate-600 font-medium">{evt.venue}</td>
+                      <td className="py-4 px-3 text-center">
+                        <button
+                          onClick={() => setViewingRegsEvent(evt)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 text-[11px] transition-colors cursor-pointer"
+                        >
+                          <Users className="size-3 text-cyan-600" />
+                          <span>{(evt.registrations || []).length} Attendees</span>
+                        </button>
+                      </td>
+                      <td className="py-4 px-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(evt)}
+                            className="p-1.5 rounded-lg hover:bg-cyan-50 text-slate-500 hover:text-cyan-700 transition-colors cursor-pointer"
+                            title="Edit Event"
+                          >
+                            <Edit2 className="size-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEvent(evt.id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                            title="Delete Event"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-3">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          evt.status === "upcoming"
-                            ? "bg-cyan-50 text-cyan-800 border border-cyan-200"
-                            : evt.status === "ongoing"
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                            : "bg-slate-100 text-slate-600 border border-slate-200"
-                        }`}
-                      >
-                        {evt.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                          evt.showOnHome !== false
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {evt.showOnHome !== false ? "Visible on Home" : "Hidden on Home"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-3 text-slate-600 font-medium whitespace-nowrap">{evt.date}</td>
-                    <td className="py-4 px-3 text-slate-600 font-medium">{evt.venue}</td>
-                    <td className="py-4 px-3 text-center">
-                      <button
-                        onClick={() => setViewingRegsEvent(evt)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 text-[11px] transition-colors cursor-pointer"
-                      >
-                        <Users className="size-3 text-cyan-600" />
-                        <span>{(evt.registrations || []).length} Attendees</span>
-                      </button>
-                    </td>
-                    <td className="py-4 px-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(evt)}
-                          className="p-1.5 rounded-lg hover:bg-cyan-50 text-slate-500 hover:text-cyan-700 transition-colors cursor-pointer"
-                          title="Edit Event"
-                        >
-                          <Edit2 className="size-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteEvent(evt.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
-                          title="Delete Event"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -388,12 +415,99 @@ export default function AdminEventsPage() {
                 />
               </div>
 
+              {/* ===== REGISTRATION AVAILABILITY & TIMELINE ===== */}
+              <div className="p-4 rounded-2xl bg-cyan-50/70 border border-cyan-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-4 text-cyan-700" />
+                    <span className="font-extrabold uppercase tracking-wider text-cyan-950">
+                      Application Window &amp; Availability Control
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Allow Registrations / Applications
+                    </label>
+                    <select
+                      value={activeEvent.isRegistrationOpen !== false ? "open" : "closed"}
+                      onChange={(e) =>
+                        setActiveEvent({
+                          ...activeEvent,
+                          isRegistrationOpen: e.target.value === "open",
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                    >
+                      <option value="open">🟢 Open (Students can apply)</option>
+                      <option value="closed">🔴 Closed / Paused (Block applications)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Closed Message / Button Text
+                    </label>
+                    <input
+                      type="text"
+                      value={activeEvent.closedMessage || "Applications Closed"}
+                      onChange={(e) =>
+                        setActiveEvent({
+                          ...activeEvent,
+                          closedMessage: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Applications Closed"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Applications Open Date / Time (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={activeEvent.registrationStartDate || ""}
+                      onChange={(e) =>
+                        setActiveEvent({
+                          ...activeEvent,
+                          registrationStartDate: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Oct 15, 2026 10:00 AM"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-mono text-[11px] text-slate-800 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Application Deadline / Closing Date (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={activeEvent.registrationDeadline || ""}
+                      onChange={(e) =>
+                        setActiveEvent({
+                          ...activeEvent,
+                          registrationDeadline: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Oct 24, 2026 11:59 PM"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white font-mono text-[11px] text-slate-800 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* ===== REGISTRATION SETTINGS ===== */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center gap-2">
                   <LinkIcon className="size-4 text-cyan-600" />
                   <span className="font-extrabold uppercase tracking-wider text-slate-800">
-                    Registration Mode &amp; Link
+                    Registration Mode &amp; Custom Fields
                   </span>
                 </div>
 

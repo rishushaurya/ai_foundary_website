@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RegistrationModal } from "@/components/ui/registration-modal";
-import { TeamMember, EventData, GallerySection, LandingCustomContent } from "@/lib/data";
+import { TeamMember, EventData, GallerySection, LandingCustomContent, SiteSocialLinks, VisiblePagesConfig } from "@/lib/data";
 import { normalizeImageUrl } from "@/lib/image-helper";
 import {
   Calendar,
@@ -26,6 +26,8 @@ interface HomeViewProps {
   heroTagline: string;
   aboutText: string;
   landingContent?: LandingCustomContent;
+  socialLinks?: SiteSocialLinks;
+  visiblePages?: VisiblePagesConfig;
 }
 
 export function HomeView({
@@ -35,6 +37,8 @@ export function HomeView({
   heroTagline,
   aboutText,
   landingContent,
+  socialLinks,
+  visiblePages,
 }: HomeViewProps) {
   const router = useRouter();
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
@@ -105,13 +109,128 @@ export function HomeView({
     allGalleryImages.length > 0
       ? allGalleryImages
       : [
-          { id: "img-1", name: "AI Innovation Sprint", url: "/images/rectangle-899.png", albumName: "Hackathons" },
-          { id: "img-2", name: "Robotics Workshop", url: "/images/rectangle-902.png", albumName: "Workshops" },
-          { id: "img-3", name: "Faculty Keynote", url: "/images/rectangle-898.png", albumName: "Symposiums" },
-          { id: "img-4", name: "Student Demo Day", url: "/images/image-1929.png", albumName: "Demo Day" },
-          { id: "img-5", name: "Venture Accelerator", url: "/images/rectangle-5.png", albumName: "Incubation" },
-          { id: "img-6", name: "Community Meetup", url: "/images/rectangle-8.png", albumName: "Community" },
+          { id: "img-1", name: "Event Photograph", url: "/images/rectangle-899.png", albumName: "Inaugural ceremony and teams" },
+          { id: "img-2", name: "Event Photograph", url: "/images/rectangle-902.png", albumName: "Inaugural ceremony and teams" },
+          { id: "img-3", name: "Event Photograph", url: "/images/rectangle-898.png", albumName: "Inaugural ceremony and teams" },
+          { id: "img-4", name: "Team", url: "/images/image-1929.png", albumName: "Inaugural ceremony and teams" },
+          { id: "img-5", name: "leads", url: "/images/rectangle-5.png", albumName: "Inaugural ceremony and teams" },
+          { id: "img-6", name: "Event Photograph", url: "/images/rectangle-8.png", albumName: "Inaugural ceremony and teams" },
         ];
+
+  // Dynamic Pillars
+  const pillarsList = landingContent?.pillars && landingContent.pillars.length > 0
+    ? landingContent.pillars
+    : [
+        {
+          id: "p1",
+          title: "Innovation",
+          description: "We encourage groundbreaking ideas and provide GPU compute, lab access, and development toolkits for members to explore the frontiers of AI.",
+          icon: "Rocket",
+        },
+        {
+          id: "p2",
+          title: "Collaboration",
+          description: "We believe in the power of diverse minds working together, fostering a supportive cross-disciplinary environment for peer learning and growth.",
+          icon: "Users",
+        },
+        {
+          id: "p3",
+          title: "Impact",
+          description: "Our projects aim to solve real-world problems, making a tangible difference across healthcare, robotics, education, and venture incubation.",
+          icon: "Compass",
+        },
+      ];
+
+  // Dynamic Approach Steps (5 Steps)
+  const approachList = landingContent?.approach && landingContent.approach.length > 0
+    ? landingContent.approach
+    : [
+        {
+          id: "app1",
+          title: "1. Ideation",
+          description: "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and venture scoping.",
+          image: "/images/rectangle-5.png",
+        },
+        {
+          id: "app2",
+          title: "2. Development",
+          description: "Providing tools, GPU compute clusters, mentorship, and a collaborative space for building production-grade AI solutions.",
+        },
+        {
+          id: "app3",
+          title: "3. Launch",
+          description: "Supporting projects through deployment, venture accelerator pitch demo days, and continuous real-world user testing.",
+          image: "/images/map.png",
+        },
+        {
+          id: "app4",
+          title: "4. Mentorship",
+          description: "Connecting students with faculty advisors and industry executives for deep architectural and venture guidance.",
+        },
+        {
+          id: "app5",
+          title: "5. Community & Growth",
+          description: "Building a strong, lifelong alumni and student network across Bangalore's tech ecosystem, fostering peer collaboration and opportunities.",
+          image: "/images/rectangle-8.png",
+        },
+      ];
+
+  // Dynamic Process Steps (4 Steps)
+  const processList = landingContent?.process && landingContent.process.length > 0
+    ? landingContent.process
+    : [
+        { num: "01", title: "Idea Generation", desc: "Brainstorming and refining concepts within our collaborative workshops and 24-hour hackathons." },
+        { num: "02", title: "Team Formation", desc: "Connecting students with complementary technical and design skills to form interdisciplinary squads." },
+        { num: "03", title: "Project Incubation", desc: "Providing GPU compute, mentorship, and a supportive environment for full-stack prototype development." },
+        { num: "04", title: "Showcase & Launch", desc: "Presenting completed projects to the tech community, investors, and supporting venture deployment." },
+      ];
+
+  // Dynamic Stats (6 Metrics)
+  const statsConfig = landingContent?.stats || {
+    members: "50+",
+    membersLabel: "Active Members",
+    projects: "15+",
+    projectsLabel: "Successful Sprints",
+    duration: "1 Year",
+    durationLabel: "Since Inception",
+    mentors: "20+",
+    mentorsLabel: "Industry Mentors",
+    costReduction: "50%",
+    costReductionLabel: "Build Time Saved",
+    innovationHours: "500+ hrs",
+    innovationHoursLabel: "Innovation Time",
+  };
+
+  // Dynamic Team Members for Landing Page
+  const leadershipList = landingContent?.teamMembers && landingContent.teamMembers.length > 0
+    ? landingContent.teamMembers
+    : [
+        {
+          id: "tm-1",
+          name: facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam",
+          role: facultyAdvisors[0]?.role || "Club Coordinator & Chairperson CSE (AI & ML)",
+          image: "/images/rectangle-899.png",
+        },
+        {
+          id: "tm-2",
+          name: facultyAdvisors[1]?.name || "Dr. M Lakshmanan",
+          role: facultyAdvisors[1]?.role || "Club Advisor",
+          image: "/images/rectangle-898.png",
+        },
+        {
+          id: "tm-3",
+          name: "Dr. A. A. Nippun Kumaar",
+          role: "Club Advisor",
+          image: "/images/rectangle-902.png",
+        },
+      ];
+
+  // Social URLs
+  const linkedinUrl = socialLinks?.linkedin || "https://linkedin.com/";
+  const instagramUrl = socialLinks?.instagram || "https://instagram.com/";
+  const githubUrl = socialLinks?.github || "https://github.com/";
+  const twitterUrl = socialLinks?.twitter || "https://x.com/";
+  const emailContact = socialLinks?.email || "info@aifoundry.com";
 
   return (
     <div className="relative min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-hidden selection:bg-cyan-500 selection:text-black">
@@ -131,47 +250,43 @@ export function HomeView({
           {/* Top subtle badge */}
           <div className="reveal-on-scroll is-revealed inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-white/90 text-blue-700 border border-slate-200 shadow-sm backdrop-blur-md mb-6 tracking-wide">
             <Sparkles className="size-3.5 text-blue-600 animate-pulse" />
-            <span>DSU PREMIER AI &amp; VENTURE ACCELERATOR</span>
+            <span>{landingContent?.heroBadge || "DSU PREMIER AI & VENTURE ACCELERATOR"}</span>
           </div>
 
           {/* Main Hero Title & Tagline */}
           <div className="flex flex-col items-center text-center max-w-5xl my-auto space-y-6">
             <h1 className="reveal-on-scroll reveal-delay-100 is-revealed text-4xl sm:text-6xl md:text-7xl font-extrabold text-slate-950 tracking-tight leading-[1.08]">
-              {heroTagline ? (
-                heroTagline
-              ) : (
-                <>
-                  Forging the Future of <br className="hidden sm:inline" />
-                  <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-600 bg-clip-text text-transparent">
-                    AI &amp; Entrepreneurship
-                  </span>
-                </>
-              )}
+              {landingContent?.heroTagline || heroTagline || "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE"}
             </h1>
 
             <p className="reveal-on-scroll reveal-delay-200 is-revealed text-slate-600 text-base sm:text-lg md:text-xl font-normal max-w-2xl leading-relaxed">
-              Dayananda Sagar University&apos;s flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures.
+              {landingContent?.heroSubtext ||
+                "Dayananda Sagar University's flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures."}
             </p>
 
             {/* Action Buttons */}
             <div className="reveal-on-scroll reveal-delay-300 is-revealed flex flex-wrap items-center justify-center gap-4 pt-4">
-              <a
-                href="/recruit"
-                onClick={(e) => navigateTo(e, "/recruit")}
-                className="no-underline cursor-pointer transition-all hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-slate-900 text-white font-bold text-sm sm:text-base rounded-xl shadow-xl shadow-slate-900/15 hover:bg-slate-800"
-              >
-                <span>Join AI Foundry</span>
-                <ArrowRight className="size-4" />
-              </a>
+              {visiblePages?.recruit !== false && (
+                <a
+                  href="/recruit"
+                  onClick={(e) => navigateTo(e, "/recruit")}
+                  className="no-underline cursor-pointer transition-all hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-slate-900 text-white font-bold text-sm sm:text-base rounded-xl shadow-xl shadow-slate-900/15 hover:bg-slate-800"
+                >
+                  <span>Join AI Foundry</span>
+                  <ArrowRight className="size-4" />
+                </a>
+              )}
 
-              <a
-                href="/events"
-                onClick={(e) => navigateTo(e, "/events")}
-                className="no-underline cursor-pointer transition-all hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-white/90 text-slate-900 font-bold text-sm sm:text-base rounded-xl border border-slate-200 shadow-sm hover:bg-white backdrop-blur-md"
-              >
-                <span>Explore Events</span>
-                <Calendar className="size-4 text-blue-600" />
-              </a>
+              {visiblePages?.events !== false && (
+                <a
+                  href="/events"
+                  onClick={(e) => navigateTo(e, "/events")}
+                  className="no-underline cursor-pointer transition-all hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-white/90 text-slate-900 font-bold text-sm sm:text-base rounded-xl border border-slate-200 shadow-sm hover:bg-white backdrop-blur-md"
+                >
+                  <span>Explore Events</span>
+                  <Calendar className="size-4 text-blue-600" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -182,7 +297,7 @@ export function HomeView({
               <span className="font-semibold uppercase tracking-widest text-slate-600">Scroll down to explore</span>
             </div>
             <div className="text-center sm:text-right font-medium max-w-md">
-              School of Engineering &bull; Department of AI &amp; Robotics &bull; DSU Bengaluru
+              {landingContent?.heroDepartment || "School of Engineering • Department of AI & Robotics • DSU Bengaluru"}
             </div>
           </div>
         </section>
@@ -194,35 +309,42 @@ export function HomeView({
 
             <div className="max-w-4xl space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 font-mono">
-                ABOUT AI FOUNDRY
+                {landingContent?.aboutBadge || "ABOUT AI FOUNDRY"}
               </div>
 
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                {aboutText ||
-                  "To cultivate a vibrant community at DSU, fostering innovation in AI and entrepreneurship through collaborative projects."}
+                {landingContent?.aboutHeading ||
+                  aboutText ||
+                  "AI Foundry is the premier student innovation ecosystem established under the Department of Computer Science & Engineering (AI & ML) at Dayananda Sagar University (DSU), Bengaluru."}
               </h2>
 
               <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
-                AI Foundry is Dayananda Sagar University&apos;s flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing hands-on mentorship, enterprise GPU compute, and a collaborative workspace.
+                {landingContent?.aboutSecondaryText ||
+                  landingContent?.aboutText ||
+                  "AI Foundry is Dayananda Sagar University's flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing hands-on mentorship, enterprise GPU compute, and a collaborative workspace."}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 pt-4">
-                <a
-                  href="/recruit"
-                  onClick={(e) => navigateTo(e, "/recruit")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:bg-slate-800"
-                >
-                  <span>Join Our Community</span>
-                  <ArrowRight className="size-4" />
-                </a>
-                <a
-                  href="/team"
-                  onClick={(e) => navigateTo(e, "/team")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-white text-slate-800 font-bold text-sm rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50"
-                >
-                  <span>Meet The Leadership</span>
-                  <Users className="size-4 text-blue-600" />
-                </a>
+                {visiblePages?.recruit !== false && (
+                  <a
+                    href="/recruit"
+                    onClick={(e) => navigateTo(e, "/recruit")}
+                    className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:bg-slate-800"
+                  >
+                    <span>Join Our Community</span>
+                    <ArrowRight className="size-4" />
+                  </a>
+                )}
+                {visiblePages?.team !== false && (
+                  <a
+                    href="/team"
+                    onClick={(e) => navigateTo(e, "/team")}
+                    className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-white text-slate-800 font-bold text-sm rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50"
+                  >
+                    <span>Meet The Leadership</span>
+                    <Users className="size-4 text-blue-600" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -239,13 +361,15 @@ export function HomeView({
                 Hackathons, Workshops &amp; Sprints
               </h2>
             </div>
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
-            >
-              <span>View All Events</span>
-              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {visiblePages?.events !== false && (
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
+              >
+                <span>View All Events</span>
+                <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
           </div>
 
           {/* Event Cards Grid */}
@@ -259,6 +383,12 @@ export function HomeView({
                   day: "numeric",
                   year: "numeric",
                 });
+
+                const isEnded = evt.status === "ended" || evt.isRegistrationOpen === false;
+                const isFutureStart = evt.registrationStartDate && new Date(evt.registrationStartDate).getTime() > Date.now();
+                const isPastDeadline = evt.registrationDeadline && new Date(evt.registrationDeadline).getTime() < Date.now();
+                const isClosed = isEnded || isPastDeadline;
+
                 return (
                   <div
                     key={evt.id}
@@ -267,7 +397,13 @@ export function HomeView({
                     <div className="w-full flex flex-col">
                       {/* Status & Date */}
                       <div className="flex items-center justify-between w-full mb-4">
-                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 font-mono shadow-sm">
+                        <span
+                          className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider font-mono shadow-sm ${
+                            isClosed
+                              ? "bg-slate-100 text-slate-600 border border-slate-200"
+                              : "bg-blue-50 text-blue-700 border border-blue-200"
+                          }`}
+                        >
                           {evt.status}
                         </span>
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono font-medium">
@@ -302,9 +438,23 @@ export function HomeView({
                       </div>
                     </div>
 
-                    {/* Registration Button */}
+                    {/* Registration Button / Status */}
                     <div className="pt-4 mt-2 border-t border-slate-100 w-full flex justify-center">
-                      {evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl) ? (
+                      {isClosed ? (
+                        <button
+                          disabled
+                          className="w-full flex items-center justify-center gap-2 py-3.5 px-6 bg-slate-200 text-slate-500 rounded-xl font-bold text-sm cursor-not-allowed border-none shadow-none"
+                        >
+                          <span>{evt.closedMessage || "Applications Closed"}</span>
+                        </button>
+                      ) : isFutureStart ? (
+                        <button
+                          disabled
+                          className="w-full flex items-center justify-center gap-2 py-3.5 px-6 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl font-bold text-sm cursor-not-allowed"
+                        >
+                          <span>Opening Soon</span>
+                        </button>
+                      ) : evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl) ? (
                         <a
                           href={evt.externalRegistrationUrl || evt.googleFormUrl}
                           target="_blank"
@@ -338,53 +488,41 @@ export function HomeView({
                 OUR PILLARS
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-                Our approach to innovation is built on three core strategies.
+                {landingContent?.pillarsHeading || "Our approach to innovation is built on three core strategies."}
               </h2>
             </div>
             <p className="text-slate-600 text-sm sm:text-base max-w-md font-normal">
-              Empowering students to lead in AI and entrepreneurship, fostering real-world impact and future-ready skills.
+              {landingContent?.pillarsSubtext || "Empowering students to lead in AI and entrepreneurship, fostering real-world impact and future-ready skills."}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Pillar 1: Innovation */}
-            <div className="reveal-on-scroll reveal-delay-100 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-6 text-amber-600">
-                <Rocket className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Innovation</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  We encourage groundbreaking ideas and provide GPU compute, lab access, and development toolkits for members to explore the frontiers of AI.
-                </p>
-              </div>
-            </div>
+            {pillarsList.map((pillar, pIdx) => {
+              const iconStyles = [
+                { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", Icon: Rocket },
+                { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-600", Icon: Users },
+                { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", Icon: Compass },
+              ][pIdx % 3];
 
-            {/* Pillar 2: Collaboration */}
-            <div className="reveal-on-scroll reveal-delay-200 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-6 text-blue-600">
-                <Users className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Collaboration</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  We believe in the power of diverse minds working together, fostering a supportive cross-disciplinary environment for peer learning and growth.
-                </p>
-              </div>
-            </div>
+              const IconComponent = iconStyles.Icon;
 
-            {/* Pillar 3: Impact */}
-            <div className="reveal-on-scroll reveal-delay-300 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-6 text-emerald-600">
-                <Compass className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Impact</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Our projects aim to solve real-world problems, making a tangible difference across healthcare, robotics, education, and venture incubation.
-                </p>
-              </div>
-            </div>
+              return (
+                <div
+                  key={pillar.id || pIdx}
+                  className={`reveal-on-scroll reveal-delay-${(pIdx + 1) * 100} bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105`}
+                >
+                  <div className={`w-12 h-12 rounded-2xl ${iconStyles.bg} border ${iconStyles.border} flex items-center justify-center mb-6 ${iconStyles.text}`}>
+                    <IconComponent className="size-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{pillar.title}</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed">
+                      {pillar.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -399,13 +537,15 @@ export function HomeView({
                 Life at AI Foundry
               </h2>
             </div>
-            <Link
-              href="/gallery"
-              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
-            >
-              <span>View Full Gallery</span>
-              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {visiblePages?.gallery !== false && (
+              <Link
+                href="/gallery"
+                className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
+              >
+                <span>View Full Gallery</span>
+                <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
           </div>
 
           {/* Marquee Track Container */}
@@ -444,68 +584,39 @@ export function HomeView({
               OUR APPROACH
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-              Where your ambition meets innovation.
+              {landingContent?.approachHeading || "Where your ambition meets innovation."}
             </h2>
             <p className="text-slate-600 text-base max-w-2xl mt-4 font-normal">
-              We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures.
+              {landingContent?.approachSubtext || "We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures."}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Step 1: Ideation */}
-            <div className="reveal-on-scroll reveal-delay-100 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
-              <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
-                <img src="/images/rectangle-5.png" alt="Ideation" className="w-full h-full object-cover" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">1. Ideation</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and venture scoping.
-              </p>
-            </div>
-
-            {/* Step 2: Development */}
-            <div className="reveal-on-scroll reveal-delay-200 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4 text-blue-600 font-bold">
-                02
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">2. Development</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Providing tools, GPU compute clusters, mentorship, and a collaborative space for building production-grade AI solutions.
-              </p>
-            </div>
-
-            {/* Step 3: Launch */}
-            <div className="reveal-on-scroll reveal-delay-300 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
-              <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
-                <img src="/images/map.png" alt="Launch map" className="w-full h-full object-cover" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">3. Launch</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Supporting projects through deployment, venture accelerator pitch demo days, and continuous real-world user testing.
-              </p>
-            </div>
-
-            {/* Step 4: Mentorship */}
-            <div className="reveal-on-scroll reveal-delay-400 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4 text-amber-600 font-bold">
-                04
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">4. Mentorship</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Connecting students with faculty advisors and industry executives for deep architectural and venture guidance.
-              </p>
-            </div>
-
-            {/* Step 5: Community */}
-            <div className="reveal-on-scroll reveal-delay-500 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all md:col-span-2 lg:col-span-2">
-              <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
-                <img src="/images/rectangle-8.png" alt="Community" className="w-full h-full object-cover" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">5. Community &amp; Growth</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Building a strong, lifelong alumni and student network across Bangalore&apos;s tech ecosystem, fostering peer collaboration and opportunities.
-              </p>
-            </div>
+            {approachList.map((step, sIdx) => {
+              const isWide = sIdx === 4;
+              return (
+                <div
+                  key={step.id || sIdx}
+                  className={`reveal-on-scroll reveal-delay-${(sIdx + 1) * 100} bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all ${
+                    isWide ? "md:col-span-2 lg:col-span-2" : ""
+                  }`}
+                >
+                  {step.image ? (
+                    <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
+                      <img src={step.image} alt={step.title} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4 text-blue-600 font-bold font-mono">
+                      {String(sIdx + 1).padStart(2, "0")}
+                    </div>
+                  )}
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -516,19 +627,14 @@ export function HomeView({
               OUR PROCESS
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-              How we forge the future.
+              {landingContent?.processHeading || "How we forge the future."}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { num: "01", title: "Idea Generation", desc: "Brainstorming and refining concepts within our collaborative workshops and 24-hour hackathons." },
-              { num: "02", title: "Team Formation", desc: "Connecting students with complementary technical and design skills to form interdisciplinary squads." },
-              { num: "03", title: "Project Incubation", desc: "Providing GPU compute, mentorship, and a supportive environment for full-stack prototype development." },
-              { num: "04", title: "Showcase & Launch", desc: "Presenting completed projects to the tech community, investors, and supporting venture deployment." },
-            ].map((p, idx) => (
+            {processList.map((p, idx) => (
               <div
-                key={idx}
+                key={p.id || idx}
                 className={`reveal-on-scroll reveal-delay-${(idx + 1) * 100} bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all flex flex-col justify-between`}
               >
                 <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center font-mono font-bold text-blue-700 mb-6">
@@ -552,27 +658,29 @@ export function HomeView({
                   CLUB STATS
                 </div>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-                  We&apos;re building a vibrant ecosystem.
+                  {landingContent?.statsHeading || "We're building a vibrant ecosystem."}
                 </h2>
               </div>
-              <a
-                href="/recruit"
-                onClick={(e) => navigateTo(e, "/recruit")}
-                className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:bg-slate-800"
-              >
-                <span>Join AI Foundry</span>
-                <ArrowRight className="size-4" />
-              </a>
+              {visiblePages?.recruit !== false && (
+                <a
+                  href="/recruit"
+                  onClick={(e) => navigateTo(e, "/recruit")}
+                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:bg-slate-800"
+                >
+                  <span>Join AI Foundry</span>
+                  <ArrowRight className="size-4" />
+                </a>
+              )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 text-center">
               {[
-                { val: "50+", label: "Active Members", color: "text-slate-900" },
-                { val: "15+", label: "Successful Sprints", color: "text-blue-600" },
-                { val: "1 Year", label: "Since Inception", color: "text-slate-900" },
-                { val: "20+", label: "Industry Mentors", color: "text-amber-600" },
-                { val: "50%", label: "Build Time Saved", color: "text-slate-900" },
-                { val: "500+ hrs", label: "Innovation Time", color: "text-indigo-600" },
+                { val: statsConfig.members || "50+", label: statsConfig.membersLabel || "Active Members", color: "text-slate-900" },
+                { val: statsConfig.projects || "15+", label: statsConfig.projectsLabel || "Successful Sprints", color: "text-blue-600" },
+                { val: statsConfig.duration || "1 Year", label: statsConfig.durationLabel || "Since Inception", color: "text-slate-900" },
+                { val: statsConfig.mentors || "20+", label: statsConfig.mentorsLabel || "Industry Mentors", color: "text-amber-600" },
+                { val: statsConfig.costReduction || "50%", label: statsConfig.costReductionLabel || "Build Time Saved", color: "text-slate-900" },
+                { val: statsConfig.innovationHours || "500+ hrs", label: statsConfig.innovationHoursLabel || "Innovation Time", color: "text-indigo-600" },
               ].map((s, idx) => (
                 <div
                   key={idx}
@@ -594,46 +702,27 @@ export function HomeView({
         <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
           <div className="reveal-on-scroll flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
+              <p className="text-xs sm:text-sm font-mono text-slate-500 mb-1">Meet the minds behind AI Foundry</p>
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 font-mono mb-3">
-                {landingContent?.teamSubheading || "OUR LEADERSHIP"}
+                {landingContent?.teamSubheading || "LEADERSHIP & ADVISORY"}
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
                 {landingContent?.teamHeading || "Meet the minds behind AI Foundry."}
               </h2>
             </div>
-            <Link
-              href="/team"
-              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
-            >
-              <span>View Full Team</span>
-              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {visiblePages?.team !== false && (
+              <Link
+                href="/team"
+                className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
+              >
+                <span>View Full Team</span>
+                <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {(landingContent?.teamMembers && landingContent.teamMembers.length > 0
-              ? landingContent.teamMembers
-              : [
-                  {
-                    id: "tm-1",
-                    name: facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam V",
-                    role: facultyAdvisors[0]?.role || "Club Coordinator & Professor, CSE(AI & ML)",
-                    image: "/images/rectangle-899.png",
-                  },
-                  {
-                    id: "tm-2",
-                    name: facultyAdvisors[1]?.name || "Dr. M Lakshmanan",
-                    role: facultyAdvisors[1]?.role || "Club Advisor & Assistant Professor",
-                    image: "/images/rectangle-898.png",
-                  },
-                  {
-                    id: "tm-3",
-                    name: "Syed Amaan",
-                    role: "President / Lead",
-                    image: "/images/image-1929.png",
-                  },
-                ]
-            ).slice(0, 3).map((member, idx) => (
+            {leadershipList.slice(0, 3).map((member, idx) => (
               <div
                 key={member.id || idx}
                 className={`reveal-on-scroll reveal-delay-${(idx + 1) * 100} bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-lg shadow-slate-100/60 flex flex-col justify-between group transition-transform hover:scale-105`}
@@ -663,21 +752,24 @@ export function HomeView({
           <div className="reveal-on-scroll bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 rounded-3xl p-10 sm:p-16 text-center text-white shadow-2xl relative overflow-hidden">
             <div className="relative z-10 max-w-3xl mx-auto space-y-6">
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-                Ready to forge the future?
+                {landingContent?.ctaHeading || "Ready to forge the future?"}
               </h2>
               <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
-                Join Dayananda Sagar University&apos;s premier venture and AI club. Build, collaborate, and launch alongside elite engineers.
+                {landingContent?.ctaDescription ||
+                  "Join Dayananda Sagar University's premier venture and AI club. Build, collaborate, and launch alongside elite engineers."}
               </p>
-              <div className="pt-4 flex justify-center">
-                <a
-                  href="/recruit"
-                  onClick={(e) => navigateTo(e, "/recruit")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-white text-slate-900 font-extrabold text-base rounded-xl shadow-xl hover:bg-slate-50"
-                >
-                  <span>Apply to Join Us</span>
-                  <ArrowRight className="size-5" />
-                </a>
-              </div>
+              {visiblePages?.recruit !== false && (
+                <div className="pt-4 flex justify-center">
+                  <a
+                    href="/recruit"
+                    onClick={(e) => navigateTo(e, "/recruit")}
+                    className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-white text-slate-900 font-extrabold text-base rounded-xl shadow-xl hover:bg-slate-50"
+                  >
+                    <span>{landingContent?.ctaButtonText || "Apply to Join Us"}</span>
+                    <ArrowRight className="size-5" />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -713,8 +805,8 @@ export function HomeView({
                   </div>
                   <div className="flex items-center gap-2.5 pt-1">
                     <LinkedinIcon className="size-4 text-blue-600 flex-shrink-0" />
-                    <a href="mailto:info@aifoundry.com" className="hover:text-blue-600 text-slate-700 transition-colors no-underline">
-                      info@aifoundry.com
+                    <a href={`mailto:${emailContact}`} className="hover:text-blue-600 text-slate-700 transition-colors no-underline">
+                      {emailContact}
                     </a>
                   </div>
                 </div>
@@ -726,31 +818,41 @@ export function HomeView({
                   Navigation
                 </p>
                 <ul className="space-y-3 text-sm text-slate-600 font-medium">
-                  <li>
-                    <a href="/about" onClick={(e) => navigateTo(e, "/about")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      About Us
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/events" onClick={(e) => navigateTo(e, "/events")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      Events &amp; Hackathons
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/team" onClick={(e) => navigateTo(e, "/team")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      Leadership &amp; Faculty
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/gallery" onClick={(e) => navigateTo(e, "/gallery")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      Media &amp; Archives
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/recruit" onClick={(e) => navigateTo(e, "/recruit")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      Join AI Foundry
-                    </a>
-                  </li>
+                  {visiblePages?.about !== false && (
+                    <li>
+                      <a href="/about" onClick={(e) => navigateTo(e, "/about")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        About Us
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.events !== false && (
+                    <li>
+                      <a href="/events" onClick={(e) => navigateTo(e, "/events")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        Events &amp; Hackathons
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.team !== false && (
+                    <li>
+                      <a href="/team" onClick={(e) => navigateTo(e, "/team")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        Leadership &amp; Faculty
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.gallery !== false && (
+                    <li>
+                      <a href="/gallery" onClick={(e) => navigateTo(e, "/gallery")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        Media &amp; Archives
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.recruit !== false && (
+                    <li>
+                      <a href="/recruit" onClick={(e) => navigateTo(e, "/recruit")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        Join AI Foundry
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </div>
 
@@ -760,26 +862,34 @@ export function HomeView({
                   Initiatives
                 </p>
                 <ul className="space-y-3 text-sm text-slate-600 font-medium">
-                  <li>
-                    <a href="/events" onClick={(e) => navigateTo(e, "/events")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      24h Hackathons
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/recruit" onClick={(e) => navigateTo(e, "/recruit")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      AI Incubation Lab
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/about" onClick={(e) => navigateTo(e, "/about")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      Student Research
-                    </a>
-                  </li>
-                  <li>
-                    <a href="/team" onClick={(e) => navigateTo(e, "/team")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
-                      Mentorship Network
-                    </a>
-                  </li>
+                  {visiblePages?.events !== false && (
+                    <li>
+                      <a href="/events" onClick={(e) => navigateTo(e, "/events")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        24h Hackathons
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.recruit !== false && (
+                    <li>
+                      <a href="/recruit" onClick={(e) => navigateTo(e, "/recruit")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        AI Incubation Lab
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.about !== false && (
+                    <li>
+                      <a href="/about" onClick={(e) => navigateTo(e, "/about")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        Student Research
+                      </a>
+                    </li>
+                  )}
+                  {visiblePages?.team !== false && (
+                    <li>
+                      <a href="/team" onClick={(e) => navigateTo(e, "/team")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
+                        Mentorship Network
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </div>
 
@@ -790,25 +900,25 @@ export function HomeView({
                 </p>
                 <ul className="space-y-3 text-sm text-slate-600 font-medium">
                   <li>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                    <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
                       <LinkedinIcon className="size-4 text-blue-600" />
                       <span>LinkedIn</span>
                     </a>
                   </li>
                   <li>
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
                       <InstagramIcon className="size-4 text-blue-600" />
                       <span>Instagram</span>
                     </a>
                   </li>
                   <li>
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                    <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
                       <GithubIcon className="size-4 text-blue-600" />
                       <span>GitHub</span>
                     </a>
                   </li>
                   <li>
-                    <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                    <a href={twitterUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
                       <TwitterIcon className="size-4 text-blue-600" />
                       <span>X (Twitter)</span>
                     </a>

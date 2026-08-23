@@ -7,7 +7,7 @@
     "sagarbitian@gmail.com"
   ],
   "heroTagline": "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
-  "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence.",
+  "heroSubtext": "Dayananda Sagar University's flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures.",
   "facultyHeading": "FACULTY MENTORS",
   "studentHeading": "CLUB LEADERSHIP & TEAMS",
   "developerHeading": "PLATFORM ARCHITECTS",
@@ -21,159 +21,136 @@
     "recruit": true
   },
   "socialLinks": {
-    "instagram": "https://instagram.com/aifoundry_dsu",
-    "linkedin": "https://linkedin.com/company/aifoundry-dsu",
-    "github": "https://github.com/aifoundry-dsu",
+    "instagram": "https://instagram.com/",
+    "linkedin": "https://linkedin.com/",
+    "github": "https://github.com/",
+    "twitter": "https://x.com/",
     "discord": "https://discord.gg/aifoundry",
     "whatsapp": "https://chat.whatsapp.com/aifoundry",
-    "email": "aifoundry@dsu.edu.in"
+    "email": "info@aifoundry.com"
   },
   "landingContent": {
-    "aboutHeading": "ABOUT US",
-    "aboutText": "To cultivate a vibrant community at DSU, fostering innovation in AI and entrepreneurship through collaborative projects.",
-    "missionHeading": "OUR MISSION",
-    "missionText": "Uniting minds, shaping tomorrow.",
-    "pillarsHeading": "OUR PILLARS",
-    "pillarsSubtext": "Our approach to innovation is built on three core strategies.",
+    "heroBadge": "DSU PREMIER AI & VENTURE ACCELERATOR",
+    "heroTagline": "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
+    "heroSubtext": "Dayananda Sagar University's flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures.",
+    "heroDepartment": "School of Engineering • Department of AI & Robotics • DSU Bengaluru",
+    "aboutBadge": "ABOUT AI FOUNDRY",
+    "aboutHeading": "AI Foundry is the premier student innovation ecosystem established under the Department of Computer Science & Engineering (AI & ML) at Dayananda Sagar University (DSU), Bengaluru.",
+    "aboutSecondaryText": "AI Foundry is Dayananda Sagar University's flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing hands-on mentorship, enterprise GPU compute, and a collaborative workspace.",
+    "pillarsHeading": "Our approach to innovation is built on three core strategies.",
+    "pillarsSubtext": "Empowering students to lead in AI and entrepreneurship, fostering real-world impact and future-ready skills.",
     "pillars": [
       {
         "id": "p1",
         "title": "Innovation",
-        "description": "We encourage groundbreaking ideas and provide GPU compute, lab access, and development toolkits for members to explore the frontiers of AI.",
-        "icon": "/images/asterisk-streamline-unicons.svg"
+        "description": "We encourage groundbreaking ideas and provide GPU compute, lab access, and development toolkits for members to explore the frontiers of AI."
       },
       {
         "id": "p2",
         "title": "Collaboration",
-        "description": "We believe in the power of diverse minds working together, fostering a supportive cross-disciplinary environment for peer learning and growth.",
-        "icon": "/images/channel-streamline-unicons.svg"
+        "description": "We believe in the power of diverse minds working together, fostering a supportive cross-disciplinary environment for peer learning and growth."
       },
       {
         "id": "p3",
         "title": "Impact",
-        "description": "Our projects aim to solve real-world problems, making a tangible difference across healthcare, robotics, education, and venture incubation.",
-        "icon": "/images/border-vertical-streamline-unicons.svg"
+        "description": "Our projects aim to solve real-world problems, making a tangible difference across healthcare, robotics, education, and venture incubation."
       }
     ],
-    "projectsHeading": "OUR PROJECTS",
-    "projectsSubtext": "Showcasing our creations. Explore our innovative projects, where theory meets practice in the exciting fields of AI and entrepreneurship.",
-    "projects": [
-      {
-        "id": "proj1",
-        "title": "Agentic Workflow Accelerator",
-        "tag": "AI & ML",
-        "description": "Autonomous multi-agent orchestration framework for research synthesis, developed by student engineers in the AI technical wing.",
-        "image": "/images/rectangle-902.png"
-      },
-      {
-        "id": "proj2",
-        "title": "Autonomous Edge Vision",
-        "tag": "Robotics",
-        "description": "Embedded computer vision system optimizing real-time obstacle navigation for autonomous robotics platforms.",
-        "image": "/images/image-1929.png"
-      },
-      {
-        "id": "proj3",
-        "title": "Responsible AI Benchmarking",
-        "tag": "Research",
-        "description": "Comprehensive evaluation framework for auditing bias, safety, and hallucination rates in generative language models.",
-        "image": "/images/rectangle-3.png"
-      }
-    ],
-    "approachHeading": "OUR APPROACH",
+    "approachHeading": "Where your ambition meets innovation.",
     "approachSubtext": "We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures.",
     "approach": [
       {
         "id": "app1",
-        "title": "Ideation & Problem Discovery",
-        "description": "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and patent exploration.",
+        "title": "1. Ideation",
+        "description": "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and venture scoping.",
         "image": "/images/rectangle-5.png"
       },
       {
         "id": "app2",
-        "title": "Prototyping & GPU Compute",
-        "description": "Providing high-performance compute clusters, research lab access, and technical mentorship for rapid iteration.",
-        "image": "/images/rectangle-899.png"
+        "title": "2. Development",
+        "description": "Providing tools, GPU compute clusters, mentorship, and a collaborative space for building production-grade AI solutions."
       },
       {
         "id": "app3",
-        "title": "Venture Incubation & Launch",
-        "description": "Supporting student founders through legal incorporation, pitch deck polish, and demo day showcases to seed investors.",
+        "title": "3. Launch",
+        "description": "Supporting projects through deployment, venture accelerator pitch demo days, and continuous real-world user testing.",
         "image": "/images/map.png"
       },
       {
         "id": "app4",
-        "title": "Community & Knowledge Transfer",
-        "description": "Building an enduring alumni and mentor network, hosting weekly paper reading groups, and sharing open-source code.",
+        "title": "4. Mentorship",
+        "description": "Connecting students with faculty advisors and industry executives for deep architectural and venture guidance."
+      },
+      {
+        "id": "app5",
+        "title": "5. Community & Growth",
+        "description": "Building a strong, lifelong alumni and student network across Bangalore's tech ecosystem, fostering peer collaboration and opportunities.",
         "image": "/images/rectangle-8.png"
       }
     ],
-    "stats": {
-      "members": "250+",
-      "projects": "24+",
-      "duration": "2 Years",
-      "mentors": "15+",
-      "costReduction": "40%",
-      "innovationHours": "1,200+"
-    },
-    "testimonialsHeading": "Hear it from our student innovators.",
-    "testimonials": [
+    "processHeading": "How we forge the future.",
+    "process": [
       {
-        "id": "t1",
-        "name": "Syed Amaan",
-        "role": "Chief Executive Officer, AI Foundry",
-        "quote": "AI Foundry gave us the ecosystem, compute resources, and faculty backing to turn experimental research into production-grade AI ventures.",
-        "avatar": "/images/image-1931.png"
+        "num": "01",
+        "title": "Idea Generation",
+        "desc": "Brainstorming and refining concepts within our collaborative workshops and 24-hour hackathons."
       },
       {
-        "id": "t2",
-        "name": "Mallikarjuna DM",
-        "role": "Chief Technology Officer, AI Foundry",
-        "quote": "Collaborating across wings has enabled us to build deep-tech solutions that compete on national hackathon stages.",
-        "avatar": "/images/image-1927.png"
+        "num": "02",
+        "title": "Team Formation",
+        "desc": "Connecting students with complementary technical and design skills to form interdisciplinary squads."
       },
       {
-        "id": "t3",
-        "name": "Student Researcher",
-        "role": "B.Tech CSE (AI & ML), DSU",
-        "quote": "The hands-on bootcamps and faculty mentorship at AI Foundry provided the exact springboard needed to master modern LLMs and agentic systems.",
-        "avatar": "/images/image-1928.png"
+        "num": "03",
+        "title": "Project Incubation",
+        "desc": "Providing GPU compute, mentorship, and a supportive environment for full-stack prototype development."
+      },
+      {
+        "num": "04",
+        "title": "Showcase & Launch",
+        "desc": "Presenting completed projects to the tech community, investors, and supporting venture deployment."
       }
     ],
-    "teamHeading": "LEADERSHIP & ADVISORY",
-    "teamSubheading": "Meet the minds behind AI Foundry",
-    "teamDescription": "Visionary faculty advisors and dedicated student executives guiding innovation, technical excellence, and community initiatives.",
+    "statsHeading": "We're building a vibrant ecosystem.",
+    "stats": {
+      "members": "50+",
+      "membersLabel": "Active Members",
+      "projects": "15+",
+      "projectsLabel": "Successful Sprints",
+      "duration": "1 Year",
+      "durationLabel": "Since Inception",
+      "mentors": "20+",
+      "mentorsLabel": "Industry Mentors",
+      "costReduction": "50%",
+      "costReductionLabel": "Build Time Saved",
+      "innovationHours": "500+ hrs",
+      "innovationHoursLabel": "Innovation Time"
+    },
+    "teamSubheading": "LEADERSHIP & ADVISORY",
+    "teamHeading": "Meet the minds behind AI Foundry",
+    "teamDescription": "Visionary faculty advisors and dedicated student leaders guiding innovation and community initiatives.",
     "teamMembers": [
       {
         "id": "tm-1",
-        "name": "Dr. Jayavrinda Vrindavanam V",
+        "name": "Dr. Jayavrinda Vrindavanam",
         "role": "Club Coordinator & Chairperson CSE (AI & ML)",
-        "bio": "Professor and Chairperson leading the AI & ML department at DSU.",
-        "image": "/uploads/team/faculty-jayavrinda.png"
+        "image": "/images/rectangle-899.png"
       },
       {
         "id": "tm-2",
         "name": "Dr. M Lakshmanan",
         "role": "Club Advisor",
-        "bio": "Assistant Professor, CSE(AI and ML), DSU.",
-        "image": "https://drive.google.com/file/d/1Gw3MmCruktZyBGSjK356TfGY0qh8K-8_/view?usp=sharing"
+        "image": "/images/rectangle-898.png"
       },
       {
         "id": "tm-3",
         "name": "Dr. A. A. Nippun Kumaar",
         "role": "Club Advisor",
-        "bio": "Associate Professor, CSE(AI and ML), DSU.",
-        "image": "/uploads/team/faculty-nippun.png"
-      },
-      {
-        "id": "tm-4",
-        "name": "Syed Amaan",
-        "role": "Chief Executive Officer (CEO)",
-        "bio": "Executive lead spearheading club vision, partnerships, and venture incubation.",
-        "image": "/uploads/team/exec-amaan.png"
+        "image": "/images/rectangle-902.png"
       }
     ],
-    "ctaHeading": "Ready to forge the future of AI?",
-    "ctaButtonText": "Join AI Foundry"
+    "ctaHeading": "Ready to forge the future?",
+    "ctaDescription": "Join Dayananda Sagar University's premier venture and AI club. Build, collaborate, and launch alongside elite engineers.",
+    "ctaButtonText": "Apply to Join Us"
   }
 }

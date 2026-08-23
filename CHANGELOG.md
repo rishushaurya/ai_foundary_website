@@ -679,6 +679,17 @@ The format is based on Keep a Changelog, and follows the Multi-AI Orchestration 
 **Known Issues**: None.
 **NEXT AI / USER SHOULD**: Run `npm run dev` to start the local development server and explore the public views at `http://localhost:3000` and the Admin CMS at `http://localhost:3000/admin`.
 
+## [2026-08-24] - Antigravity - Session 35
+**Description**: Complete synchronization of Landing Page CMS, Site Settings Social Links, Event Application Availability Controls & Deadlines, and Public Page Visibility Toggles.
+**Changes**:
+- **Landing Page CMS (`/admin/landing`)**: Re-architected editor into 8 exact visual sections matching live site: Hero (Badge, Tagline, Subtext, Department), About (Badge, Headline, Paragraph), 3 Core Pillars, 5 Approach Steps, 4 Process Steps, 6 Stats, Leadership & Faculty, and Bottom CTA.
+- **Site Settings & Social Links (`/admin/settings`)**: Added inputs for LinkedIn, Instagram, GitHub, X (Twitter), Email, Discord, WhatsApp in Admin Settings. Dynamically connected to `HomeView` footer and `LightFooter`.
+- **Event Application / Registration Controls (`/admin/events`)**: Added `isRegistrationOpen` toggle, `registrationStartDate`, `registrationDeadline`, and `closedMessage` to `EventData`. Enforced registration eligibility check in `/api/events/register/route.ts` and UI (`HomeView`, `EventsPageClient`, `RegistrationModal`).
+- **Public Page Visibility Toggles (`/about`, `/events`, `/team`, `/gallery`, `/recruit`)**: Added `/api/public/settings/route.ts`. Updated `LightNavbar` and `LightFooter` to filter hidden navigation items. Added server-level `notFound()` checks to direct page routes when toggled off.
+- **Verification**: `npx tsc --noEmit` and `npm run build` passed with zero errors across all 30 routes.
+**Build Status**: Production build verified successfully.
+**Known Issues**: None.
+
 ---
 
 <!-- Template for Next Sessions -->
@@ -696,3 +707,4 @@ The format is based on Keep a Changelog, and follows the Multi-AI Orchestration 
 **NEXT AI SHOULD**: [Exact actionable steps for next session]
 **Notes**: [Additional context]
 -->
+
