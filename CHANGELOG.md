@@ -3,6 +3,23 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-23] - Gemini 3.7 Flash - Session 33
+**Description**: Purged **Historical Audit Logs**, Implemented **Audit Log Management & Deletion Endpoints**, and Enhanced **Instant Admin Whitelist Persistence**:
+- **Audit Log Trail Clean-Up & Management (`data/audit-logs.json`, `src/lib/audit-logger.ts`, `src/app/api/admin/audit-logs/route.ts`, `src/app/admin/audit-logs/page.tsx`)**:
+  - Purged 300+ legacy mock/test audit entries and initialized with clean production logging.
+  - Added `clearAuditLogs()` utility and `DELETE /api/admin/audit-logs` endpoint with "Purge Logs" UI button on the audit trail page.
+- **Admin Whitelist Auto-Save & Granular Audit Logging (`src/app/admin/settings/page.tsx`, `src/app/api/admin/settings/route.ts`, `src/app/api/auth/google/route.ts`)**:
+  - Replaced manual-save requirement for whitelist additions/removals with instant backend persistence (`handleAddEmail` and `handleRemoveEmail` immediately sync to server).
+  - Added granular audit logging: records explicit `"Authorized Admin Whitelist"` and `"Revoked Admin Whitelist"` events with target email addresses.
+  - Ensured dynamic whitelist management for secondary admins while keeping `priyanshushaurya9431@gmail.com` as permanent immutable root.
+- **Master Passkey Decommissioning (`src/app/admin/login/page.tsx`, `src/app/admin/settings/page.tsx`, `src/lib/data.ts`, `data/settings.json`, `src/app/api/auth/login/route.ts`, `.env.example`)**:
+  - Completely purged master passkey fallback in favor of 100% pure cryptographic Google Identity Services.
+- **Verification & Deployment**:
+  - `npm run build`: Compiled with 0 errors across all 36 routes.
+  - Pushed to `origin/main` (`cb50345`).
+
+---
+
 ## [2026-08-23] - Gemini 3.7 Flash - Session 32
 **Description**: Hardened **Google OAuth Authentication for Vercel Serverless Deployment** and Enhanced **Dual-Mode Admin Security**:
 - **Google OAuth Audience & Environment Handling (`src/app/api/auth/google/route.ts`)**:
