@@ -7,16 +7,35 @@ const DATA_DIR = path.join(process.cwd(), "data");
 // Key prefix to namespace this project's data in Upstash Redis
 const REDIS_KEY_PREFIX = "aifoundry:";
 
+// ---- In-memory cache fallback for serverless instances ----
+const memoryStore = new Map<string, any>();
+
 // ---- Redis Client (lazy-init, null if not configured) ----
 let redis: Redis | null = null;
 
 function getRedis(): Redis | null {
   if (redis) return redis;
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const rawUrl =
+    process.env.KV_REST_API_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.UPSTASH_REDIS_URL ||
+    "";
+  const rawToken =
+    process.env.KV_REST_API_TOKEN ||
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.UPSTASH_REDIS_TOKEN ||
+    "";
+
+  const url = rawUrl.trim();
+  const token = rawToken.trim();
+
   if (url && token) {
-    redis = new Redis({ url, token });
-    return redis;
+    try {
+      redis = new Redis({ url, token });
+      return redis;
+    } catch (e) {
+      console.warn("[local-db] Failed to initialize Upstash Redis:", e);
+    }
   }
   return null;
 }
@@ -31,11 +50,16 @@ function ensureDir(dir: string) {
 }
 
 function readLocalJSON<T>(filename: string, defaultValue: T): T {
+  if (memoryStore.has(filename)) {
+    return memoryStore.get(filename) as T;
+  }
   ensureDir(DATA_DIR);
   const filePath = path.join(DATA_DIR, filename);
   try {
     if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8")) as T;
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf-8")) as T;
+      memoryStore.set(filename, parsed);
+      return parsed;
     }
   } catch (e) {
     console.error(`[local-db] Error reading ${filename}:`, e);
@@ -44,12 +68,13 @@ function readLocalJSON<T>(filename: string, defaultValue: T): T {
 }
 
 function writeLocalJSON<T>(filename: string, data: T): boolean {
+  memoryStore.set(filename, data);
   ensureDir(DATA_DIR);
   try {
     fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), "utf-8");
     return true;
   } catch {
-    return false; // read-only FS on serverless
+    return false; // read-only FS on serverless (memoryStore retains state in warm instance)
   }
 }
 
