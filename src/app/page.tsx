@@ -2,6 +2,9 @@ import React from "react";
 import { getEvents, getTeamMembers, getGallerySections, getContent, getSettings } from "@/lib/data";
 import { HomeView } from "@/components/home/home-view";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "AI Foundry | Dayananda Sagar University - Forging the Future of AI",
   description:

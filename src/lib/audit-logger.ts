@@ -1,5 +1,6 @@
 import { readData, writeData } from "@/lib/local-db";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "ai-foundry-dev-jwt-secret-key-2026"
@@ -19,18 +20,33 @@ export interface AuditLogEntry {
 /**
  * Extracts authenticated admin email from request session cookie
  */
-export async function getAdminEmailFromRequest(request: Request): Promise<string> {
+export async function getAdminEmailFromRequest(request?: Request): Promise<string> {
   try {
-    const cookieHeader = request.headers.get("cookie") || "";
-    const match = cookieHeader.match(/admin-token=([^;]+)/);
-    if (match && match[1]) {
-      const { payload } = await jwtVerify(match[1], JWT_SECRET);
-      if (payload.email && typeof payload.email === "string") {
-        return payload.email;
+    // 1. Try Next.js App Router cookies()
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("admin-token")?.value;
+      if (token) {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        if (payload.email && typeof payload.email === "string") {
+          return payload.email;
+        }
+      }
+    } catch {}
+
+    // 2. Try Request Headers cookie
+    if (request) {
+      const cookieHeader = request.headers.get("cookie") || "";
+      const match = cookieHeader.match(/(?:^|;\s*)admin-token=([^;]+)/);
+      if (match && match[1]) {
+        const { payload } = await jwtVerify(match[1].trim(), JWT_SECRET);
+        if (payload.email && typeof payload.email === "string") {
+          return payload.email;
+        }
       }
     }
   } catch {}
-  return "admin@aifoundry.club";
+  return "priyanshushaurya9431@gmail.com";
 }
 
 /**

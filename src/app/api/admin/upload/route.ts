@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { saveUploadedFile } from "@/lib/local-db";
+import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +30,17 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
+    await logAdminAction({
+      adminEmail,
+      ip,
+      action: "Uploaded Media File",
+      target: file.name,
+      details: `${subfolder} (${(file.size / 1024).toFixed(1)} KB) -> ${publicPath}`,
+      status: "success",
+    });
 
     return NextResponse.json({
       success: true,

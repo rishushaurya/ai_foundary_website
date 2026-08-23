@@ -60,6 +60,17 @@ export async function PUT(request: Request) {
         revalidatePath("/events");
         revalidatePath("/");
       } catch {}
+
+      const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+      const adminEmail = await getAdminEmailFromRequest(request);
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Reordered / Batch Updated Events",
+        details: `Synchronized ${body.length} events list`,
+        status: "success",
+      });
+
       return NextResponse.json({ success: true, events: body });
     }
 

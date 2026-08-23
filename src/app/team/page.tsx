@@ -3,6 +3,9 @@ import { getFaculty, getExecutives, getTeamWings, getSettings } from "@/lib/data
 import { NewTeamView } from "@/components/ui/new-team-view";
 import { LightFooter } from "@/components/ui/light-footer";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Leadership & Teams | AI Foundry - Dayananda Sagar University",
   description: "Executive leadership, functional wings, and faculty advisory board of AI Foundry at DSU.",

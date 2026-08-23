@@ -57,6 +57,17 @@ export async function PUT(request: Request) {
         revalidatePath("/team");
         revalidatePath("/");
       } catch {}
+
+      const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+      const adminEmail = await getAdminEmailFromRequest(request);
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Reordered / Batch Updated Team",
+        details: `Synchronized ${body.length} team members list`,
+        status: "success",
+      });
+
       return NextResponse.json({ success: true, members: body });
     }
 

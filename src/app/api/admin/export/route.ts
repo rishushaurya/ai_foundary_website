@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getEvents, getRecruitmentEntries } from "@/lib/data";
+import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 // Helper to escape and sanitize CSV fields against CSV injection formulas
 function sanitizeCSV(field: any): string {
@@ -17,6 +18,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "events";
     const eventId = searchParams.get("eventId");
+
+    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
 
     if (type === "recruitment") {
       const entries = await getRecruitmentEntries();
@@ -37,6 +41,14 @@ export async function GET(request: Request) {
       ]);
 
       const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Exported Recruitment CSV",
+        details: `Exported ${entries.length} candidate applications`,
+        status: "success",
+      });
 
       return new NextResponse(csvContent, {
         headers: {
@@ -89,6 +101,14 @@ export async function GET(request: Request) {
     ]);
 
     const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+    await logAdminAction({
+      adminEmail,
+      ip,
+      action: "Exported Event Registrations CSV",
+      details: `Exported ${registrationsToExport.length} event attendee registrations`,
+      status: "success",
+    });
 
     return new NextResponse(csvContent, {
       headers: {

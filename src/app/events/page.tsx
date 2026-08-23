@@ -3,6 +3,9 @@ import { getEvents } from "@/lib/data";
 import { EventsPageClient } from "@/components/ui/events-page-client";
 import { LightFooter } from "@/components/ui/light-footer";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Events & Hackathons | AI Foundry - Dayananda Sagar University",
   description: "Browse upcoming hackathons, AI workshops, guest lectures, and symposiums at DSU.",
