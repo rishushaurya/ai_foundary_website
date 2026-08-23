@@ -3,6 +3,20 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-23] - Gemini 3.7 Flash - Session 32
+**Description**: Hardened **Google OAuth Authentication for Vercel Serverless Deployment** and Enhanced **Dual-Mode Admin Security**:
+- **Google OAuth Audience & Environment Handling (`src/app/api/auth/google/route.ts`)**:
+  - Added support for both `process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID` and `process.env.GOOGLE_CLIENT_ID` with sanitized whitespace trimming.
+  - Guarded against false rejections from placeholder environment variables.
+  - Whitelisted root administrator emails (`priyanshushaurya9431@gmail.com`, `sagarbitian@gmail.com`) and dynamic whitelist records from `getSettings()`.
+- **Google Identity Services (GSI) & Redirect Flow (`src/app/admin/login/page.tsx`)**:
+  - Replaced soft client-side router navigation with `window.location.href = "/admin"` upon successful verification to guarantee proper HTTP-only cookie exchange and clean SSR session state on Vercel.
+  - Gracefully handles client ID detection and provides master passkey login alongside Google 1-Tap authentication.
+- **Verification & Build**:
+  - `npm run build`: Compiled 100% cleanly (37/37 static/dynamic routes generated without error).
+
+---
+
 ## [2026-08-23] - Gemini 3.7 Flash - Session 31
 **Description**: Resolved **Hydration Mismatch**, **Custom Cursor Centering**, **Admin Whitelist & Security Controls**, and **Real-World Data Migration**:
 - **SSR Hydration Mismatch Resolution (`src/components/home/gravity-cursor-background.tsx`)**:

@@ -48,9 +48,8 @@ export default function AdminLoginPage() {
 
       setSuccessMessage(`Google Verified (${data.user.email}). Redirecting to Admin Portal...`);
       setTimeout(() => {
-        router.push("/admin");
-        router.refresh();
-      }, 600);
+        window.location.href = "/admin";
+      }, 500);
     } catch (err: any) {
       setError(err.message || "Failed to authenticate with Google.");
       setLoading(false);
@@ -59,9 +58,16 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     // Load Google Identity Services SDK
-    const clientId =
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-      "782928374921-exampleclientid.apps.googleusercontent.com";
+    const rawClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = rawClientId && !rawClientId.includes("exampleclientid")
+      ? rawClientId.trim()
+      : null;
+
+    if (!clientId) {
+      // No live Google Client ID configured
+      setGoogleClientReady(false);
+      return;
+    }
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
@@ -69,23 +75,28 @@ export default function AdminLoginPage() {
     script.defer = true;
     script.onload = () => {
       if ((window as any).google?.accounts?.id) {
-        setGoogleClientReady(true);
-        (window as any).google.accounts.id.initialize({
-          client_id: clientId,
-          callback: handleGoogleCredentialResponse,
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-
-        if (googleBtnRef.current) {
-          (window as any).google.accounts.id.renderButton(googleBtnRef.current, {
-            theme: "filled_blue",
-            size: "large",
-            text: "signin_with",
-            shape: "pill",
-            width: 320,
-            logo_alignment: "left",
+        try {
+          (window as any).google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true,
           });
+
+          if (googleBtnRef.current) {
+            (window as any).google.accounts.id.renderButton(googleBtnRef.current, {
+              theme: "filled_blue",
+              size: "large",
+              text: "signin_with",
+              shape: "pill",
+              width: 320,
+              logo_alignment: "left",
+            });
+            setGoogleClientReady(true);
+          }
+        } catch (e) {
+          console.warn("[Google GSI init failed]", e);
+          setGoogleClientReady(false);
         }
       }
     };
@@ -122,9 +133,8 @@ export default function AdminLoginPage() {
 
       setSuccessMessage("Authentication verified. Redirecting to Admin Portal...");
       setTimeout(() => {
-        router.push("/admin");
-        router.refresh();
-      }, 600);
+        window.location.href = "/admin";
+      }, 500);
     } catch (err: any) {
       setError(err.message || "Failed to authenticate.");
       setLoading(false);

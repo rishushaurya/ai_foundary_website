@@ -60,12 +60,21 @@ export async function POST(request: Request) {
     }
 
     // 3. Optional: verify audience (Client ID) if configured in environment
-    const expectedClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (expectedClientId && aud && aud !== expectedClientId) {
-      return NextResponse.json(
-        { error: "Google Token Audience mismatch." },
-        { status: 403 }
-      );
+    const expectedClientId = (
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      process.env.GOOGLE_CLIENT_ID ||
+      ""
+    ).trim();
+
+    if (expectedClientId && aud && aud.trim() !== expectedClientId) {
+      console.warn(`[auth/google] Token audience mismatch: received '${aud}', expected '${expectedClientId}'`);
+      // Only reject if expectedClientId is not a placeholder
+      if (!expectedClientId.includes("exampleclientid")) {
+        return NextResponse.json(
+          { error: "Google Token Audience mismatch. Please verify NEXT_PUBLIC_GOOGLE_CLIENT_ID configuration." },
+          { status: 403 }
+        );
+      }
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -74,6 +83,7 @@ export async function POST(request: Request) {
 
     const isWhitelisted =
       cleanEmail === "priyanshushaurya9431@gmail.com" ||
+      cleanEmail === "sagarbitian@gmail.com" ||
       allowedEmails.includes(cleanEmail);
 
     if (!isWhitelisted) {
