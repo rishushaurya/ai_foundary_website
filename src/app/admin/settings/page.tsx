@@ -201,22 +201,6 @@ export default function AdminSettingsPage() {
               );
             })}
           </div>
-
-          <div className="pt-4 border-t border-slate-100 space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Admin Security Passkey / Password
-            </label>
-            <input
-              type="text"
-              value={settings.adminPassword || "admin"}
-              onChange={(e) => setSettings({ ...settings, adminPassword: e.target.value })}
-              placeholder="e.g. foundry2026"
-              className="w-full sm:w-80 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-semibold focus:outline-none focus:border-cyan-500"
-            />
-            <p className="text-[11px] text-slate-400">
-              This passkey is required on the admin login screen alongside an authorized email address.
-            </p>
-          </div>
         </div>
       </div>
 

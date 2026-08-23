@@ -8,7 +8,7 @@ import {
   GlassCardTitle,
   GlassCardContent,
 } from "@/components/ui/glass-card";
-import { Loader2, AlertCircle, CheckCircle, ShieldCheck, Lock } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,11 +17,6 @@ export default function AdminLoginPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [googleClientReady, setGoogleClientReady] = useState(false);
   const googleBtnRef = useRef<HTMLDivElement>(null);
-
-  // Fallback Passkey state (for direct fallback)
-  const [showPasskeyFallback, setShowPasskeyFallback] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const handleGoogleCredentialResponse = async (response: any) => {
     if (!response || !response.credential) {
@@ -109,38 +104,6 @@ export default function AdminLoginPage() {
     };
   }, []);
 
-  // Passkey Login Handler
-  const handlePasskeyLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setError("Please enter both your administrator email and passkey.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setSuccessMessage("");
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Authentication failed.");
-
-      setSuccessMessage("Authentication verified. Redirecting to Admin Portal...");
-      setTimeout(() => {
-        window.location.href = "/admin";
-      }, 500);
-    } catch (err: any) {
-      setError(err.message || "Failed to authenticate.");
-      setLoading(false);
-    }
-  };
-
   return (
     <div
       className="relative min-h-screen w-full flex items-center justify-center p-4 font-mono overflow-hidden"
@@ -182,7 +145,7 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          {/* Primary High-Security Google Sign-In */}
+          {/* Exclusive High-Security Google Sign-In */}
           <div className="flex flex-col items-center justify-center space-y-4 py-2">
             <div
               ref={googleBtnRef}
@@ -225,62 +188,6 @@ export default function AdminLoginPage() {
             <p className="text-[11px] text-slate-400 text-center font-sans max-w-xs leading-relaxed">
               Google cryptographically verifies your identity. Only email accounts authorized in the admin whitelist are granted access.
             </p>
-          </div>
-
-          {/* Passkey Fallback Divider */}
-          <div className="pt-2 border-t border-white/10">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setShowPasskeyFallback(!showPasskeyFallback)}
-                className="text-[11px] text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer"
-              >
-                {showPasskeyFallback ? "Hide Passkey Login" : "Use Master Passkey Login"}
-              </button>
-            </div>
-
-            {showPasskeyFallback && (
-              <form onSubmit={handlePasskeyLogin} className="space-y-3.5 mt-4 text-xs">
-                <div className="space-y-1">
-                  <label className="block text-[10px] font-bold uppercase text-slate-300 tracking-wider">
-                    Administrator Email
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@aifoundry.club"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/20 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-[10px] font-bold uppercase text-slate-300 tracking-wider">
-                    Admin Security Passkey
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/20 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 pr-9"
-                    />
-                    <Lock className="size-3.5 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 rounded-full bg-cyan-400 text-black font-black uppercase tracking-wider hover:bg-cyan-300 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,210,255,0.4)] disabled:opacity-50 mt-2"
-                >
-                  {loading ? <Loader2 className="size-4 animate-spin mx-auto" /> : "Verify Passkey"}
-                </button>
-              </form>
-            )}
           </div>
         </GlassCardContent>
       </GlassCard>

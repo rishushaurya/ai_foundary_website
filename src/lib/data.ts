@@ -275,7 +275,6 @@ export interface SiteSettings {
   defaultTheme: string;
   defaultAppearance: string;
   adminEmails: string[];
-  adminPassword?: string;
   heroTagline: string;
   heroSubtext: string;
   facultyHeading: string;
