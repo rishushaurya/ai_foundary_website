@@ -76,6 +76,10 @@ export default function AdminSettingsPage() {
 
   const handleRemoveEmail = (emailToRemove: string) => {
     if (!settings) return;
+    if (emailToRemove.toLowerCase() === "priyanshushaurya9431@gmail.com") {
+      setNotice({ type: "error", text: "priyanshushaurya9431@gmail.com is permanently authorized as the root administrator." });
+      return;
+    }
     setSettings({
       ...settings,
       adminEmails: settings.adminEmails.filter((e) => e !== emailToRemove),
@@ -167,23 +171,35 @@ export default function AdminSettingsPage() {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">
-            {settings.adminEmails.map((email) => (
-              <div
-                key={email}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800"
-              >
-                <span>{email}</span>
-                {settings.adminEmails.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveEmail(email)}
-                    className="text-slate-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
+            {settings.adminEmails.map((email) => {
+              const isRoot = email.toLowerCase() === "priyanshushaurya9431@gmail.com";
+              return (
+                <div
+                  key={email}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold ${
+                    isRoot
+                      ? "bg-cyan-50 border border-cyan-300 text-cyan-900 shadow-xs"
+                      : "bg-slate-100 border border-slate-200 text-slate-800"
+                  }`}
+                >
+                  <span>{email}</span>
+                  {isRoot ? (
+                    <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 bg-cyan-200 text-cyan-900 rounded-md">
+                      Root Admin
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveEmail(email)}
+                      className="text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                      title="Remove Whitelist Email"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="pt-4 border-t border-slate-100 space-y-1.5">

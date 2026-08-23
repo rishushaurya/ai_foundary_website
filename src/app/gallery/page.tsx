@@ -12,7 +12,7 @@ export default async function GalleryPage() {
   const sections = await getGallerySections();
 
   return (
-    <div className="mesh-bg min-h-screen flex flex-col justify-between pt-20">
+    <div className="mesh-bg min-h-screen flex flex-col justify-between">
       <NewGalleryView sections={sections} />
       <LightFooter />
     </div>

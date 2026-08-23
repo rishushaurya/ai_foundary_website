@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getTeamMembers, saveTeamMembers, TeamMember } from "@/lib/data";
-import { logAdminAction } from "@/lib/audit-logger";
+import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
   const members = await getTeamMembers();
@@ -31,8 +31,9 @@ export async function POST(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Added Team Member",
       target: newMember.name,
@@ -76,8 +77,9 @@ export async function PUT(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Updated Team Member",
       target: member.name,
@@ -101,7 +103,7 @@ export async function DELETE(request: Request) {
 
     const members = await getTeamMembers();
     const target = members.find((m) => m.id === id);
-    const filtered = members.filter((m) => m.id !== id);
+    const filtered = members.filter((e) => e.id !== id);
     await saveTeamMembers(filtered);
 
     try {
@@ -110,8 +112,9 @@ export async function DELETE(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Deleted Team Member",
       target: target?.name || id,

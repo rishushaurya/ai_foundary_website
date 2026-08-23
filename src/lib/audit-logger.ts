@@ -1,14 +1,36 @@
 import { readData, writeData } from "@/lib/local-db";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "ai-foundry-dev-jwt-secret-key-2026"
+);
 
 export interface AuditLogEntry {
   id: string;
   timestamp: string;
   adminEmail: string;
-  ip: string;
+  ip?: string;
   action: string;
   target?: string;
   details?: string;
   status: "success" | "warning" | "error";
+}
+
+/**
+ * Extracts authenticated admin email from request session cookie
+ */
+export async function getAdminEmailFromRequest(request: Request): Promise<string> {
+  try {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin-token=([^;]+)/);
+    if (match && match[1]) {
+      const { payload } = await jwtVerify(match[1], JWT_SECRET);
+      if (payload.email && typeof payload.email === "string") {
+        return payload.email;
+      }
+    }
+  } catch {}
+  return "admin@aifoundry.club";
 }
 
 /**

@@ -17,6 +17,7 @@ import {
   Sparkles,
   Link as LinkIcon,
   HelpCircle,
+  Download,
 } from "lucide-react";
 
 export default function AdminEventsPage() {
@@ -547,12 +548,23 @@ export default function AdminEventsPage() {
                 </span>
                 <h2 className="text-xl font-bold text-slate-900">{viewingRegsEvent.title}</h2>
               </div>
-              <button
-                onClick={() => setViewingRegsEvent(null)}
-                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
-              >
-                <X className="size-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {(viewingRegsEvent.registrations || []).length > 0 && (
+                  <a
+                    href={`/api/admin/export?type=events&eventId=${viewingRegsEvent.id}`}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors no-underline"
+                  >
+                    <Download className="size-3 text-cyan-600" />
+                    <span>Export CSV</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingRegsEvent(null)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
             </div>
 
             {(viewingRegsEvent.registrations || []).length === 0 ? (

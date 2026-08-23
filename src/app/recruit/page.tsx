@@ -112,6 +112,16 @@ export default function RecruitPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6 text-xs">
+                {/* Hidden Honeypot Field for Bot Mitigation */}
+                <input
+                  type="text"
+                  name="botField"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  style={{ display: "none", opacity: 0, position: "absolute", left: "-9999px" }}
+                  aria-hidden="true"
+                />
+
                 {status === "error" && (
                   <div className="flex items-center gap-2 p-4 rounded-2xl bg-red-950/60 text-red-300 border border-red-500/40 font-bold uppercase">
                     <AlertCircle className="size-4 flex-shrink-0" />

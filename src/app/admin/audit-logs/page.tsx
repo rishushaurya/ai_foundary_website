@@ -33,7 +33,6 @@ export default function AdminAuditLogsPage() {
     return (
       log.action.toLowerCase().includes(q) ||
       log.adminEmail.toLowerCase().includes(q) ||
-      log.ip.toLowerCase().includes(q) ||
       (log.details && log.details.toLowerCase().includes(q))
     );
   });
@@ -71,7 +70,7 @@ export default function AdminAuditLogsPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by admin email, action name, IP address, or details..."
+          placeholder="Search by administrator email, action name, or details..."
           className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none"
         />
       </div>
@@ -94,9 +93,8 @@ export default function AdminAuditLogsPage() {
                 <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase tracking-wider">
                   <th className="pb-3 px-3">Timestamp</th>
                   <th className="pb-3 px-3">Administrator</th>
-                  <th className="pb-3 px-3">Action</th>
-                  <th className="pb-3 px-3">Details / Target</th>
-                  <th className="pb-3 px-3">IP Address</th>
+                  <th className="pb-3 px-3">Action Performed</th>
+                  <th className="pb-3 px-3">Details / Target Scope</th>
                   <th className="pb-3 px-3 text-right">Status</th>
                 </tr>
               </thead>
@@ -115,11 +113,8 @@ export default function AdminAuditLogsPage() {
                     <td className="py-3.5 px-3 font-bold text-cyan-700">
                       {log.action}
                     </td>
-                    <td className="py-3.5 px-3 text-slate-600 max-w-xs truncate">
+                    <td className="py-3.5 px-3 text-slate-600 max-w-sm truncate">
                       {log.details || log.target || "—"}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-500 font-mono text-[11px]">
-                      {log.ip}
                     </td>
                     <td className="py-3.5 px-3 text-right">
                       <span

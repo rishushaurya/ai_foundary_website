@@ -69,6 +69,7 @@ export function LightNavbar() {
                   src="/club-logo.png"
                   alt="AI Foundry Logo"
                   fill
+                  sizes="32px"
                   className="object-cover"
                 />
               </div>

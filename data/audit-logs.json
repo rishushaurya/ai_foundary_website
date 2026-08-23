@@ -1,5 +1,149 @@
 [
   {
+    "id": "log-1787499421861-i69d0",
+    "timestamp": "2026-08-23T15:37:01.861Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787499361917-g4qlf",
+    "timestamp": "2026-08-23T15:36:01.917Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787499313235-n91m6",
+    "timestamp": "2026-08-23T15:35:13.235Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 0 albums with 0 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1787496995463-412kv",
+    "timestamp": "2026-08-23T14:56:35.463Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787496936763-i36u9",
+    "timestamp": "2026-08-23T14:55:36.763Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 0 albums with 0 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1787496910297-i5rco",
+    "timestamp": "2026-08-23T14:55:10.297Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 3 albums with 3 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1787496906098-2d174",
+    "timestamp": "2026-08-23T14:55:06.098Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 0 albums with 0 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1787494786629-t2v8p",
+    "timestamp": "2026-08-23T14:19:46.629Z",
+    "adminEmail": "amaan@gmail.com",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787494765986-zmjiu",
+    "timestamp": "2026-08-23T14:19:25.986Z",
+    "adminEmail": "amaan@gmail.com",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787493851487-ydpdl",
+    "timestamp": "2026-08-23T14:04:11.487Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "                                                           mutant",
+    "status": "success"
+  },
+  {
+    "id": "log-1787493442219-giiqc",
+    "timestamp": "2026-08-23T13:57:22.219Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 0 albums with 0 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1787492421024-l9ede",
+    "timestamp": "2026-08-23T13:40:21.024Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: ok...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787484716663-74cb1",
+    "timestamp": "2026-08-23T11:31:56.663Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787480607221-nd2bn",
+    "timestamp": "2026-08-23T10:23:27.221Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787480584963-30syp",
+    "timestamp": "2026-08-23T10:23:04.963Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Site Settings & Hero",
+    "details": "Hero: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1787434525560-0gdd5",
+    "timestamp": "2026-08-22T21:35:25.560Z",
+    "adminEmail": "admin@aifoundry.club",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 2 albums with 7 total media items",
+    "status": "success"
+  },
+  {
     "id": "log-1787428128562-m1lu6",
     "timestamp": "2026-08-22T19:48:48.562Z",
     "adminEmail": "admin@aifoundry.club",

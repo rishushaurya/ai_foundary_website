@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getContent, saveContent, ContentSection } from "@/lib/data";
-import { logAdminAction } from "@/lib/audit-logger";
+import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
   const content = await getContent();
@@ -27,8 +27,9 @@ async function handleSaveContent(request: Request) {
 
     // Security Audit Log
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Updated Landing & About Content",
       details: `Saved ${updated.length} content sections`,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getEvents, saveEvents, EventData } from "@/lib/data";
-import { logAdminAction } from "@/lib/audit-logger";
+import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
   const events = await getEvents();
@@ -35,8 +35,9 @@ export async function POST(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Created New Event",
       target: newEvent.title,
@@ -85,8 +86,9 @@ export async function PUT(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Updated Event",
       target: event.title,
@@ -119,8 +121,9 @@ export async function DELETE(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Deleted Event",
       target: target?.title || id,

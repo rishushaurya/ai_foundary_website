@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getGallerySections, saveGallerySections, GallerySection } from "@/lib/data";
-import { logAdminAction } from "@/lib/audit-logger";
+import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
   const sections = await getGallerySections();
@@ -22,8 +22,9 @@ async function handleSaveGallery(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
-      adminEmail: "admin@aifoundry.club",
+      adminEmail,
       ip,
       action: "Updated Gallery Albums & Direct Links",
       details: `Saved ${sections.length} albums with ${sections.reduce((acc, s) => acc + s.items.length, 0)} total media items`,

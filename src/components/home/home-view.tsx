@@ -3,12 +3,21 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Peach3DScene } from "@/components/3d/peach-3d-scene";
 import { RegistrationModal } from "@/components/ui/registration-modal";
 import { TeamMember, EventData, GallerySection, LandingCustomContent } from "@/lib/data";
 import { normalizeImageUrl } from "@/lib/image-helper";
-import { Calendar, MapPin, ArrowRight, Image as ImageIcon, MapPin as LocationIcon, Mail } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  ArrowRight,
+  Sparkles,
+  Rocket,
+  Users,
+  Compass,
+} from "lucide-react";
 import { LinkedinIcon, InstagramIcon, GithubIcon, TwitterIcon } from "@/components/ui/icons";
+
+import { GravityCursorBackground } from "@/components/home/gravity-cursor-background";
 
 interface HomeViewProps {
   events: EventData[];
@@ -29,11 +38,6 @@ export function HomeView({
 }: HomeViewProps) {
   const router = useRouter();
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
-  
-  // Instant Session Caching: If 3D has already loaded once in this session, skip preloader immediately (0ms delay)
-  const isAlreadyLoaded = typeof window !== "undefined" && Boolean((window as any).__aifoundry3dInitialized);
-  const [isLoading, setIsLoading] = useState(!isAlreadyLoaded);
-  const [showPreloader, setShowPreloader] = useState(!isAlreadyLoaded);
 
   const navigateTo = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
@@ -48,81 +52,46 @@ export function HomeView({
     router.push(href);
   };
 
+  // Smooth Intersection Observer for Scroll-Reveal Animations
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const scrollToId = urlParams.get("scrollTo");
-      if (scrollToId) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        if (scrollToId === "about") {
-          setTimeout(() => {
-            const aboutEl = document.getElementById("about-section");
-            if (aboutEl) aboutEl.scrollIntoView({ behavior: "smooth" });
-          }, 350);
-        }
-      } else {
-        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      }
+    if (typeof window === "undefined") return;
 
-      // If already initialized in this session, ensure instant 0ms reveal
-      if ((window as any).__aifoundry3dInitialized) {
-        setIsLoading(false);
-        setShowPreloader(false);
-        return;
+    // Handle scroll to query param if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const scrollToId = urlParams.get("scrollTo");
+    if (scrollToId) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      if (scrollToId === "about") {
+        setTimeout(() => {
+          const aboutEl = document.getElementById("about-section");
+          if (aboutEl) aboutEl.scrollIntoView({ behavior: "smooth" });
+        }, 300);
       }
     }
 
-    let isFinished = false;
-    const startTime = Date.now();
-    // Fast, responsive 3D initialization check
-    const minLoadTime = 250;
-
-    const finishLoading = () => {
-      if (isFinished) return;
-      isFinished = true;
-      if (typeof window !== "undefined") {
-        (window as any).__aifoundry3dInitialized = true;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -40px 0px",
       }
-      requestAnimationFrame(() => {
-        setIsLoading(false);
-        setTimeout(() => setShowPreloader(false), 300);
-      });
-    };
+    );
 
-    // Check if canvas exists with active WebGL draw dimensions
-    const checkCanvasReady = () => {
-      const sceneEl = document.getElementById("ijsk");
-      if (sceneEl) {
-        const canvas = sceneEl.querySelector("canvas");
-        if (canvas && canvas.width > 0 && canvas.height > 0) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      if (elapsed >= minLoadTime && checkCanvasReady()) {
-        clearInterval(interval);
-        finishLoading();
-      }
-    }, 40);
-
-    // Fast safety fallback timer to guarantee seamless reveal
-    const maxFallbackTimer = setTimeout(() => {
-      clearInterval(interval);
-      finishLoading();
-    }, 600);
+    const elements = document.querySelectorAll(".reveal-on-scroll");
+    elements.forEach((el) => observer.observe(el));
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(maxFallbackTimer);
+      elements.forEach((el) => observer.unobserve(el));
     };
   }, []);
 
   const facultyAdvisors = team.filter((m) => m.category === "faculty");
-  const executiveLeads = team.filter((m) => m.category === "executive");
 
   // Collect all gallery images for the horizontal marquee
   const allGalleryImages = gallerySections.flatMap((sec) =>
@@ -132,7 +101,6 @@ export function HomeView({
     }))
   );
 
-  // Fallback images if gallery is empty
   const marqueeImages =
     allGalleryImages.length > 0
       ? allGalleryImages
@@ -146,1297 +114,702 @@ export function HomeView({
         ];
 
   return (
-    <div id="pwb-body-wrap" className="relative min-h-screen">
-      {/* ===== FULL-PAGE SKELETON PRELOADER ===== */}
-      <div
-        className="fixed inset-0 z-[999999] flex flex-col justify-between p-6 sm:p-10 bg-white transition-opacity duration-700"
-        style={{
-          opacity: isLoading ? 1 : 0,
-          pointerEvents: isLoading ? "auto" : "none",
-          display: showPreloader ? "flex" : "none",
-        }}
-        suppressHydrationWarning
-      >
-        {/* Top Header Skeleton */}
-        <div className="flex items-center justify-between max-w-7xl mx-auto w-full pt-4" suppressHydrationWarning>
-          <div className="flex items-center gap-3" suppressHydrationWarning>
-            <div className="w-8 h-8 rounded-full bg-slate-200 animate-pulse"></div>
-            <div className="w-28 h-5 rounded-md bg-slate-200 animate-pulse"></div>
-          </div>
-          <div className="hidden md:flex items-center gap-6 px-8 py-3 rounded-full bg-slate-100/80 backdrop-blur-md" suppressHydrationWarning>
-            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-            <div className="w-12 h-3.5 rounded bg-slate-200 animate-pulse"></div>
-          </div>
-          <div className="w-24 h-9 rounded-full bg-slate-200 animate-pulse"></div>
-        </div>
+    <div className="relative min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+      {/* Interactive Physics Gravity & Cursor Attractor Background */}
+      <GravityCursorBackground />
 
-        {/* Central Hero Skeleton */}
-        <div className="max-w-4xl mx-auto w-full my-auto space-y-8" suppressHydrationWarning>
-          <div className="space-y-4" suppressHydrationWarning>
-            <div className="w-full h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
-            <div className="w-4/5 h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
-            <div className="w-2/3 h-12 sm:h-16 rounded-xl bg-slate-200 animate-pulse"></div>
-          </div>
-
-          {/* Buttons Skeleton */}
-          <div className="flex items-center gap-4 pt-4" suppressHydrationWarning>
-            <div className="w-32 h-11 rounded-xl bg-slate-200 animate-pulse"></div>
-            <div className="w-36 h-11 rounded-xl bg-slate-200 animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* Bottom Indicators Skeleton */}
-        <div className="flex items-end justify-between max-w-7xl mx-auto w-full pb-4" suppressHydrationWarning>
-          <div className="w-20 h-4 rounded bg-slate-200 animate-pulse"></div>
-          <div className="w-64 h-4 rounded bg-slate-200 animate-pulse hidden sm:block"></div>
-        </div>
+      {/* Background Ambient Radial Mesh */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-blue-200/30 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 -right-40 w-[550px] h-[550px] bg-indigo-200/25 rounded-full blur-[130px]" />
+        <div className="absolute -bottom-40 left-1/3 w-[650px] h-[650px] bg-cyan-200/20 rounded-full blur-[140px]" />
       </div>
 
-      {/* 3D WebGL Canvas Layer */}
-      <Peach3DScene />
-
-      {/* ===== WEBSITE CONTENT (SMOOTH SIMULTANEOUS FADE-IN ONCE 3D SCENE IS DRAWN) ===== */}
-      <div
-        className="relative w-full transition-opacity duration-700"
-        style={{
-          opacity: isLoading ? 0 : 1,
-          pointerEvents: isLoading ? "none" : "auto",
-        }}
-      >
-        {/* Anchor 1 */}
-        <div className="pwb-anchor" id="i3owk"></div>
-
+      <div className="relative z-10 w-full">
         {/* ===== SLIDE 1: HERO SECTION ===== */}
-        <div className="pwb-flex-grid-wrap" id="i84ba">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-6">
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-8-2">
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-8-2-2">
-                <h1
-                  className="pw-user-text-style-6ae56f11-b178-4dd1-8bf0-1f16cb6f2a2e"
-                  id="ispyh-2-2-5-2-2"
-                >
-                  {heroTagline ||
-                    "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE"}
-                </h1>
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-2-2-2-2-2-3" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                  <a
-                    href="/recruit"
-                    onClick={(e) => navigateTo(e, "/recruit")}
-                    className="no-underline cursor-pointer transition-transform hover:scale-105"
-                    id="hero-cta-joinus"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      flexDirection: "row",
-                      padding: "16px 24px",
-                      justifyContent: "center",
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      gap: "8px",
-                      height: "48px",
-                      pointerEvents: "auto",
-                      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-                    }}
-                  >
-                    <p
-                      className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold"
-                      id="hero-cta-joinus-text"
-                      style={{ color: "#000000", fontWeight: 700, fontSize: "14px" }}
-                    >
-                      Join Us
-                    </p>
-                    <img
-                      src="/images/group-1597882162.svg"
-                      loading="lazy"
-                      id="hero-cta-joinus-icon"
-                      alt="arrow"
-                      style={{ width: "20px", height: "20px" }}
-                    />
-                  </a>
-                  <a
-                    href="/events"
-                    onClick={(e) => navigateTo(e, "/events")}
-                    className="no-underline cursor-pointer transition-transform hover:scale-105"
-                    id="hero-cta-events"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      flexDirection: "row",
-                      padding: "16px 24px",
-                      justifyContent: "center",
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      borderRadius: "8px",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      gap: "8px",
-                      height: "48px",
-                      backdropFilter: "blur(10px)",
-                      pointerEvents: "auto",
-                    }}
-                  >
-                    <p
-                      className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold"
-                      id="hero-cta-events-text"
-                      style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}
-                    >
-                      Explore Events
-                    </p>
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-8-2-2-2">
-              <p
-                className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62"
-                id="ispyh-2-2-2-3-3-2-3-2"
+        <section className="relative min-h-[92vh] flex flex-col justify-between items-center px-4 sm:px-8 pt-32 pb-12 max-w-7xl mx-auto w-full">
+          {/* Top subtle badge */}
+          <div className="reveal-on-scroll is-revealed inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-white/90 text-blue-700 border border-slate-200 shadow-sm backdrop-blur-md mb-6 tracking-wide">
+            <Sparkles className="size-3.5 text-blue-600 animate-pulse" />
+            <span>DSU PREMIER AI &amp; VENTURE ACCELERATOR</span>
+          </div>
+
+          {/* Main Hero Title & Tagline */}
+          <div className="flex flex-col items-center text-center max-w-5xl my-auto space-y-6">
+            <h1 className="reveal-on-scroll reveal-delay-100 is-revealed text-4xl sm:text-6xl md:text-7xl font-extrabold text-slate-950 tracking-tight leading-[1.08]">
+              {heroTagline ? (
+                heroTagline
+              ) : (
+                <>
+                  Forging the Future of <br className="hidden sm:inline" />
+                  <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-600 bg-clip-text text-transparent">
+                    AI &amp; Entrepreneurship
+                  </span>
+                </>
+              )}
+            </h1>
+
+            <p className="reveal-on-scroll reveal-delay-200 is-revealed text-slate-600 text-base sm:text-lg md:text-xl font-normal max-w-2xl leading-relaxed">
+              Dayananda Sagar University&apos;s flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="reveal-on-scroll reveal-delay-300 is-revealed flex flex-wrap items-center justify-center gap-4 pt-4">
+              <a
+                href="/recruit"
+                onClick={(e) => navigateTo(e, "/recruit")}
+                className="no-underline cursor-pointer transition-all hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-slate-900 text-white font-bold text-sm sm:text-base rounded-xl shadow-xl shadow-slate-900/15 hover:bg-slate-800"
               >
-                Scroll down
-              </p>
-              <p
-                className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83"
-                id="ispyh-2-2-2-3-3-2-3"
+                <span>Join AI Foundry</span>
+                <ArrowRight className="size-4" />
+              </a>
+
+              <a
+                href="/events"
+                onClick={(e) => navigateTo(e, "/events")}
+                className="no-underline cursor-pointer transition-all hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-white/90 text-slate-900 font-bold text-sm sm:text-base rounded-xl border border-slate-200 shadow-sm hover:bg-white backdrop-blur-md"
               >
-                Dayananda Sagar University&apos;s premier innovation ecosystem uniting
-                engineers, designers, researchers, and student founders.
-              </p>
+                <span>Explore Events</span>
+                <Calendar className="size-4 text-blue-600" />
+              </a>
             </div>
           </div>
-        </div>
+
+          {/* Bottom Indicators */}
+          <div className="reveal-on-scroll reveal-delay-400 is-revealed w-full flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200/60 text-xs text-slate-500 font-mono">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+              <span className="font-semibold uppercase tracking-widest text-slate-600">Scroll down to explore</span>
+            </div>
+            <div className="text-center sm:text-right font-medium max-w-md">
+              School of Engineering &bull; Department of AI &amp; Robotics &bull; DSU Bengaluru
+            </div>
+          </div>
+        </section>
 
         {/* ===== SLIDE 2: ABOUT US SECTION ===== */}
-        <div className="pwb-anchor" id="about-section" style={{ position: "relative", top: "-80px" }}></div>
-        <div className="pwb-flex-grid-wrap" id="ilwyn" style={{ pointerEvents: "auto", minHeight: "auto", padding: "100px 20px 60px" }}>
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4" style={{ pointerEvents: "auto", maxWidth: "1200px", width: "100%", margin: "0 auto" }}>
-            <div className="pw-block-style w-full" id="i3n9rh-2-2" style={{ width: "100%", maxWidth: "1000px" }}>
-              <p
-                className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f text-amber-500 font-bold uppercase tracking-widest text-sm mb-6"
-                id="about-tagline"
-              >
-                ABOUT US
-              </p>
-              <h1
-                className="pw-user-text-style-b1637bfe-8939-428c-b6b6-e73aa4f717d9 text-white font-medium text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.15] tracking-tight"
-                id="about-headline"
-                style={{
-                  fontFamily: '"68832fb0ffba9b1995adac75-helveticanowdisplay-medium", "Helvetica Neue", sans-serif',
-                }}
-              >
+        <section id="about-section" className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 sm:p-14 shadow-xl shadow-slate-100/70 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-blue-100/40 via-amber-100/30 to-transparent rounded-full blur-3xl -z-10" />
+
+            <div className="max-w-4xl space-y-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 font-mono">
+                ABOUT AI FOUNDRY
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 {aboutText ||
                   "To cultivate a vibrant community at DSU, fostering innovation in AI and entrepreneurship through collaborative projects."}
-              </h1>
-              <p className="text-slate-300 text-base sm:text-lg md:text-xl font-normal leading-relaxed mt-6 max-w-3xl">
-                Ai Foundry is Dayananda Sagar University&apos;s flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing mentorship, GPU compute, and a collaborative workspace.
+              </h2>
+
+              <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
+                AI Foundry is Dayananda Sagar University&apos;s flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing hands-on mentorship, enterprise GPU compute, and a collaborative workspace.
               </p>
-              <div className="flex flex-wrap items-center gap-4 mt-8">
+
+              <div className="flex flex-wrap items-center gap-4 pt-4">
                 <a
                   href="/recruit"
                   onClick={(e) => navigateTo(e, "/recruit")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105"
-                  id="about-btn-join"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    padding: "16px 24px",
-                    justifyContent: "center",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    gap: "8px",
-                    height: "48px",
-                    pointerEvents: "auto",
-                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-                  }}
+                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:bg-slate-800"
                 >
-                  <span style={{ color: "#000000", fontWeight: 700, fontSize: "14px" }}>Join Our Community</span>
-                  <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "20px", height: "20px" }} />
+                  <span>Join Our Community</span>
+                  <ArrowRight className="size-4" />
                 </a>
                 <a
                   href="/team"
                   onClick={(e) => navigateTo(e, "/team")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105"
-                  id="about-btn-team"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    padding: "16px 24px",
-                    justifyContent: "center",
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                    gap: "8px",
-                    height: "48px",
-                    backdropFilter: "blur(10px)",
-                    pointerEvents: "auto",
-                  }}
+                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-white text-slate-800 font-bold text-sm rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50"
                 >
-                  <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}>Meet The Team</span>
+                  <span>Meet The Leadership</span>
+                  <Users className="size-4 text-blue-600" />
                 </a>
               </div>
             </div>
           </div>
-          <div className="pwb-flex-grid-wrap" id="ijh6l-3-2"></div>
-        </div>
+        </section>
 
-        {/* ===== SLIDE 3: UPCOMING EVENTS & HACKATHONS (FROSTED GLASS ON 3D BACKDROP) ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-4" style={{ pointerEvents: "auto", minHeight: "auto", padding: "60px 20px 100px" }}>
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4" style={{ pointerEvents: "auto", maxWidth: "1280px", width: "100%", margin: "0 auto" }}>
-            <div className="pw-rows-style" id="i3oqmq-2" style={{ marginBottom: "40px", width: "100%" }}>
-              <p
-                className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f text-cyan-400 font-bold uppercase tracking-widest text-sm mb-2"
-                id="events-tagline"
-              >
-                UPCOMING EVENTS
-              </p>
-              <div className="flex flex-col md:flex-row md:items-end justify-between w-full">
-                <h1
-                  className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e text-white text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight"
-                  id="events-headline"
-                  style={{
-                    fontFamily: '"68832fb0ffba9b1995adac75-helveticanowdisplay-medium", "Helvetica Neue", sans-serif',
-                  }}
-                >
-                  Hackathons, Workshops &amp; Sprints
-                </h1>
-                <Link
-                  href="/events"
-                  className="mt-4 md:mt-0 inline-flex items-center gap-2 text-sm font-bold text-cyan-400 hover:text-cyan-300 transition-colors no-underline uppercase tracking-wider font-mono group"
-                >
-                  <span>All Events</span>
-                  <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+        {/* ===== SLIDE 3: UPCOMING EVENTS & HACKATHONS ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 font-mono mb-3">
+                UPCOMING EVENTS &amp; SPRINTS
               </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                Hackathons, Workshops &amp; Sprints
+              </h2>
             </div>
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
+            >
+              <span>View All Events</span>
+              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
 
-            {/* Frosted Glass Large Event Cards (Exact Requested Hierarchy: Status+Date -> Title -> Image -> Desc -> Venue -> Register) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full" id="events-card-grid">
-              {events
-                .filter((e) => e.showOnHome !== false)
-                .slice(0, 3)
-                .map((evt) => {
-                  const dateStr = new Date(evt.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  });
-                  return (
-                    <div
-                      key={evt.id}
-                      className="min-h-[460px] flex flex-col justify-between p-7 sm:p-8 rounded-3xl border border-white/15 backdrop-blur-2xl transition-all duration-300 hover:border-cyan-400/60 hover:scale-[1.02] group"
-                      style={{
-                        backgroundColor: "rgba(255, 255, 255, 0.08)",
-                        boxShadow: "0 12px 36px rgba(0, 0, 0, 0.35)",
-                      }}
-                    >
-                      <div className="w-full flex flex-col">
-                        {/* 1. Status Badge & Date Side-by-Side with Gap */}
-                        <div className="flex items-center justify-between w-full mb-4">
-                          <span className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-950/90 text-cyan-300 border border-cyan-500/40 font-mono shadow-sm">
-                            {evt.status}
-                          </span>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-300 font-mono font-bold">
-                            <Calendar className="size-3.5 text-cyan-400" />
-                            <span>{dateStr}</span>
-                          </div>
-                        </div>
-
-                        {/* 2. Event Title in Bold */}
-                        <h3
-                          className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight leading-snug group-hover:text-cyan-300 transition-colors line-clamp-2 mb-4"
-                          style={{
-                            fontFamily: '"68832fb0ffba9b1995adac75-helveticanowdisplay-medium", "Helvetica Neue", sans-serif',
-                          }}
-                        >
-                          {evt.title}
-                        </h3>
-
-                        {/* 3. Event Image with Direct Image Normalization */}
-                        <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-4 border border-white/10 bg-black/40 shadow-inner">
-                          <img
-                            src={normalizeImageUrl(evt.image)}
-                            alt={evt.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
-
-                        {/* 4. Event Description with Proper Gap */}
-                        <p className="text-slate-300 text-xs sm:text-sm font-normal leading-relaxed line-clamp-3 mb-4">
-                          {evt.description}
-                        </p>
-
-                        {/* 5. Location / Venue */}
-                        <div className="flex items-center gap-1.5 text-xs text-cyan-300 font-mono font-semibold mb-2">
-                          <MapPin className="size-3.5 text-cyan-400 flex-shrink-0" />
-                          <span className="truncate">{evt.venue}</span>
+          {/* Event Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {events
+              .filter((e) => e.showOnHome !== false)
+              .slice(0, 3)
+              .map((evt, idx) => {
+                const dateStr = new Date(evt.date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                });
+                return (
+                  <div
+                    key={evt.id}
+                    className={`reveal-on-scroll reveal-delay-${(idx + 1) * 100} min-h-[480px] flex flex-col justify-between p-7 sm:p-8 rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200/90 shadow-lg shadow-slate-100/60 transition-all duration-300 hover:shadow-2xl hover:border-blue-300 group`}
+                  >
+                    <div className="w-full flex flex-col">
+                      {/* Status & Date */}
+                      <div className="flex items-center justify-between w-full mb-4">
+                        <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 font-mono shadow-sm">
+                          {evt.status}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono font-medium">
+                          <Calendar className="size-3.5 text-blue-600" />
+                          <span>{dateStr}</span>
                         </div>
                       </div>
 
-                      {/* 6. Registration Button */}
-                      <div className="pt-5 mt-4 border-t border-white/10 w-full flex justify-center">
-                        {evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl) ? (
-                          <a
-                            href={evt.externalRegistrationUrl || evt.googleFormUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="no-underline cursor-pointer transition-transform hover:scale-105 w-full flex items-center justify-center gap-2"
-                            style={{
-                              padding: "14px 24px",
-                              backgroundColor: "#ffffff",
-                              borderRadius: "12px",
-                              height: "48px",
-                              boxShadow: "0 4px 15px rgba(255, 255, 255, 0.2)",
-                            }}
-                          >
-                            <span style={{ color: "#000000", fontWeight: 800, fontSize: "13px", letterSpacing: "0.5px" }}>
-                              Register (External)
-                            </span>
-                            <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "18px", height: "18px" }} />
-                          </a>
-                        ) : (
-                          <button
-                            onClick={() => setSelectedEvent(evt)}
-                            className="cursor-pointer transition-transform hover:scale-105 w-full flex items-center justify-center gap-2"
-                            style={{
-                              padding: "14px 24px",
-                              backgroundColor: "#ffffff",
-                              borderRadius: "12px",
-                              height: "48px",
-                              border: "none",
-                              boxShadow: "0 4px 15px rgba(255, 255, 255, 0.2)",
-                            }}
-                          >
-                            <span style={{ color: "#000000", fontWeight: 800, fontSize: "13px", letterSpacing: "0.5px" }}>
-                              Register Now
-                            </span>
-                            <img src="/images/group-1597882162.svg" alt="arrow" style={{ width: "18px", height: "18px" }} />
-                          </button>
-                        )}
+                      {/* Title */}
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2 mb-4">
+                        {evt.title}
+                      </h3>
+
+                      {/* Image */}
+                      <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-4 border border-slate-200 bg-slate-100 shadow-inner">
+                        <img
+                          src={normalizeImageUrl(evt.image)}
+                          alt={evt.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-slate-600 text-xs sm:text-sm font-normal leading-relaxed line-clamp-3 mb-4">
+                        {evt.description}
+                      </p>
+
+                      {/* Venue */}
+                      <div className="flex items-center gap-1.5 text-xs text-slate-600 font-mono font-medium mb-2">
+                        <MapPin className="size-3.5 text-blue-600 flex-shrink-0" />
+                        <span className="truncate">{evt.venue}</span>
                       </div>
                     </div>
-                  );
-                })}
-            </div>
+
+                    {/* Registration Button */}
+                    <div className="pt-4 mt-2 border-t border-slate-100 w-full flex justify-center">
+                      {evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl) ? (
+                        <a
+                          href={evt.externalRegistrationUrl || evt.googleFormUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="no-underline cursor-pointer transition-transform hover:scale-105 w-full flex items-center justify-center gap-2 py-3.5 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md font-bold text-sm"
+                        >
+                          <span>Register (External)</span>
+                          <ArrowRight className="size-4" />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => setSelectedEvent(evt)}
+                          className="cursor-pointer transition-transform hover:scale-105 w-full flex items-center justify-center gap-2 py-3.5 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md font-bold text-sm border-none"
+                        >
+                          <span>Register Now</span>
+                          <ArrowRight className="size-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
           </div>
-        </div>
+        </section>
 
-        <div className="pwb-flex-grid-wrap" id="injpw-2-2-3"></div>
-        <div className="pwb-anchor" id="i3owk-2-3"></div>
-
-        {/* ===== SLIDE 4: OUR PILLARS (WHITE BACKGROUND AS IN ORIGINAL DESIGN) ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-2">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-5">
-            <p
-              className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-              id="ispyh-2-3-2-3-2-2-2-3-2"
-            >
-              OUR PILLARS
+        {/* ===== SLIDE 4: OUR PILLARS ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 font-mono mb-3">
+                OUR PILLARS
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                Our approach to innovation is built on three core strategies.
+              </h2>
+            </div>
+            <p className="text-slate-600 text-sm sm:text-base max-w-md font-normal">
+              Empowering students to lead in AI and entrepreneurship, fostering real-world impact and future-ready skills.
             </p>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3">
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-4">
-                <h1
-                  className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
-                  id="ispyh-2-2-2-3-3-3"
-                >
-                  Our approach to innovation is built on three core strategies.
-                </h1>
-                <p
-                  className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83"
-                  id="ispyh-2-2-2-3-3-2-2"
-                >
-                  Empowering students to lead in AI and entrepreneurship, fostering
-                  real-world impact and future-ready skills.
-                </p>
-              </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-3">
-                <a
-                  href="/recruit"
-                  onClick={(e) => navigateTo(e, "/recruit")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105"
-                  id="pillars-cta-joinus"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    padding: "16px 24px",
-                    justifyContent: "center",
-                    backgroundColor: "#1a1a1a",
-                    borderRadius: "8px",
-                    gap: "8px",
-                    height: "48px",
-                    pointerEvents: "auto",
-                  }}
-                >
-                  <p
-                    className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold"
-                    id="pillars-cta-joinus-text"
-                    style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}
-                  >
-                    Join Us
-                  </p>
-                  <img
-                    src="/images/group-1597882163.svg"
-                    loading="lazy"
-                    id="pillars-cta-joinus-icon"
-                    alt="arrow"
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                </a>
-              </div>
-            </div>
           </div>
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-3-4">
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5">
-              <div className="pw-block-style" id="ipkvji-4-6">
-                <img
-                  className="pw-image-style"
-                  src="/images/asterisk-streamline-unicons.svg"
-                  loading="lazy"
-                  id="ixgrmc"
-                  alt="Innovation icon"
-                />
-              </div>
-              <div className="pw-block-style" id="ipkvji-4-3-5">
-                <h3
-                  className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
-                  id="ispyh-2-2-2-2-2-2-3-5"
-                >
-                  Innovation
-                </h3>
-                <p
-                  className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                  id="ispyh-2-2-2-4-4-2-5"
-                >
-                  We encourage groundbreaking ideas and provide the resources for
-                  members to explore the frontiers of AI and business.
-                </p>
-              </div>
-            </div>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-4">
-              <div className="pw-block-style" id="ipkvji-4-2-4">
-                <img
-                  className="pw-image-style"
-                  src="/images/channel-streamline-unicons.svg"
-                  loading="lazy"
-                  id="ixgrmc-2"
-                  alt="Collaboration icon"
-                />
-              </div>
-              <div className="pw-block-style" id="ipkvji-4-3-2-4">
-                <h3
-                  className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
-                  id="ispyh-2-2-2-2-2-2-3-2-4"
-                >
-                  Collaboration
-                </h3>
-                <p
-                  className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                  id="ispyh-2-2-2-4-4-2-2-4"
-                >
-                  We believe in the power of diverse minds working together,
-                  fostering a supportive environment for shared learning and
-                  growth.
-                </p>
-              </div>
-            </div>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-2-4">
-              <div className="pw-block-style" id="ipkvji-4-2-2-4">
-                <img
-                  className="pw-image-style"
-                  src="/images/border-vertical-streamline-unicons.svg"
-                  loading="lazy"
-                  id="ixgrmc-3"
-                  alt="Impact icon"
-                />
-              </div>
-              <div className="pw-block-style" id="ipkvji-4-3-2-2-4">
-                <h3
-                  className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
-                  id="ispyh-2-2-2-2-2-2-3-2-2-4"
-                >
-                  Impact
-                </h3>
-                <p
-                  className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                  id="ispyh-2-2-2-4-4-2-2-2-4"
-                >
-                  Our projects aim to solve real-world problems, making a tangible
-                  difference in the community and beyond.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* ===== SLIDE 5: OUR GALLERY (HORIZONTAL SMOOTH MARQUEE RIGHT->LEFT ON WHITE BACKDROP) ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-2-3">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-5-3" style={{ pointerEvents: "auto" }}>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-2">
-              <p
-                className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-                id="ispyh-2-3-2-3-2-2-2-3-2-3"
-              >
-                MOMENTS &amp; ARCHIVES
-              </p>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-2-2">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-2-2-3">
-                  <h1
-                    className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
-                    id="ispyh-2-2-2-3-3-3-2-3"
-                  >
-                    Life at AI Foundry
-                  </h1>
-                  <p
-                    className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83"
-                    id="ispyh-2-2-2-3-3-2-2-2-3"
-                  >
-                    Glimpses into 24-hour hackathons, prototype showcases, mentor sessions, and community gatherings.
-                  </p>
-                </div>
-                <a
-                  href="/gallery"
-                  onClick={(e) => navigateTo(e, "/gallery")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105"
-                  id="gallery-cta-all"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    padding: "16px 24px",
-                    justifyContent: "center",
-                    backgroundColor: "#1a1a1a",
-                    borderRadius: "8px",
-                    gap: "8px",
-                    height: "48px",
-                    pointerEvents: "auto",
-                  }}
-                >
-                  <p
-                    className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold"
-                    id="gallery-cta-all-text"
-                    style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}
-                  >
-                    View Full Gallery
-                  </p>
-                  <img
-                    src="/images/group-1597882163.svg"
-                    loading="lazy"
-                    id="gallery-cta-all-icon"
-                    alt="arrow"
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                </a>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Pillar 1: Innovation */}
+            <div className="reveal-on-scroll reveal-delay-100 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-6 text-amber-600">
+                <Rocket className="size-6" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">Innovation</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  We encourage groundbreaking ideas and provide GPU compute, lab access, and development toolkits for members to explore the frontiers of AI.
+                </p>
               </div>
             </div>
+
+            {/* Pillar 2: Collaboration */}
+            <div className="reveal-on-scroll reveal-delay-200 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-6 text-blue-600">
+                <Users className="size-6" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">Collaboration</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  We believe in the power of diverse minds working together, fostering a supportive cross-disciplinary environment for peer learning and growth.
+                </p>
+              </div>
+            </div>
+
+            {/* Pillar 3: Impact */}
+            <div className="reveal-on-scroll reveal-delay-300 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 shadow-lg shadow-slate-100/60 flex flex-col justify-between transition-transform hover:scale-105">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-6 text-emerald-600">
+                <Compass className="size-6" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">Impact</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Our projects aim to solve real-world problems, making a tangible difference across healthcare, robotics, education, and venture incubation.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== SLIDE 5: MOMENTS & ARCHIVES (HORIZONTAL MARQUEE) ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 font-mono mb-3">
+                MOMENTS &amp; ARCHIVES
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                Life at AI Foundry
+              </h2>
+            </div>
+            <Link
+              href="/gallery"
+              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
+            >
+              <span>View Full Gallery</span>
+              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
 
           {/* Marquee Track Container */}
-          <div className="w-full overflow-hidden py-6" style={{ pointerEvents: "auto" }}>
+          <div className="reveal-on-scroll reveal-delay-200 w-full overflow-hidden py-4">
             <div className="flex gap-6 animate-[marquee_25s_linear_infinite] hover:[animation-play-state:paused] w-max">
               {[...marqueeImages, ...marqueeImages].map((img, idx) => (
                 <div
                   key={`${img.id}-${idx}`}
-                  className="flex-shrink-0 w-72 sm:w-80 h-52 rounded-2xl border overflow-hidden relative group transition-transform duration-300 hover:scale-105 shadow-md"
-                  style={{
-                    background: "#f1f5f9",
-                    borderColor: "rgba(0, 0, 0, 0.08)",
-                  }}
+                  className="flex-shrink-0 w-72 sm:w-80 h-52 rounded-2xl border border-slate-200/90 overflow-hidden relative group transition-transform duration-300 hover:scale-105 shadow-md bg-white"
                 >
-                  <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center p-4 text-center">
-                    <ImageIcon className="size-8 text-cyan-600 mb-2 opacity-80 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
+                  <img
+                    src={normalizeImageUrl(img.url)}
+                    alt={img.name || "Club Moment"}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex flex-col justify-end p-4 transition-opacity duration-300">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono drop-shadow-sm">
                       {img.name || "Club Moment"}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono mt-1">
-                      {img.albumName}
-                    </span>
+                    {img.albumName && (
+                      <span className="text-[10px] text-cyan-300 font-mono font-semibold mt-0.5">
+                        {img.albumName}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* ===== SLIDE 6: OUR APPROACH (WHITE BACKGROUND AS IN ORIGINAL DESIGN) ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-2-3-2">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-5-3-2">
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-2-3">
-              <p
-                className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-                id="ispyh-2-3-2-3-2-2-2-3-2-3-3"
-              >
-                OUR APPROACH
-              </p>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-3-2-2-2">
-                <h1
-                  className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
-                  id="ispyh-2-2-2-3-3-3-2-2"
-                >
-                  Where your ambition meets innovation.
-                </h1>
-                <p
-                  className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83"
-                  id="ispyh-2-2-2-3-3-2-2-2-2"
-                >
-                  We foster a dynamic environment where students can transform their
-                  ideas into impactful AI and entrepreneurial ventures.
-                </p>
-              </div>
+        {/* ===== SLIDE 6: OUR APPROACH & JOURNEY ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 font-mono mb-3">
+              OUR APPROACH
             </div>
-          </div>
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-3-4-2-2">
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-3-4-2-2-3">
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-3-2-2-3">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-2-2-2-2-3">
-                  <img className="pw-image-style" src="/images/rectangle-5.png" loading="lazy" id="ikuswx-2-3" alt="Ideation" />
-                  <div className="pw-block-style" id="ipkvji-4-3-2-4-3-3">
-                    <h2 className="pw-user-text-style-abab9931-4159-4d9f-b594-3693bb5f6ccd" id="ispyh-2-2-2-2-2-2-3-2-4-3-3">
-                      Ideation
-                    </h2>
-                    <p className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83" id="ispyh-2-2-2-4-4-2-2-4-3-3">
-                      We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-4-3">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-2-3-3">
-                  <div className="pw-block-style" id="ipkvji-4-3-2-4-3-2-3">
-                    <h2 className="pw-user-text-style-abab9931-4159-4d9f-b594-3693bb5f6ccd" id="ispyh-2-2-2-2-2-2-3-2-4-3-2-3">
-                      Development
-                    </h2>
-                    <p className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83" id="ispyh-2-2-2-4-4-2-2-4-3-2-3">
-                      Providing tools, mentorship, GPU compute, and a collaborative space for building AI solutions.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-3-4-2-2-2">
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-4-2">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-2-3-2">
-                  <div className="pw-block-style" id="ipkvji-4-3-2-4-3-2-2">
-                    <h2 className="pw-user-text-style-abab9931-4159-4d9f-b594-3693bb5f6ccd" id="ispyh-2-2-2-2-2-2-3-2-4-3-2-2">
-                      Launch
-                    </h2>
-                    <p className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83" id="ispyh-2-2-2-4-4-2-2-4-3-2-2">
-                      Supporting projects through deployment, venture accelerator pitch demo days, and continuous iteration.
-                    </p>
-                  </div>
-                </div>
-                <img className="pw-image-style" src="/images/map.png" loading="lazy" id="ikuswx-2-2-2" alt="Launch map" />
-              </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-3-4-2-2">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-2-2-4-2-2">
-                  <div className="pw-block-style" id="ipkvji-4-3-2-4-3-2-2-2">
-                    <h2 className="pw-user-text-style-abab9931-4159-4d9f-b594-3693bb5f6ccd" id="ispyh-2-2-2-2-2-2-3-2-4-3-2-2-2">
-                      Mentorship
-                    </h2>
-                    <p className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83" id="ispyh-2-2-2-4-4-2-2-4-3-2-2-2">
-                      Connecting students with faculty advisors and industry leaders for deep technical guidance.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-3-2-2-2">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-5-2-2-2-2-2-2">
-                  <div className="pw-block-style" id="ipkvji-4-3-2-4-3-2-2-3">
-                    <h2 className="pw-user-text-style-abab9931-4159-4d9f-b594-3693bb5f6ccd" id="ispyh-2-2-2-2-2-2-3-2-4-3-2-2-2-2">
-                      Community
-                    </h2>
-                    <p className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83" id="ispyh-2-2-2-4-4-2-2-4-3-2-2-3">
-                      Building a strong student network at DSU, fostering peer learning and collaborative opportunities.
-                    </p>
-                  </div>
-                  <img className="pw-image-style" src="/images/rectangle-8.png" loading="lazy" id="ikuswx-2-2" alt="Community" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="pwb-anchor" id="i3owk-2-2-3"></div>
-        <div className="pwb-flex-grid-wrap" id="injpw-2-2"></div>
-
-        {/* ===== SLIDE 7: OUR PROCESS ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-4-2">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4-3">
-            <p
-              className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-              id="ispyh-2-3-2-3-2-2-2-3-3-3"
-            >
-              OUR PROCESS
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+              Where your ambition meets innovation.
+            </h2>
+            <p className="text-slate-600 text-base max-w-2xl mt-4 font-normal">
+              We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures.
             </p>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4-2-3">
-              <div className="pw-rows-style" id="i3oqmq-2-3">
-                <h1
-                  className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
-                  id="ispyh-2-2-2-5-2-3-3"
-                >
-                  How we forge the future.
-                </h1>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Step 1: Ideation */}
+            <div className="reveal-on-scroll reveal-delay-100 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
+              <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
+                <img src="/images/rectangle-5.png" alt="Ideation" className="w-full h-full object-cover" />
               </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4-2-2-2">
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-6-4">
-                  <div className="pw-block-style" id="ipkvji-4-3-6-2-4">
-                    <img className="pw-image-style" src="/images/asterisk-streamline-unicons.svg" loading="lazy" id="ixgrmc-4-2-2-4" alt="Process 1" />
-                  </div>
-                  <div className="pw-block-style" id="ipkvji-4-3-7-2-4">
-                    <div className="pw-block-style" id="ipkvji-4-3-8-4">
-                      <h3 className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987" id="ispyh-2-2-2-2-2-2-3-6-4">
-                        Idea Generation
-                      </h3>
-                    </div>
-                    <div className="pw-block-style" id="ipkvji-4-7-4">
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-6-2-4">
-                        Brainstorming and refining concepts within our collaborative workshops and 24-hour hackathons.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-6-3-2">
-                  <div className="pw-block-style" id="ipkvji-4-3-6-2-3-2">
-                    <img className="pw-image-style" src="/images/asterisk-streamline-unicons.svg" loading="lazy" id="ixgrmc-4-2-2-3-2" alt="Process 2" />
-                  </div>
-                  <div className="pw-block-style" id="ipkvji-4-3-7-2-3-2">
-                    <div className="pw-block-style" id="ipkvji-4-3-8-3-2">
-                      <h3 className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987" id="ispyh-2-2-2-2-2-2-3-6-3-2">
-                        Team Formation
-                      </h3>
-                    </div>
-                    <div className="pw-block-style" id="ipkvji-4-7-3-2">
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-6-2-3-2">
-                        Connecting students with complementary technical and design skills to form interdisciplinary squads.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-6-2-3">
-                  <div className="pw-block-style" id="ipkvji-4-3-6-2-2-3">
-                    <img className="pw-image-style" src="/images/asterisk-streamline-unicons.svg" loading="lazy" id="ixgrmc-4-2-2-2-2" alt="Process 3" />
-                  </div>
-                  <div className="pw-block-style" id="ipkvji-4-3-7-2-2-3">
-                    <div className="pw-block-style" id="ipkvji-4-3-8-2-3">
-                      <h3 className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987" id="ispyh-2-2-2-2-2-2-3-6-2-3">
-                        Project Incubation
-                      </h3>
-                    </div>
-                    <div className="pw-block-style" id="ipkvji-4-7-2-3">
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-6-2-2-3">
-                        Providing GPU compute, mentorship, and a supportive environment for full-stack prototype development.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-6-2-2-2">
-                  <div className="pw-block-style" id="ipkvji-4-3-6-2-2-2-2">
-                    <img className="pw-image-style" src="/images/border-vertical-streamline-unicons.svg" loading="lazy" id="ixgrmc-3-2-2-2-2" alt="Process 4" />
-                  </div>
-                  <div className="pw-block-style" id="ipkvji-4-3-7-2-2-2-2">
-                    <div className="pw-block-style" id="ipkvji-4-3-8-2-2-2">
-                      <h3 className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987" id="ispyh-2-2-2-2-2-2-3-6-2-2-2">
-                        Showcase &amp; Launch
-                      </h3>
-                    </div>
-                    <div className="pw-block-style" id="ipkvji-4-7-2-2-2">
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-6-2-2-2-2">
-                        Presenting completed projects to the tech community and supporting venture deployment.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">1. Ideation</h3>
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and venture scoping.
+              </p>
+            </div>
+
+            {/* Step 2: Development */}
+            <div className="reveal-on-scroll reveal-delay-200 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4 text-blue-600 font-bold">
+                02
               </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">2. Development</h3>
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                Providing tools, GPU compute clusters, mentorship, and a collaborative space for building production-grade AI solutions.
+              </p>
+            </div>
+
+            {/* Step 3: Launch */}
+            <div className="reveal-on-scroll reveal-delay-300 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
+              <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
+                <img src="/images/map.png" alt="Launch map" className="w-full h-full object-cover" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">3. Launch</h3>
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                Supporting projects through deployment, venture accelerator pitch demo days, and continuous real-world user testing.
+              </p>
+            </div>
+
+            {/* Step 4: Mentorship */}
+            <div className="reveal-on-scroll reveal-delay-400 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-4 text-amber-600 font-bold">
+                04
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">4. Mentorship</h3>
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                Connecting students with faculty advisors and industry executives for deep architectural and venture guidance.
+              </p>
+            </div>
+
+            {/* Step 5: Community */}
+            <div className="reveal-on-scroll reveal-delay-500 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all md:col-span-2 lg:col-span-2">
+              <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-200">
+                <img src="/images/rectangle-8.png" alt="Community" className="w-full h-full object-cover" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">5. Community &amp; Growth</h3>
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                Building a strong, lifelong alumni and student network across Bangalore&apos;s tech ecosystem, fostering peer collaboration and opportunities.
+              </p>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* ===== SLIDE 7: PROCESS ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 font-mono mb-3">
+              OUR PROCESS
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+              How we forge the future.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { num: "01", title: "Idea Generation", desc: "Brainstorming and refining concepts within our collaborative workshops and 24-hour hackathons." },
+              { num: "02", title: "Team Formation", desc: "Connecting students with complementary technical and design skills to form interdisciplinary squads." },
+              { num: "03", title: "Project Incubation", desc: "Providing GPU compute, mentorship, and a supportive environment for full-stack prototype development." },
+              { num: "04", title: "Showcase & Launch", desc: "Presenting completed projects to the tech community, investors, and supporting venture deployment." },
+            ].map((p, idx) => (
+              <div
+                key={idx}
+                className={`reveal-on-scroll reveal-delay-${(idx + 1) * 100} bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-md hover:shadow-xl transition-all flex flex-col justify-between`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center font-mono font-bold text-blue-700 mb-6">
+                  {p.num}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{p.title}</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">{p.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* ===== SLIDE 8: CLUB STATS ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-4-2-2">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4-3-2">
-            <p
-              className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-              id="ispyh-2-3-2-3-2-2-2-3-3-3-2"
-            >
-              CLUB STATS
-            </p>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4-2-3-2">
-              <div className="pw-rows-style" id="i3oqmq-2-3-2">
-                <div className="pw-rows-style" id="i3oqmq-2-2-3-2">
-                  <h1
-                    className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
-                    id="ispyh-2-2-2-5-2-3-3-2"
-                  >
-                    We&apos;re building a vibrant ecosystem.
-                  </h1>
-                  <p
-                    className="pw-user-text-style-3045d4e5-cceb-462e-a2d3-aff6a744df83"
-                    id="ispyh-2-2-2-5-2-2-2-2-2"
-                  >
-                    AI Foundry is dedicated to empowering the next generation of innovators in AI and entrepreneurship.
-                  </p>
-                  <div className="pwb-flex-grid-wrap" id="i1lwz-2-2-2-2-2-2-3-2-2-2">
-                    <a
-                      href="/recruit"
-                      onClick={(e) => navigateTo(e, "/recruit")}
-                      className="no-underline cursor-pointer transition-transform hover:scale-105"
-                      id="stats-cta-joinus"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        flexDirection: "row",
-                        padding: "16px 24px",
-                        justifyContent: "center",
-                        backgroundColor: "#ffffff",
-                        borderRadius: "8px",
-                        gap: "8px",
-                        height: "48px",
-                        pointerEvents: "auto",
-                      }}
-                    >
-                      <p className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold" id="stats-cta-joinus-text" style={{ color: "#000000", fontWeight: 700, fontSize: "14px" }}>
-                        Join Us
-                      </p>
-                      <img src="/images/group-1597882162.svg" loading="lazy" id="stats-cta-joinus-icon" alt="arrow" style={{ width: "20px", height: "20px" }} />
-                    </a>
-                  </div>
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-8 sm:p-14 shadow-xl shadow-slate-100/70">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 font-mono mb-3">
+                  CLUB STATS
                 </div>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                  We&apos;re building a vibrant ecosystem.
+                </h2>
               </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-4-2-2-2-2">
-                <div className="pw-block-style" id="ionv0l-2-2">
-                  <div className="pw-rows-style" id="idk01s-3-2">
-                    <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-4-5-5-2">
-                      <h1 className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e" id="ispyh-2-2-2-2-2-2-2-2-5-2">
-                        50 +
-                      </h1>
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-4-4-4-3">
-                        Active Members
-                      </p>
-                    </div>
-                    <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-2-3-3-4-2">
-                      <h1 className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e" id="ispyh-2-2-2-2-2-2-2-2-3-4-2">
-                        x 15
-                      </h1>
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-2-2-3-3-4-2">
-                        Successful Sprints
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pw-rows-style" id="idk01s-2-3-2">
-                    <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-3-3-3-3">
-                      <h1 className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e" id="ispyh-2-2-2-2-2-2-2-2-2-3-2-2-2">
-                        1 year
-                      </h1>
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-2-3-3-3-3">
-                        Since Inception
-                      </p>
-                    </div>
-                    <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-2-3-3-5-2">
-                      <h1 className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e" id="ispyh-2-2-2-2-2-2-2-2-3-5-2">
-                        + 20
-                      </h1>
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-2-2-3-3-5-2">
-                        Industry Mentors
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pw-rows-style" id="idk01s-2-2-2-2">
-                    <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-2-2-2-3-2-2">
-                      <h1 className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e" id="ispyh-2-2-2-2-2-2-2-2-3-2-2-2">
-                        - 50%
-                      </h1>
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-2-2-2-2-3-2-2">
-                        Startup Build Time
-                      </p>
-                    </div>
-                    <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-2-3-3-3-2-2">
-                      <h1 className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e" id="ispyh-2-2-2-2-2-2-2-2-2-3-2-3">
-                        500 hrs
-                      </h1>
-                      <p className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec" id="ispyh-2-2-2-4-4-2-2-3-3-3-2-2">
-                        Innovation Time
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <a
+                href="/recruit"
+                onClick={(e) => navigateTo(e, "/recruit")}
+                className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:bg-slate-800"
+              >
+                <span>Join AI Foundry</span>
+                <ArrowRight className="size-4" />
+              </a>
             </div>
-          </div>
-        </div>
 
-        <div className="pwb-anchor" id="i3owk-2-2-2-3"></div>
-
-        {/* ===== SLIDE 10: LEADERSHIP & FACULTY (DYNAMICALLY BOUND TO CMS) ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-2-2-3-4-2">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-5-2-3-4-2">
-            <p
-              className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-              id="ispyh-2-3-2-3-2-2-2-3-2-2-4-4-2"
-            >
-              {landingContent?.teamSubheading || "OUR TEAM"}
-            </p>
-            <h1
-              className="pw-user-text-style-9711fa5c-ea00-4752-8af0-945c28ef776e"
-              id="ispyh-2-2-2-3-2-3-4-2"
-            >
-              {landingContent?.teamHeading || "Meet the minds behind AI Foundry."}
-            </h1>
-          </div>
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-3-3-4-2">
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-4-5-2">
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-2-3-4-2-2">
-                <p
-                  className="pw-user-text-style-47248e95-3515-4423-8189-0bbe15d8728f"
-                  id="ispyh-2-3-2-3-2-2-2-3-2-2-4-4-2-2"
-                >
-                  LEADERSHIP
-                </p>
-                <p
-                  className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                  id="ispyh-2-2-2-4-4-2-4-4-2-2"
-                >
-                  {landingContent?.teamDescription ||
-                    "The dedicated faculty mentors and student executives guiding our club's vision and fostering a culture of innovation at Dayananda Sagar University."}
-                </p>
-              </div>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-6-2-3-4-2-2-2">
-                <a
-                  href="/team"
-                  onClick={(e) => navigateTo(e, "/team")}
-                  className="no-underline cursor-pointer transition-transform hover:scale-105"
-                  id="team-cta-all"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    padding: "16px 24px",
-                    justifyContent: "center",
-                    backgroundColor: "#1a1a1a",
-                    borderRadius: "8px",
-                    gap: "8px",
-                    height: "48px",
-                    pointerEvents: "auto",
-                  }}
-                >
-                  <p
-                    className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold"
-                    id="team-cta-all-text"
-                    style={{ color: "#ffffff", fontWeight: 700, fontSize: "14px" }}
-                  >
-                    View Full Team
-                  </p>
-                  <img
-                    src="/images/group-1597882163.svg"
-                    loading="lazy"
-                    id="team-cta-all-icon"
-                    alt="arrow"
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                </a>
-              </div>
-            </div>
-            <div className="pwb-flex-grid-wrap" id="i1lwz-2-4-2-2-3-4-5-2-2">
-              {(landingContent?.teamMembers && landingContent.teamMembers.length > 0
-                ? landingContent.teamMembers
-                : [
-                    {
-                      id: "tm-1",
-                      name: facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam V",
-                      role: facultyAdvisors[0]?.role || "Club Coordinator & Professor",
-                      image: "/images/rectangle-899.png",
-                    },
-                    {
-                      id: "tm-2",
-                      name: executiveLeads[0]?.name || "Syed Amaan",
-                      role: executiveLeads[0]?.role || "Chief Executive Officer",
-                      image: "/images/rectangle-898.png",
-                    },
-                  ]
-              ).map((member, idx) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 text-center">
+              {[
+                { val: "50+", label: "Active Members", color: "text-slate-900" },
+                { val: "15+", label: "Successful Sprints", color: "text-blue-600" },
+                { val: "1 Year", label: "Since Inception", color: "text-slate-900" },
+                { val: "20+", label: "Industry Mentors", color: "text-amber-600" },
+                { val: "50%", label: "Build Time Saved", color: "text-slate-900" },
+                { val: "500+ hrs", label: "Innovation Time", color: "text-indigo-600" },
+              ].map((s, idx) => (
                 <div
-                  key={member.id || idx}
-                  className="pwb-flex-grid-wrap"
-                  id={idx === 0 ? "i1lwz-2-4-2-2-3-2-2-3-3-2" : "i1lwz-2-4-2-2-3-2-2-3-3-2-2"}
+                  key={idx}
+                  className={`reveal-on-scroll reveal-delay-${(idx + 1) * 100} bg-slate-50/90 border border-slate-200/80 rounded-2xl p-6 shadow-sm`}
                 >
-                  <div
-                    className="pw-block-style"
-                    id={idx === 0 ? "ipkvji-4-2-2-3-3-2" : "ipkvji-4-2-2-3-3-2-2"}
-                  >
-                    <img
-                      className="pw-image-style"
-                      src={member.image || (idx === 0 ? "/images/rectangle-899.png" : "/images/rectangle-898.png")}
-                      loading="lazy"
-                      id={idx === 0 ? "ib8xjf" : "ib8xjf-2"}
-                      alt={member.name}
-                    />
+                  <div className={`text-3xl sm:text-4xl font-black ${s.color} tracking-tight mb-2 font-mono`}>
+                    {s.val}
                   </div>
-                  <div
-                    className="pw-block-style"
-                    id={idx === 0 ? "ipkvji-4-3-2-2-3-3-2" : "ipkvji-4-3-2-2-3-3-2-3"}
-                  >
-                    <div
-                      className="pw-block-style"
-                      id={idx === 0 ? "ipkvji-4-3-2-2-3-3-2-4" : "ipkvji-4-3-2-2-3-3-2-4-2"}
-                    >
-                      <h3
-                        className="pw-user-text-style-68210bff-519a-4c4d-8aa2-b3b5be3cb987"
-                        id={idx === 0 ? "ispyh-2-2-2-4-4-2-2-2-3-3-2-4" : "ispyh-2-2-2-4-4-2-2-2-3-3-2-4-2"}
-                      >
-                        {member.name}
-                      </h3>
-                      <p
-                        className="pw-user-text-style-24b64575-cd02-447f-8652-42c6ba02cfec"
-                        id={idx === 0 ? "ispyh-2-2-2-4-4-2-2-2-3-3-2-2-3" : "ispyh-2-2-2-4-4-2-2-2-3-3-2-2-3-2"}
-                      >
-                        {member.role}
-                      </p>
-                    </div>
+                  <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
+                    {s.label}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="pwb-anchor" id="i3owk-2-2-2-2-2"></div>
-        <div className="pwb-flex-grid-wrap" id="injpw-2"></div>
+        {/* ===== SLIDE 9: LEADERSHIP & FACULTY ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 font-mono mb-3">
+                {landingContent?.teamSubheading || "OUR LEADERSHIP"}
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                {landingContent?.teamHeading || "Meet the minds behind AI Foundry."}
+              </h2>
+            </div>
+            <Link
+              href="/team"
+              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider font-mono group"
+            >
+              <span>View Full Team</span>
+              <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
 
-        {/* ===== SLIDE 11: CALL TO ACTION ===== */}
-        <div className="pwb-flex-grid-wrap" id="ilwyn-3">
-          <div className="pwb-flex-grid-wrap" id="i1lwz-2-7">
-            <div className="pw-rows-style" id="i3oqmq">
-              <h1
-                className="pw-user-text-style-b1637bfe-8939-428c-b6b6-e73aa4f717d9"
-                id="ispyh-2-2-3"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {(landingContent?.teamMembers && landingContent.teamMembers.length > 0
+              ? landingContent.teamMembers
+              : [
+                  {
+                    id: "tm-1",
+                    name: facultyAdvisors[0]?.name || "Dr. Jayavrinda Vrindavanam V",
+                    role: facultyAdvisors[0]?.role || "Club Coordinator & Professor, CSE(AI & ML)",
+                    image: "/images/rectangle-899.png",
+                  },
+                  {
+                    id: "tm-2",
+                    name: facultyAdvisors[1]?.name || "Dr. M Lakshmanan",
+                    role: facultyAdvisors[1]?.role || "Club Advisor & Assistant Professor",
+                    image: "/images/rectangle-898.png",
+                  },
+                  {
+                    id: "tm-3",
+                    name: "Syed Amaan",
+                    role: "President / Lead",
+                    image: "/images/image-1929.png",
+                  },
+                ]
+            ).slice(0, 3).map((member, idx) => (
+              <div
+                key={member.id || idx}
+                className={`reveal-on-scroll reveal-delay-${(idx + 1) * 100} bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-6 shadow-lg shadow-slate-100/60 flex flex-col justify-between group transition-transform hover:scale-105`}
               >
+                <div className="relative w-full h-64 rounded-2xl overflow-hidden mb-6 border border-slate-200 bg-slate-100">
+                  <img
+                    src={member.image || "/images/rectangle-899.png"}
+                    alt={member.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm font-mono text-slate-500 mt-1">
+                    {member.role}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ===== SLIDE 10: CALL TO ACTION ===== */}
+        <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="reveal-on-scroll bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 rounded-3xl p-10 sm:p-16 text-center text-white shadow-2xl relative overflow-hidden">
+            <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
                 Ready to forge the future?
-              </h1>
-              <div className="pwb-flex-grid-wrap" id="i1lwz-2-2-2-2-2-2-2">
+              </h2>
+              <p className="text-blue-100 text-base sm:text-lg max-w-xl mx-auto">
+                Join Dayananda Sagar University&apos;s premier venture and AI club. Build, collaborate, and launch alongside elite engineers.
+              </p>
+              <div className="pt-4 flex justify-center">
                 <a
                   href="/recruit"
                   onClick={(e) => navigateTo(e, "/recruit")}
-                  className="no-underline flex items-center gap-2 cursor-pointer transition-transform hover:scale-105"
-                  id="cta-bottom-joinus"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    padding: "16px 24px",
-                    justifyContent: "center",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    gap: "8px",
-                    height: "48px",
-                    pointerEvents: "auto",
-                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-                  }}
+                  className="no-underline cursor-pointer transition-transform hover:scale-105 inline-flex items-center gap-2.5 px-8 py-4 bg-white text-slate-900 font-extrabold text-base rounded-xl shadow-xl hover:bg-slate-50"
                 >
-                  <p className="pw-user-text-style-db4943d4-453d-474d-b88a-07d9ad351c62 font-bold" id="cta-bottom-joinus-text" style={{ color: "#000000", fontWeight: 700, fontSize: "14px" }}>
-                    Join Us
-                  </p>
-                  <img src="/images/group-1597882162.svg" loading="lazy" id="cta-bottom-joinus-icon" alt="arrow" style={{ width: "20px", height: "20px" }} />
+                  <span>Apply to Join Us</span>
+                  <ArrowRight className="size-5" />
                 </a>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* ===== LARGE EXPANDED FOOTER SECTION ===== */}
-        <footer
-          className="pwb-flex-grid-wrap w-full border-t border-white/15"
-          id="injpw"
-          style={{
-            pointerEvents: "auto",
-            backgroundColor: "rgba(5, 10, 20, 0.92)",
-            backdropFilter: "blur(24px)",
-          }}
-        >
-          {/* Top Subtle Cyan Glow Accent */}
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
-
-          <div className="max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-12 py-16 lg:py-24">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 pb-16 border-b border-white/10">
-              
-              {/* Brand & College Info (5 Cols) */}
+        {/* ===== LIGHT GLASS FOOTER ===== */}
+        <footer className="w-full border-t border-slate-200/90 bg-white/90 backdrop-blur-xl text-slate-800">
+          <div className="max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-12 py-16 lg:py-20">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 pb-16 border-b border-slate-200">
+              {/* Brand & College Info */}
               <div className="md:col-span-5 space-y-6">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-full overflow-hidden border border-cyan-400/50 relative shadow-[0_0_15px_rgba(0,210,255,0.35)]">
+                  <div className="w-11 h-11 rounded-full overflow-hidden border border-blue-300 relative shadow-sm">
                     <img src="/club-logo.png" alt="AI Foundry" className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <span className="text-2xl font-bold tracking-wider text-cyan-400 font-mono block">
+                    <span className="text-2xl font-bold tracking-wider text-slate-900 font-mono block">
                       AI FOUNDRY
                     </span>
-                    <span className="text-[11px] uppercase tracking-widest text-slate-400 font-mono">
+                    <span className="text-[11px] uppercase tracking-widest text-slate-500 font-mono">
                       RAISE AI CLUB &bull; DSU
                     </span>
                   </div>
                 </div>
 
-                <p className="text-slate-300 text-sm sm:text-base font-normal leading-relaxed max-w-md">
+                <p className="text-slate-600 text-sm sm:text-base font-normal leading-relaxed max-w-md">
                   Dayananda Sagar University&apos;s flagship technology accelerator and student innovation hub, uniting engineers, researchers, and student founders.
                 </p>
 
-                <div className="space-y-2.5 text-xs text-slate-400 font-mono">
+                <div className="space-y-2.5 text-xs text-slate-600 font-mono">
                   <div className="flex items-start gap-2.5">
-                    <LocationIcon className="size-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                    <MapPin className="size-4 text-blue-600 flex-shrink-0 mt-0.5" />
                     <span>School of Engineering &bull; Dept of AI &amp; Robotics<br />Innovation Center, Kudlu Gate, Hosur Road, Bengaluru - 560068</span>
                   </div>
                   <div className="flex items-center gap-2.5 pt-1">
-                    <Mail className="size-4 text-cyan-400 flex-shrink-0" />
-                    <a href="mailto:info@aifoundry.com" className="hover:text-cyan-400 text-slate-300 transition-colors no-underline">
+                    <LinkedinIcon className="size-4 text-blue-600 flex-shrink-0" />
+                    <a href="mailto:info@aifoundry.com" className="hover:text-blue-600 text-slate-700 transition-colors no-underline">
                       info@aifoundry.com
                     </a>
                   </div>
                 </div>
               </div>
 
-              {/* Navigation Column (2 Cols) */}
+              {/* Navigation Column */}
               <div className="md:col-span-2 space-y-4">
-                <p className="text-xs font-bold uppercase tracking-widest text-cyan-400 font-mono">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600 font-mono">
                   Navigation
                 </p>
-                <ul className="space-y-3 text-sm text-slate-300">
+                <ul className="space-y-3 text-sm text-slate-600 font-medium">
                   <li>
-                    <a
-                      href="/about"
-                      onClick={(e) => navigateTo(e, "/about")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/about" onClick={(e) => navigateTo(e, "/about")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       About Us
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/events"
-                      onClick={(e) => navigateTo(e, "/events")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/events" onClick={(e) => navigateTo(e, "/events")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       Events &amp; Hackathons
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/team"
-                      onClick={(e) => navigateTo(e, "/team")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/team" onClick={(e) => navigateTo(e, "/team")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       Leadership &amp; Faculty
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/gallery"
-                      onClick={(e) => navigateTo(e, "/gallery")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/gallery" onClick={(e) => navigateTo(e, "/gallery")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       Media &amp; Archives
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/recruit"
-                      onClick={(e) => navigateTo(e, "/recruit")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/recruit" onClick={(e) => navigateTo(e, "/recruit")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       Join AI Foundry
                     </a>
                   </li>
                 </ul>
               </div>
 
-              {/* Initiatives Column (2 Cols) */}
+              {/* Initiatives Column */}
               <div className="md:col-span-2 space-y-4">
-                <p className="text-xs font-bold uppercase tracking-widest text-cyan-400 font-mono">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600 font-mono">
                   Initiatives
                 </p>
-                <ul className="space-y-3 text-sm text-slate-300">
+                <ul className="space-y-3 text-sm text-slate-600 font-medium">
                   <li>
-                    <a
-                      href="/events"
-                      onClick={(e) => navigateTo(e, "/events")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/events" onClick={(e) => navigateTo(e, "/events")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       24h Hackathons
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/recruit"
-                      onClick={(e) => navigateTo(e, "/recruit")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/recruit" onClick={(e) => navigateTo(e, "/recruit")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       AI Incubation Lab
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/about"
-                      onClick={(e) => navigateTo(e, "/about")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/about" onClick={(e) => navigateTo(e, "/about")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       Student Research
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="/team"
-                      onClick={(e) => navigateTo(e, "/team")}
-                      className="hover:text-cyan-400 transition-colors no-underline block py-0.5 cursor-pointer text-slate-300"
-                    >
+                    <a href="/team" onClick={(e) => navigateTo(e, "/team")} className="hover:text-blue-600 transition-colors no-underline block py-0.5 cursor-pointer">
                       Mentorship Network
                     </a>
                   </li>
                 </ul>
               </div>
 
-              {/* Socials & Connect (3 Cols) */}
+              {/* Socials & Connect */}
               <div className="md:col-span-3 space-y-4">
-                <p className="text-xs font-bold uppercase tracking-widest text-cyan-400 font-mono">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-600 font-mono">
                   Connect &amp; Follow
                 </p>
-                <ul className="space-y-3 text-sm text-slate-300">
+                <ul className="space-y-3 text-sm text-slate-600 font-medium">
                   <li>
-                    <a
-                      href="https://linkedin.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-cyan-400 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5 text-slate-300"
-                    >
-                      <LinkedinIcon className="size-4 text-cyan-400" />
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                      <LinkedinIcon className="size-4 text-blue-600" />
                       <span>LinkedIn</span>
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="https://instagram.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-cyan-400 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5 text-slate-300"
-                    >
-                      <InstagramIcon className="size-4 text-cyan-400" />
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                      <InstagramIcon className="size-4 text-blue-600" />
                       <span>Instagram</span>
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="https://github.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-cyan-400 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5 text-slate-300"
-                    >
-                      <GithubIcon className="size-4 text-cyan-400" />
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                      <GithubIcon className="size-4 text-blue-600" />
                       <span>GitHub</span>
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="https://x.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-cyan-400 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5 text-slate-300"
-                    >
-                      <TwitterIcon className="size-4 text-cyan-400" />
+                    <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors no-underline inline-flex items-center gap-2.5 py-0.5">
+                      <TwitterIcon className="size-4 text-blue-600" />
                       <span>X (Twitter)</span>
                     </a>
                   </li>
@@ -1444,32 +817,13 @@ export function HomeView({
               </div>
             </div>
 
-            {/* Bottom Large Copyright Bar */}
-            <div className="pt-10 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400 font-mono">
+            {/* Bottom Copyright Bar */}
+            <div className="pt-10 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-500 font-mono">
               <p>&copy; {new Date().getFullYear()} AI Foundry (RAISE AI CLUB). Dayananda Sagar University. All rights reserved.</p>
-              <p className="text-cyan-400 font-medium">Forging Future Innovators in AI &amp; Entrepreneurship</p>
+              <p className="text-blue-600 font-semibold">Forging Future Innovators in AI &amp; Entrepreneurship</p>
             </div>
           </div>
         </footer>
-
-        <div className="pwb-anchor" id="i3owk-2-2-2-2"></div>
-      </div>
-
-      {/* Hidden PeachWeb Runtime Initialization Container */}
-      <div id="pwb-loading-wrap" style={{ display: "none" }} suppressHydrationWarning>
-        <div className="pwb-flex-grid-wrap" id="im3p5" suppressHydrationWarning>
-          <div className="pwb-loading-bar" id="iw9p8" suppressHydrationWarning>
-            <svg id="i1g4c" width="162" height="162" suppressHydrationWarning>
-              <circle id="i8t08" suppressHydrationWarning />
-              <circle className="pwb-loading-bar-circle" id="ihfw6" suppressHydrationWarning />
-            </svg>
-            <div id="ispyh-2-3-2-3-3-2-4" suppressHydrationWarning>AI FOUNDRY</div>
-            <div className="pwb-loading-bar-text" id="ijg95" suppressHydrationWarning>100%</div>
-          </div>
-        </div>
-        <div className="pwb-flex-grid-wrap" id="ieupsz" suppressHydrationWarning>
-          <img src="/images/pw-badge-dark.svg" loading="lazy" id="igqob3" alt="" suppressHydrationWarning />
-        </div>
       </div>
 
       {/* Featured Event Registration Modal Dialog */}

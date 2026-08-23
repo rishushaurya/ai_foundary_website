@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
 import { getEvents, saveEvents, EventRegistration } from "@/lib/data";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+
+  // Rate limit: 5 event registrations per IP per 10 minutes
+  const rateCheck = checkRateLimit(`event-reg:${ip}`, 5, 600000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: `Rate limit exceeded: Too many registrations from this network. Please retry in ${rateCheck.retryAfterSeconds} seconds.`,
+      },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { eventId, name, email, phone, college, branch, customAnswers } = body;
