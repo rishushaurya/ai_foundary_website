@@ -105,28 +105,71 @@ export async function writeData<T>(filename: string, data: T): Promise<boolean> 
   return kvOk || localOk;
 }
 
-// ---- File upload utility for local dev & assets ----
+// ---- File upload utility for local dev & assets (Path-Traversal & Extension Hardened) ----
+const ALLOWED_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".svg",
+  ".gif",
+  ".avif",
+  ".pdf",
+  ".mp4",
+  ".webm",
+]);
+
 export function saveUploadedFile(
   fileBuffer: Buffer,
   originalName: string,
   subfolder: string = "general"
 ): string | null {
-  const uploadsDir = path.join(process.cwd(), "public", "uploads", subfolder);
+  // Sanitize subfolder to alphanumeric and hyphens only (prevent path traversal)
+  const safeSubfolder = subfolder.replace(/[^a-zA-Z0-9-_]/g, "") || "general";
+  const uploadsDir = path.join(process.cwd(), "public", "uploads", safeSubfolder);
+
   try {
     ensureDir(uploadsDir);
-    const ext = path.extname(originalName) || ".png";
-    const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9-_]/g, "_");
+
+    let ext = path.extname(originalName).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      ext = ".png"; // Force safe extension if unauthorized or suspicious
+    }
+
+    const rawBaseName = path.basename(originalName, path.extname(originalName));
+    const baseName = rawBaseName.replace(/[^a-zA-Z0-9-_]/g, "_").slice(0, 50) || "upload";
     const uniqueName = `${baseName}-${Date.now()}${ext}`;
-    fs.writeFileSync(path.join(uploadsDir, uniqueName), fileBuffer);
-    return `/uploads/${subfolder}/${uniqueName}`;
-  } catch {
+
+    const destinationPath = path.join(uploadsDir, uniqueName);
+
+    // Verify resolved path is strictly within uploadsDir
+    if (!destinationPath.startsWith(path.join(process.cwd(), "public", "uploads"))) {
+      return null;
+    }
+
+    fs.writeFileSync(destinationPath, fileBuffer);
+    return `/uploads/${safeSubfolder}/${uniqueName}`;
+  } catch (err) {
+    console.error("[local-db] Upload error:", err);
     return null;
   }
 }
 
 export function deleteUploadedFile(publicUrl: string): boolean {
   try {
-    const filePath = path.join(process.cwd(), "public", publicUrl);
+    // Only allow deletion within public/uploads/
+    const cleanRelative = path.normalize(publicUrl).replace(/^(\.\.[\/\\])+/, "");
+    if (!cleanRelative.startsWith("/uploads/") && !cleanRelative.startsWith("uploads/")) {
+      return false;
+    }
+
+    const filePath = path.join(process.cwd(), "public", cleanRelative);
+    const expectedBase = path.join(process.cwd(), "public", "uploads");
+
+    if (!filePath.startsWith(expectedBase)) {
+      return false; // Prevent path traversal
+    }
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       return true;
