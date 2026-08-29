@@ -21,7 +21,9 @@ import {
   Clock,
   Lock,
   Unlock,
+  Eye,
 } from "lucide-react";
+import { ImagePreviewModal, ImagePreviewSettings } from "@/components/admin/image-preview-modal";
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventData[]>([]);
@@ -32,6 +34,7 @@ export default function AdminEventsPage() {
   // Edit/Add modal
   const [activeEvent, setActiveEvent] = useState<EventData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   // Registrations Viewer modal
   const [viewingRegsEvent, setViewingRegsEvent] = useState<EventData | null>(null);
@@ -104,6 +107,9 @@ export default function AdminEventsPage() {
       date: "Oct 25, 2026",
       venue: "DSU Innovation Hall",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBqGXvsvKNg8FLCw2KFq974LERIA0x-ed5scbtG-vr7_Erz1LXF0Kxo6IqAt4jUJjdeQwylLItjc3ZIlWy4POUMjToItuEgSL3auk47bkOyypTKJlgIVp-zH_xOVI1B5rjO0mLjpM2L8SLv_2EXACmgePorX1RlrdDiyzJr2_mfCFS0OtkGutcJDkKw7PWNzbGl59kAK4Vn_VSR3N7VpPY09StkEzS5Wmj2LWXxcNiNMtKDurLLha5S",
+      imageFit: "cover",
+      imagePosition: "center",
+      homeImage: "",
       status: "upcoming",
       registrationMode: "builtin",
       externalRegistrationUrl: "",
@@ -122,6 +128,9 @@ export default function AdminEventsPage() {
   const openEditModal = (evt: EventData) => {
     setActiveEvent({
       ...evt,
+      imageFit: evt.imageFit || "cover",
+      imagePosition: evt.imagePosition || "center",
+      homeImage: evt.homeImage || "",
       registrationMode: evt.registrationMode || "builtin",
       externalRegistrationUrl: evt.externalRegistrationUrl || evt.googleFormUrl || "",
       isRegistrationOpen: evt.isRegistrationOpen !== false,
@@ -392,9 +401,19 @@ export default function AdminEventsPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  Event Image (Google Drive link / Direct image URL)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-bold text-slate-700">
+                    Event Image (Google Drive link / Direct image URL)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-[11px] font-bold transition-colors cursor-pointer"
+                  >
+                    <Eye className="size-3.5" />
+                    <span>Preview &amp; Framing</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={activeEvent.image}
@@ -715,6 +734,31 @@ export default function AdminEventsPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Visual Image Preview & Framing Inspector Modal */}
+      {activeEvent && (
+        <ImagePreviewModal
+          isOpen={previewModalOpen}
+          onClose={() => setPreviewModalOpen(false)}
+          title={`Event Image - ${activeEvent.title || "New Event"}`}
+          imageUrl={activeEvent.image}
+          homeImageUrl={activeEvent.homeImage}
+          imageFit={activeEvent.imageFit || "cover"}
+          imagePosition={activeEvent.imagePosition || "center"}
+          aspectRatioType="event"
+          cardTitle={activeEvent.title || "Event Title"}
+          cardSubtitle={activeEvent.venue || "Event Venue"}
+          onApply={(res: ImagePreviewSettings) => {
+            setActiveEvent({
+              ...activeEvent,
+              image: res.imageUrl,
+              homeImage: res.homeImageUrl,
+              imageFit: res.imageFit,
+              imagePosition: res.imagePosition,
+            });
+          }}
+        />
       )}
     </div>
   );

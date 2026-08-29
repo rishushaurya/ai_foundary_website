@@ -3,6 +3,77 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-30] - Gemini 3.7 Flash - Session 37
+**Description**: Complete Synchronization of **Landing Page Content & Image Layout**, **Dynamic Our Approach Pillars**, **Team Social Channels**, and **Interactive Dual-View Image Preview & Framing Inspector**:
+- **Landing Page About Us Image Layout Overhaul (`src/components/home/home-view.tsx`, `data/settings.json`)**:
+  - Removed the legacy 3-image collage (deleted the bottom 2 images).
+  - Expanded the single featured "About Us" image to fill the entire visual column height (`h-80 sm:h-[420px] lg:h-full min-h-[360px] rounded-3xl object-cover`), filling the full space previously shared by all three images.
+  - Bound to dynamic `landingContent.aboutImage` (with fallback to `/images/Gemini_Generated_Image_arpro7arpro7arpr.png`).
+- **Hero Badge Dynamic Synchronization (`src/components/home/home-view.tsx`, `data/settings.json`)**:
+  - Rendered `landingContent.heroBadge` dynamically above the main tagline in the Hero section (`DSU PREMIER AI & VENTURE ACCELERATOR`), making CMS changes immediately visible live.
+- **About Us & Our Approach CMS Dynamic Binding (`src/components/home/home-view.tsx`, `src/app/admin/landing/page.tsx`, `data/settings.json`)**:
+  - Connected `aboutBadge`, `aboutTitle`, `aboutHeading`, `aboutSecondaryText`, and `aboutImage` directly to the Admin CMS.
+  - Replaced hardcoded static HTML in Section 7 (Our Approach) with dynamic mapping over `landingContent.approach`, allowing real-time editing of the section heading, subtitle, and all 4 methodological pillars.
+- **Team Social Media Channels Across All Tiers (`src/app/admin/team/page.tsx`, `src/components/ui/new-team-view.tsx`)**:
+  - Added dedicated form fields in `/admin/team` modal for **Email**, **LinkedIn**, **GitHub**, and **Instagram**.
+  - Updated Faculty Mentors, Executive Leaders, and Student Wings to conditionally render all 4 social icons **strictly when** a non-empty link is provided and saved.
+- **Dual-View Visual Image Preview & Framing Inspector (`src/components/admin/image-preview-modal.tsx`, `/admin/events`, `/admin/team`, `/admin/landing`)**:
+  - Built an interactive inspector modal with side-by-side / tabbed preview:
+    - Tab 1: **Landing Page Card View** (16:9 for Events, 4:5 for Leadership cards).
+    - Tab 2: **Dedicated Page Card View** (Full subpage styling as seen on `/events` and `/team`).
+  - Added object fit controls (`Cover` vs `Contain`), focal position anchors (`Top`, `Center`, `Bottom`), and optional separate `homeImage` override for custom landing page cropping.
+  - Embedded `👁️ Preview & Framing` action buttons next to image URL inputs in `/admin/events`, `/admin/team`, and `/admin/landing`.
+- **System Safeguards Enforced**:
+  - Authentication (Google OAuth, 7d JWT session, Localhost Dev Login), applicant tracking (`/recruit`), and Upstash Redis dual-mode persistence preserved 100%.
+  - Zero git push operations executed per user directive.
+- **Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 38 Next.js static/dynamic routes.
+  - Node integration test script verified live reflection on `http://localhost:3000`.
+
+---
+
+## [2026-08-30] - Gemini 3.7 Flash - Session 36
+**Description**: Complete Overhaul of **Team Page**, **Gallery Page**, and **Events Page** matching the new light ivory design aesthetic (`#FFFFE9`, `#2D2E2A`, `#ECFF17`, Libre Baskerville & Inter typography) from `front end by me`, with 100% Dynamic Admin CMS Synchronization & Localhost Testing Access:
+- **New Events Page (`src/components/ui/events-page-client.tsx`, `src/app/events/page.tsx`)**:
+  - Replaced legacy `mesh-bg` with light ivory canvas (`#FFFFE9`).
+  - Hero masthead featuring `Elevated Experiences` serif title and DSU AI Foundry tagline.
+  - Added filter tabs: `All Events`, `Ongoing Events`, `Upcoming Events`, and `Archive` with live metrics.
+  - Ongoing events spotlight with clean "No events at the moment" placeholder for empty states.
+  - Interactive event cards with zoom covers, date badges, venue info, registration eligibility logic (`Register Now`, `Register (External)`, `Applications Closed`, `Opening Soon`), and deep-dive detail modal.
+  - 100% dynamic connection to `data/events.json` and `/api/admin/events`.
+- **New Gallery Page (`src/components/ui/new-gallery-view.tsx`, `src/app/gallery/page.tsx`, `data/gallery.json`)**:
+  - Replaced legacy `mesh-bg` with light ivory canvas (`#FFFFE9`).
+  - Hero masthead featuring `Visual Archives` serif title and DSU tagline.
+  - Auto-scrolling continuous spotlight marquee ribbon with hover-pause.
+  - Dynamic album category selector pills (`All`, `Hackathons & Sprints`, `Deep Tech Workshops`, `Symposiums & Keynotes`).
+  - Photo/video cards with hover zoom, play badges, and captions.
+  - Fullscreen interactive lightbox modal with prev/next navigation, keyboard arrow controls, download button, and ESC-to-close.
+  - Populated `data/gallery.json` with verified authentic albums and streaming assets.
+- **New Team Page (`src/components/ui/new-team-view.tsx`, `src/app/team/page.tsx`)**:
+  - Replaced legacy `mesh-bg` with light ivory canvas (`#FFFFE9`).
+  - Hero masthead featuring `Team Members` serif title and collective intelligence tagline.
+  - 3 distinguished sections:
+    - **Faculty Advisory Board & Mentors**: 3-column portrait cards with designation, DSU AI & ML department affiliation, bio, direct email trigger, and LinkedIn.
+    - **Executive Leadership Board**: Leadership cards with photo, executive title, affiliation, and social icons.
+    - **Foundry Wings & Student Leads**: Domain search, wing category filter pills (`AI & Research`, `Robotics & Edge`, `Platform & Cloud`, `Design & Media`, `Operations & Outreach`), and specialized member cards.
+  - 100% dynamic connection to `data/team.json` and `/api/admin/team`.
+- **Admin Portal & Localhost Testing Access (`src/app/admin/login/page.tsx`, `src/app/api/auth/dev-login/route.ts`)**:
+  - Added secure, 1-click `⚡ Quick Localhost Admin Access` button on `/admin/login` specifically for local development testing, allowing root administrator access without requiring local Google OAuth setup.
+  - Production OAuth remains 100% cryptographically enforced on Vercel.
+  - Preserved complete integrity of `/recruit` form, authentication middleware, and backend data.
+- **Audit Trail Excel Export & Granular One-by-One Log Deletion (`src/app/admin/audit-logs/page.tsx`, `src/app/api/admin/audit-logs/route.ts`, `src/app/api/admin/export/route.ts`, `src/lib/audit-logger.ts`)**:
+  - **Excel Export (.csv)**: Enabled one-click "Export to Excel" action in the audit log action toolbar. Prepend UTF-8 BOM (`\uFEFF`) with formula injection sanitization and spreadsheet headers (`Log ID`, `Timestamp UTC`, `Local Date & Time`, `Administrator Email`, `Action`, `Scope`, `Details`, `Status`, `IP`). Permitted for **any authenticated administrator**.
+  - **Individual Audit Log Deletion**: Added per-row delete action with safe, in-app confirmation modal. Strictly authorized only for **Root Administrator** (`priyanshushaurya9431@gmail.com`); non-root attempts are blocked with 403 Forbidden.
+  - Replaced browser `window.confirm` with responsive React confirmation dialogs to prevent thread blocking.
+- **Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 38 routes.
+  - Full browser verification of `/events`, `/gallery`, `/team`, `/admin/login`, `/admin` dashboard, and all sub-sections.
+  - No changes pushed to GitHub per user instruction.
+
+---
+
 ## [2026-08-23] - Gemini 3.7 Flash - Session 34
 **Description**: Complete **Upstash Redis Cloud Integration**, **Dynamic Rendering**, and **Universal Audit Trail Wiring**:
 - **Universal Audit Trail Integration across ALL Administrative Operations**:

@@ -25,7 +25,7 @@ export default async function TeamPage() {
   }
 
   return (
-    <div className="mesh-bg min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FFFFE9] text-[#2D2E2A] flex flex-col justify-between selection:bg-[#ECFF17] selection:text-[#000000]">
       <NewTeamView
         settings={settings}
         faculty={faculty}

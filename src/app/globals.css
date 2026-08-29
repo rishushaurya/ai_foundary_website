@@ -1,4 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
+
+.font-libre {
+  font-family: 'Libre Baskerville', Georgia, serif;
+}
+
+.font-jetbrains {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-inter {
+  font-family: 'Inter', -apple-system, sans-serif;
+}
 
 @font-face {
   font-family: "68832fb0ffba9b1995adac75-helveticanowdisplay-medium";
@@ -156,20 +169,20 @@
   transform: scale(1) translateY(0);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar matching Ivory Design */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #FFFFE9;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.4);
+  background: #C6CCBD;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.8);
+  background: #2D2E2A;
 }
 
 /* Antigravity Scroll-Reveal Animations */

@@ -1,87 +1,135 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { GallerySection, GalleryItem } from "@/lib/data";
 import { normalizeImageUrl } from "@/lib/image-helper";
-import { Sparkles, Image as ImageIcon, X, Play, Eye } from "lucide-react";
+import {
+  Sparkles,
+  Image as ImageIcon,
+  X,
+  Play,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  Download,
+  Info,
+} from "lucide-react";
 
 interface NewGalleryViewProps {
   sections: GallerySection[];
 }
 
-export function NewGalleryView({ sections }: NewGalleryViewProps) {
+interface FlatGalleryItem extends GalleryItem {
+  albumName: string;
+  albumId: string;
+}
+
+export function NewGalleryView({ sections = [] }: NewGalleryViewProps) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [lightboxItem, setLightboxItem] = useState<{
-    url: string;
-    name: string;
-    type: "image" | "video";
-    albumName?: string;
-  } | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Pure database sync: Collect active photos from database
-  const allItems = sections.flatMap((sec) =>
-    (sec.items || []).map((item) => ({
-      ...item,
-      albumName: sec.name,
-    }))
-  );
+  // Flatten all items with album metadata
+  const allItems: FlatGalleryItem[] = useMemo(() => {
+    return sections.flatMap((sec) =>
+      (sec.items || []).map((item) => ({
+        ...item,
+        albumName: sec.name,
+        albumId: sec.id,
+      }))
+    );
+  }, [sections]);
 
-  const categories = [
-    "All",
-    ...Array.from(new Set(sections.map((s) => s.name).filter(Boolean))),
-  ];
+  // Categories list
+  const categories = useMemo(() => {
+    return [
+      "All",
+      ...Array.from(new Set(sections.map((s) => s.name).filter(Boolean))),
+    ];
+  }, [sections]);
 
-  const filteredSections =
-    activeCategory === "All"
-      ? sections.filter((s) => (s.items || []).length > 0)
-      : sections.filter((s) => s.name === activeCategory && (s.items || []).length > 0);
+  // Filtered items based on active category
+  const filteredItems = useMemo(() => {
+    if (activeCategory === "All") return allItems;
+    return allItems.filter((item) => item.albumName === activeCategory);
+  }, [allItems, activeCategory]);
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowRight") {
+        setLightboxIndex((prev) =>
+          prev !== null ? (prev + 1) % filteredItems.length : null
+        );
+      }
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((prev) =>
+          prev !== null ? (prev - 1 + filteredItems.length) % filteredItems.length : null
+        );
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, filteredItems.length]);
+
+  const activeLightboxItem = lightboxIndex !== null ? filteredItems[lightboxIndex] : null;
 
   return (
-    <div className="w-full">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-44 pb-20 space-y-16">
-        {/* ===== HERO SECTION ===== */}
-        <section className="flex flex-col items-center text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100/90 text-cyan-900 text-xs font-black uppercase tracking-wider border border-cyan-200 shadow-xs">
-            <Sparkles className="size-3.5 text-cyan-700" />
-            <span>Visual Archives</span>
+    <div className="w-full bg-[#FFFFE9] text-[#2D2E2A] selection:bg-[#ECFF17] selection:text-[#000000]">
+      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 pt-32 sm:pt-40 pb-24 space-y-16">
+        {/* ===== HERO MASTHEAD ===== */}
+        <section className="flex flex-col items-start space-y-4 border-b border-[#C6CCBD]/70 pb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ECFF17]/30 border border-[#2D2E2A]/15 text-[#2D2E2A] text-[11px] font-jetbrains font-bold uppercase tracking-wider">
+            <Sparkles className="size-3 text-[#2D2E2A]" />
+            <span>DAYANANDA SAGAR UNIVERSITY • RAISE AI CLUB</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 font-['Hanken_Grotesk']">
+          <h1 className="font-libre text-5xl sm:text-7xl lg:text-8xl font-normal tracking-tight text-[#2D2E2A] leading-none select-none">
             Visual Archives
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
+          <p className="font-inter text-base sm:text-xl text-[#5E6059] max-w-3xl font-normal leading-relaxed">
             A visual chronicle of breakthrough moments, rapid hackathons, high-impact keynotes, and student prototypes forged at DSU.
           </p>
+
+          {/* Quick Metrics */}
+          <div className="flex items-center gap-6 pt-4 text-xs font-jetbrains text-[#5E6059]">
+            <span>
+              <strong className="text-[#2D2E2A] font-bold">{sections.length}</strong> Albums
+            </span>
+            <span className="text-[#C6CCBD]">•</span>
+            <span>
+              <strong className="text-[#2D2E2A] font-bold">{allItems.length}</strong> Media Archives
+            </span>
+          </div>
         </section>
 
-        {/* ===== MARQUEE AUTO-SCROLLER (SHOWN ONLY IF DATABASE HAS MEDIA) ===== */}
+        {/* ===== CONTINUOUS MARQUEE SPOTLIGHT STRIP ===== */}
         {allItems.length > 0 && (
-          <section className="overflow-hidden py-4 -mx-4 sm:-mx-6 lg:-mx-8">
-            <div className="flex animate-marquee gap-6 w-max hover:[animation-play-state:paused]">
+          <section className="overflow-hidden py-2 -mx-6 sm:-mx-12 lg:-mx-16 border-y border-[#C6CCBD]/50 bg-white/40">
+            <div className="flex animate-marquee gap-6 w-max hover:[animation-play-state:paused] py-3">
               {[...allItems, ...allItems].map((item, idx) => (
                 <div
                   key={`${item.id}-${idx}`}
-                  onClick={() =>
-                    setLightboxItem({
-                      url: item.url,
-                      name: item.name,
-                      type: item.type as "image" | "video",
-                      albumName: item.albumName,
-                    })
-                  }
-                  className="w-72 h-44 rounded-2xl overflow-hidden glass-card relative group shrink-0 cursor-pointer border border-white/80"
+                  onClick={() => {
+                    const originalIdx = filteredItems.findIndex((fi) => fi.id === item.id);
+                    if (originalIdx !== -1) setLightboxIndex(originalIdx);
+                    else setLightboxIndex(0);
+                  }}
+                  className="w-72 h-44 rounded-2xl overflow-hidden border border-[#C6CCBD] relative group shrink-0 cursor-pointer bg-[#2D2E2A] shadow-xs hover:shadow-md transition-all"
                 >
                   <img
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     src={normalizeImageUrl(item.url, "/images/rectangle-899.png")}
                     alt={item.name}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-cyan-400 font-mono">
-                      {item.albumName || "AI Foundry"}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                    <span className="text-[10px] font-jetbrains font-bold uppercase tracking-wider text-[#ECFF17]">
+                      {item.albumName}
                     </span>
-                    <span className="text-xs font-bold text-white line-clamp-1">
+                    <span className="text-xs font-inter font-bold text-white line-clamp-1">
                       {item.name}
                     </span>
                   </div>
@@ -91,139 +139,203 @@ export function NewGalleryView({ sections }: NewGalleryViewProps) {
           </section>
         )}
 
-        {/* ===== CATEGORIZED ALBUMS & MEDIA GRID ===== */}
-        <section className="space-y-8">
-          {/* Category Filter Chips */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="size-5 text-cyan-600" />
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Categorized Archives
-              </h2>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
-                    activeCategory === cat
-                      ? "bg-slate-900 text-white shadow-md"
-                      : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+        {/* ===== ALBUM CATEGORY FILTER PILLS ===== */}
+        <section className="flex flex-wrap items-center gap-2">
+          {categories.map((cat) => {
+            const count = cat === "All" ? allItems.length : allItems.filter((i) => i.albumName === cat).length;
+            const isActive = activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-jetbrains uppercase tracking-wider font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+                  isActive
+                    ? "bg-[#2D2E2A] text-[#FFFFE9] shadow-sm"
+                    : "bg-white/80 text-[#5E6059] hover:text-[#2D2E2A] hover:bg-white border border-[#C6CCBD]/60"
+                }`}
+              >
+                <span>{cat}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    isActive
+                      ? "bg-[#ECFF17] text-black font-bold"
+                      : "bg-[#2D2E2A]/5 text-[#5E6059]"
                   }`}
                 >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </section>
 
-          {/* Album Grids */}
-          {filteredSections.length === 0 ? (
-            <div className="py-20 text-center rounded-3xl bg-white/70 border border-slate-200/80 p-8 shadow-xs">
-              <ImageIcon className="size-12 mx-auto text-slate-300 mb-3" />
-              <h3 className="text-base font-extrabold text-slate-800">No media uploaded yet</h3>
-              <p className="text-xs text-slate-500 font-medium mt-1">
-                Photographs and recordings will appear here as soon as they are published by administrators.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-14">
-              {filteredSections.map((sec) => (
-                <div key={sec.id} className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-black text-slate-900 flex items-center gap-2.5">
-                      <span>{sec.name}</span>
-                      <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                        {sec.items.length} {sec.items.length === 1 ? "Item" : "Items"}
+        {/* ===== MEDIA MASONRY / GRID ===== */}
+        {filteredItems.length === 0 ? (
+          <div className="rounded-3xl border border-[#C6CCBD] bg-white/60 p-16 text-center space-y-3">
+            <Info className="size-8 text-[#7A836F] mx-auto" />
+            <h2 className="font-libre text-2xl font-bold text-[#2D2E2A]">No Media Found in This Album</h2>
+            <p className="font-inter text-sm text-[#5E6059] max-w-md mx-auto">
+              Upload photographs or video highlights from the Admin CMS to populate this gallery album.
+            </p>
+            <button
+              onClick={() => setActiveCategory("All")}
+              className="mt-2 px-5 py-2 rounded-full bg-[#2D2E2A] text-[#FFFFE9] text-xs font-jetbrains font-bold uppercase tracking-wider hover:bg-black transition-all"
+            >
+              View All Photos
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredItems.map((item, idx) => {
+              const isVideo = item.type === "video";
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setLightboxIndex(idx)}
+                  className="group relative rounded-3xl border border-[#C6CCBD] bg-white/80 overflow-hidden cursor-pointer shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                >
+                  {/* Photo / Video Thumbnail Container */}
+                  <div className="relative w-full h-64 overflow-hidden bg-[#2D2E2A]">
+                    <img
+                      src={normalizeImageUrl(item.url, "/images/rectangle-899.png")}
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    {/* Top Badges */}
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-jetbrains font-bold uppercase tracking-wider bg-white/90 backdrop-blur-md text-[#2D2E2A] border border-[#C6CCBD] shadow-xs">
+                        {item.albumName}
                       </span>
-                    </h3>
+
+                      {isVideo && (
+                        <span className="size-8 rounded-full bg-[#ECFF17] text-black flex items-center justify-center shadow-md">
+                          <Play className="size-3.5 fill-current" />
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Hover Zoom Icon Indicator */}
+                    <div className="absolute bottom-4 right-4 size-9 rounded-full bg-white/90 backdrop-blur-md border border-[#C6CCBD] text-[#2D2E2A] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                      <ZoomIn className="size-4" />
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                    {sec.items.map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() =>
-                          setLightboxItem({
-                            url: item.url,
-                            name: item.name,
-                            type: item.type as "image" | "video",
-                            albumName: sec.name,
-                          })
-                        }
-                        className="glass-card rounded-3xl overflow-hidden group cursor-pointer border border-white/90 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl bg-white/80"
-                      >
-                        <div className="h-56 w-full relative overflow-hidden bg-slate-900">
-                          <img
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            src={normalizeImageUrl(item.url, "/images/rectangle-899.png")}
-                            alt={item.name}
-                          />
-                          <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="p-3 rounded-full bg-white text-slate-900 shadow-xl">
-                              <Eye className="size-5" />
-                            </span>
-                          </div>
-                          <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black uppercase tracking-wider text-cyan-300 font-mono">
-                            {item.type}
-                          </div>
-                        </div>
-
-                        <div className="p-5 flex items-center justify-between">
-                          <div>
-                            <h4 className="text-sm font-extrabold text-slate-900 line-clamp-1">
-                              {item.name || "Event Photograph"}
-                            </h4>
-                            <span className="text-xs font-bold text-slate-500">{sec.name}</span>
-                          </div>
-                          <span className="text-[11px] font-black text-cyan-700 uppercase font-mono">
-                            DSU Campus
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Caption / Title */}
+                  <div className="p-5 border-t border-[#C6CCBD]/40 flex items-center justify-between gap-3">
+                    <p className="font-libre text-base font-bold text-[#2D2E2A] line-clamp-1 group-hover:text-black">
+                      {item.name}
+                    </p>
+                    <span className="font-jetbrains text-[10px] uppercase text-[#7A836F] shrink-0">
+                      {isVideo ? "VIDEO" : "PHOTO"}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+              );
+            })}
+          </div>
+        )}
       </main>
 
-      {/* ===== FULL-SCREEN MEDIA LIGHTBOX MODAL ===== */}
-      {lightboxItem && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200">
-          <button
-            onClick={() => setLightboxItem(null)}
-            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-50 cursor-pointer"
-            aria-label="Close Lightbox"
+      {/* ===== FULLSCREEN INTERACTIVE LIGHTBOX ===== */}
+      {activeLightboxItem && lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-[100000] bg-black/90 backdrop-blur-md flex flex-col justify-between p-4 sm:p-8 animate-in fade-in duration-200"
+          onClick={() => setLightboxIndex(null)}
+        >
+          {/* Top Bar */}
+          <div className="flex items-center justify-between text-white z-10">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 rounded-full bg-[#ECFF17] text-black font-jetbrains text-xs font-bold uppercase tracking-wider">
+                {activeLightboxItem.albumName}
+              </span>
+              <span className="font-jetbrains text-xs text-white/60">
+                {lightboxIndex + 1} / {filteredItems.length}
+              </span>
+            </div>
+
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="size-10 rounded-full bg-white/10 border border-white/20 text-white flex items-center justify-center hover:bg-[#ECFF17] hover:text-black transition-colors cursor-pointer"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          {/* Center Image / Video Viewer with Next/Prev Controls */}
+          <div
+            className="relative flex-1 flex items-center justify-center my-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
-            <X className="size-6" />
-          </button>
+            {/* Previous Button */}
+            <button
+              onClick={() =>
+                setLightboxIndex(
+                  (lightboxIndex - 1 + filteredItems.length) % filteredItems.length
+                )
+              }
+              className="absolute left-2 sm:left-6 z-20 size-12 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-[#ECFF17] hover:text-black transition-colors cursor-pointer shadow-lg"
+              title="Previous photo"
+            >
+              <ChevronLeft className="size-6" />
+            </button>
 
-          <div className="max-w-5xl w-full max-h-[85vh] flex flex-col items-center">
-            {lightboxItem.type === "video" ? (
-              <video
-                src={lightboxItem.url}
-                controls
-                autoPlay
-                className="max-w-full max-h-[75vh] rounded-2xl shadow-2xl object-contain"
-              />
-            ) : (
-              <img
-                src={normalizeImageUrl(lightboxItem.url, "/images/rectangle-899.png")}
-                alt={lightboxItem.name}
-                className="max-w-full max-h-[75vh] rounded-2xl shadow-2xl object-contain"
-              />
-            )}
+            {/* Main Media */}
+            <div className="max-w-4xl max-h-[75vh] flex items-center justify-center">
+              {activeLightboxItem.type === "video" ? (
+                <video
+                  src={activeLightboxItem.url}
+                  controls
+                  autoPlay
+                  className="max-h-[75vh] max-w-full rounded-2xl border border-white/20 shadow-2xl"
+                />
+              ) : (
+                <img
+                  src={normalizeImageUrl(activeLightboxItem.url, "/images/rectangle-899.png")}
+                  alt={activeLightboxItem.name}
+                  className="max-h-[75vh] max-w-full object-contain rounded-2xl border border-white/20 shadow-2xl"
+                />
+              )}
+            </div>
 
-            <div className="mt-4 text-center text-white">
-              <h3 className="text-base sm:text-lg font-black">{lightboxItem.name}</h3>
-              <p className="text-xs text-slate-300 font-bold mt-0.5">
-                {lightboxItem.albumName} • AI Foundry Visual Archives
+            {/* Next Button */}
+            <button
+              onClick={() =>
+                setLightboxIndex((lightboxIndex + 1) % filteredItems.length)
+              }
+              className="absolute right-2 sm:right-6 z-20 size-12 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center hover:bg-[#ECFF17] hover:text-black transition-colors cursor-pointer shadow-lg"
+              title="Next photo"
+            >
+              <ChevronRight className="size-6" />
+            </button>
+          </div>
+
+          {/* Bottom Caption Bar */}
+          <div
+            className="flex flex-col sm:flex-row items-center justify-between gap-4 text-white z-10 border-t border-white/10 pt-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center sm:text-left">
+              <h3 className="font-libre text-lg font-bold text-white">
+                {activeLightboxItem.name}
+              </h3>
+              <p className="font-jetbrains text-xs text-white/50">
+                DSU AI Foundry • {activeLightboxItem.albumName}
               </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a
+                href={activeLightboxItem.url}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-xs font-jetbrains text-white hover:bg-white hover:text-black transition-colors"
+              >
+                <Download className="size-3.5" />
+                <span>Download / Open Original</span>
+              </a>
             </div>
           </div>
         </div>

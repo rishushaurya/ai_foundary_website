@@ -58,6 +58,50 @@ export async function GET(request: Request) {
       });
     }
 
+    if (type === "audit-logs" || type === "audit") {
+      const { getAuditLogs } = await import("@/lib/audit-logger");
+      const logs = await getAuditLogs();
+      const headers = [
+        "Log ID",
+        "Timestamp (ISO UTC)",
+        "Local Date & Time",
+        "Administrator Email",
+        "Action Performed",
+        "Target Scope",
+        "Details",
+        "Status",
+        "IP Address",
+      ];
+      const rows = logs.map((log) => [
+        sanitizeCSV(log.id),
+        sanitizeCSV(log.timestamp),
+        sanitizeCSV(new Date(log.timestamp).toLocaleString()),
+        sanitizeCSV(log.adminEmail),
+        sanitizeCSV(log.action),
+        sanitizeCSV(log.target || ""),
+        sanitizeCSV(log.details || ""),
+        sanitizeCSV(log.status),
+        sanitizeCSV(log.ip || ""),
+      ]);
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Exported Audit Logs CSV",
+        details: `Exported ${logs.length} audit records`,
+        status: "success",
+      });
+
+      return new NextResponse(csvContent, {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="aifoundry-audit-logs-${Date.now()}.csv"`,
+        },
+      });
+    }
+
     // Default: Event Registrations
     const events = await getEvents();
     let registrationsToExport: Array<{

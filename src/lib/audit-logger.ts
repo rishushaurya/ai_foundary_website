@@ -90,3 +90,17 @@ export async function clearAuditLogs(adminEmail: string = "priyanshushaurya9431@
   };
   return writeData("audit-logs.json", [initialLog]);
 }
+
+/**
+ * Deletes a single audit log entry by ID (Root Admin only)
+ */
+export async function deleteAuditLog(id: string): Promise<boolean> {
+  try {
+    const existingLogs = await readData<AuditLogEntry[]>("audit-logs.json", []);
+    const updated = existingLogs.filter((log) => log.id !== id);
+    return writeData("audit-logs.json", updated);
+  } catch (error) {
+    console.error("[AuditLogger] Failed to delete audit log entry:", error);
+    return false;
+  }
+}

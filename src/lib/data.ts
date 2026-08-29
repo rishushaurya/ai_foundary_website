@@ -16,6 +16,9 @@ export interface TeamMember {
   affiliation?: string;
   email?: string;
   image: string;
+  imageFit?: "cover" | "contain";
+  imagePosition?: "center" | "top" | "bottom";
+  homeImage?: string;
   socialLinks?: TeamSocialLinks;
   order?: number;
   showOnHome?: boolean;
@@ -82,6 +85,9 @@ export interface EventData {
   date: string;
   venue: string;
   image: string;
+  imageFit?: "cover" | "contain";
+  imagePosition?: "center" | "top" | "bottom";
+  homeImage?: string;
   images?: string[];
   status: "upcoming" | "ongoing" | "ended";
   registrationMode: "builtin" | "external" | "google-form";
@@ -268,9 +274,13 @@ export interface LandingCustomContent {
   heroSubtext?: string;
   heroDepartment?: string;
   aboutBadge?: string;
+  aboutTitle?: string;
   aboutHeading?: string;
   aboutText?: string;
   aboutSecondaryText?: string;
+  aboutImage?: string;
+  aboutImageFit?: "cover" | "contain";
+  aboutImagePosition?: "center" | "top" | "bottom";
   missionHeading?: string;
   missionText?: string;
   pillarsHeading?: string;

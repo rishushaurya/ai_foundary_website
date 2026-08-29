@@ -1,90 +1,84 @@
 [
   {
-    "id": "evt-genesis-2026",
-    "title": "AI Genesis Hackathon 2026",
-    "description": "A 48-hour national collegiate hackathon challenging student developers to build autonomous agentic AI systems, enterprise LLM applications, and robotics prototypes.",
-    "date": "Oct 25, 2026",
-    "venue": "DSU Innovation Hub, Bengaluru",
-    "image": "/images/rectangle-899.png",
+    "id": "evt-1787509204597",
+    "title": "Escape Room",
+    "description": "",
+    "date": "Sep 16, 2026",
+    "venue": "DSU Innovation Hall",
+    "image": "https://i.ibb.co/MTjjz28/escaperoom.png",
     "status": "upcoming",
-    "registrationMode": "builtin",
-    "registrationDeadline": "Oct 22, 2026",
+    "registrationMode": "external",
+    "externalRegistrationUrl": "https://forms.gle/cCHJAbBDCkJPARtk7",
     "showOnHome": true,
     "showOnEventPage": true,
-    "isCountdownEvent": true,
     "customQuestions": [
       {
-        "id": "q-github",
-        "label": "GitHub Profile / Portfolio Link",
+        "id": "q-1787509226997",
+        "label": "HOW ARE U ",
         "type": "text",
-        "required": true
-      },
-      {
-        "id": "q-track",
-        "label": "Preferred Problem Track",
-        "type": "select",
-        "options": ["Autonomous AI Agents", "Computer Vision & Robotics", "Healthcare AI", "EdTech & Accessibility"],
-        "required": true
-      },
-      {
-        "id": "q-team-size",
-        "label": "Team Size (1-4 Members)",
-        "type": "select",
-        "options": ["1 (Solo)", "2 Members", "3 Members", "4 Members"],
-        "required": true
+        "required": false
       }
     ],
-    "registrations": []
+    "registrations": [
+      {
+        "id": "reg-1788043959126-ioiq",
+        "name": "Custom Effect",
+        "email": "aaravsing9431@gmail.com",
+        "phone": "wdqdqwdq",
+        "college": "Dayananda Sagar University",
+        "branch": "B.Tech CSE (AI & ML)",
+        "timestamp": "2026-08-29T22:52:39.126Z",
+        "customAnswers": {
+          "q-1787509226997": "wqddwqdwq"
+        }
+      }
+    ],
+    "googleFormUrl": "https://forms.gle/cCHJAbBDCkJPARtk7",
+    "isRegistrationOpen": false,
+    "registrationStartDate": "Aug 15, 2026 06:00 AM",
+    "registrationDeadline": "Sep 15,2026 06:00 AM",
+    "closedMessage": "Applications Closed",
+    "imageFit": "contain",
+    "imagePosition": "top",
+    "homeImage": ""
   },
   {
-    "id": "evt-bootcamp-2026",
-    "title": "From Prompt to Production: LLM Bootcamp",
-    "description": "Hands-on technical workshop covering local model fine-tuning with LoRA, vector embeddings, RAG pipelines, and enterprise deployment on GPU clusters.",
-    "date": "Nov 05, 2026",
-    "venue": "Department of AI & ML, DSU Bengaluru",
-    "image": "/images/rectangle-902.png",
+    "id": "evt-1787671712225",
+    "title": "24 hour Hackothan",
+    "description": "A 24-hour team-based innovation challenge where DSU students identify a problem, develop a technology-driven solution, build a prototype, and present it to judges. It develops problem-solving, teamwork, innovation, time management, technical skills and communication through hands-on experience.",
+    "date": "Sep 16, 2026",
+    "venue": "DSU Innovation Hall",
+    "image": "https://i.ibb.co/HfLCnLRd/hackothan.png",
     "status": "upcoming",
-    "registrationMode": "builtin",
-    "registrationDeadline": "Nov 03, 2026",
+    "registrationMode": "external",
+    "externalRegistrationUrl": "https://forms.gle/wbSx17QW3SR5P5NJ6",
+    "isRegistrationOpen": false,
+    "registrationStartDate": "Aug 15, 2026 06:00 AM",
+    "registrationDeadline": "Sep 15,2026 06:00 AM",
+    "closedMessage": "Applications Closed",
     "showOnHome": true,
     "showOnEventPage": true,
     "customQuestions": [
       {
-        "id": "q-experience",
-        "label": "Python & PyTorch Experience Level",
-        "type": "select",
-        "options": ["Beginner", "Intermediate", "Advanced"],
-        "required": true
+        "id": "q-1787671733305",
+        "label": "Name",
+        "type": "text",
+        "required": false
+      },
+      {
+        "id": "q-1787671749473",
+        "label": "USN",
+        "type": "text",
+        "required": false
+      },
+      {
+        "id": "q-1787671758063",
+        "label": "Team member",
+        "type": "text",
+        "required": false
       }
     ],
-    "registrations": []
-  },
-  {
-    "id": "evt-pitch-2026",
-    "title": "AI Foundry Demo Day & Venture Showcase",
-    "description": "Annual flagship venture showcase where incubated student AI startups pitch working prototypes to angel investors, industry leaders, and faculty advisors.",
-    "date": "Nov 20, 2026",
-    "venue": "Auditorium 1, Dayananda Sagar University",
-    "image": "/images/rectangle-898.png",
-    "status": "upcoming",
-    "registrationMode": "builtin",
-    "registrationDeadline": "Nov 18, 2026",
-    "showOnHome": true,
-    "showOnEventPage": true,
-    "customQuestions": [],
-    "registrations": []
-  },
-  {
-    "id": "evt-robotics-2026",
-    "title": "Autonomous Edge Robotics Sprint",
-    "description": "Collaborative embedded systems and ROS2 sprint building real-time vision obstacle avoidance modules for autonomous ground vehicles.",
-    "date": "Sep 15, 2026",
-    "venue": "Robotics Research Lab, DSU",
-    "image": "/images/rectangle-5.png",
-    "status": "ongoing",
-    "registrationMode": "builtin",
-    "showOnHome": false,
-    "showOnEventPage": true,
-    "registrations": []
+    "registrations": [],
+    "googleFormUrl": "https://forms.gle/wbSx17QW3SR5P5NJ6"
   }
 ]

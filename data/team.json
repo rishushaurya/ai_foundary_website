@@ -5,10 +5,15 @@
     "role": "Club Coordinator",
     "category": "faculty",
     "affiliation": "Professor and Chairperson, CSE(AI and ML), DSU",
-    "email": "chairperson-aiml@dsu.edu.in",
-    "image": "/uploads/team/faculty-jayavrinda.png",
+    "email": "",
+    "image": "https://i.ibb.co/Cp38dC4N/edited-photo-2.jpg",
     "order": 1,
-    "showOnHome": true
+    "showOnHome": true,
+    "socialLinks": {
+      "linkedin": "",
+      "github": "",
+      "instagram": ""
+    }
   },
   {
     "id": "fac-02",
@@ -17,7 +22,7 @@
     "category": "faculty",
     "affiliation": "Assistant Professor, CSE(AI and ML), DSU",
     "email": "lakshmanan-cse@dsu.edu.in",
-    "image": "https://drive.google.com/file/d/1Gw3MmCruktZyBGSjK356TfGY0qh8K-8_/view?usp=sharing",
+    "image": "https://i.ibb.co/DPSZJQkQ/lakshmanan.png",
     "order": 2,
     "showOnHome": true,
     "socialLinks": {
@@ -33,9 +38,14 @@
     "category": "faculty",
     "affiliation": "Associate Professor, CSE(AI and ML), DSU",
     "email": "nippun-cse@dsu.edu.in",
-    "image": "/uploads/team/faculty-nippun.png",
+    "image": "https://i.ibb.co/RkmB4tJm/AA-Nippunkumar.jpg",
     "order": 3,
-    "showOnHome": true
+    "showOnHome": true,
+    "socialLinks": {
+      "linkedin": "",
+      "github": "",
+      "instagram": ""
+    }
   },
   {
     "id": "exec-01",
@@ -43,31 +53,18 @@
     "role": "Chief Executive Officer (CEO)",
     "category": "executive",
     "affiliation": "AI Foundry - Leadership Wing",
-    "email": "amaan@aifoundry.club",
-    "image": "/uploads/team/exec-amaan.png",
+    "email": "raise.ai.club@gmail.com",
+    "image": "https://i.ibb.co/F4XvPDf3/Syed-Amaan.jpg",
     "socialLinks": {
-      "linkedin": "https://linkedin.com/in/syedamaan",
-      "github": "https://github.com/syedamaan",
-      "instagram": "https://instagram.com/syedamaan"
+      "linkedin": "",
+      "github": "",
+      "instagram": ""
     },
     "order": 4,
-    "showOnHome": true
-  },
-  {
-    "id": "exec-02",
-    "name": "Suhil tiwari",
-    "role": "Chief Operating Officer (COO)",
-    "category": "faculty",
-    "affiliation": "AI Foundry - Operations & Strategy",
-    "email": "suhil@aifoundry.club",
-    "image": "/uploads/team/exec-suhil.png",
-    "socialLinks": {
-      "linkedin": "https://linkedin.com/in/suhilkhan",
-      "github": "https://github.com/suhilkhan",
-      "instagram": "https://instagram.com/suhilkhan"
-    },
-    "order": 5,
-    "showOnHome": true
+    "showOnHome": true,
+    "imageFit": "contain",
+    "imagePosition": "center",
+    "homeImage": ""
   },
   {
     "id": "exec-03",
@@ -75,57 +72,36 @@
     "role": "Chief Technology Officer (CTO)",
     "category": "executive",
     "affiliation": "AI Foundry - Technical & AI Architecture",
-    "email": "mallikarjuna@aifoundry.club",
-    "image": "/uploads/team/exec-mallikarjuna.png",
+    "email": "",
+    "image": "https://i.ibb.co/cKxds9ML/Mallikarjuna-DM.jpg",
     "socialLinks": {
-      "linkedin": "https://linkedin.com/in/mallikarjunadm",
-      "github": "https://github.com/mallikarjunadm"
+      "linkedin": "",
+      "github": "",
+      "instagram": ""
     },
     "order": 6,
-    "showOnHome": true
+    "showOnHome": true,
+    "imageFit": "cover",
+    "imagePosition": "center",
+    "homeImage": ""
   },
   {
-    "id": "wing-01",
-    "name": "AI & Deep Learning Wing",
-    "role": "Core Technical Team",
+    "id": "team-1788044006339",
+    "name": "me",
+    "role": "team lead",
     "category": "team",
-    "affiliation": "Model Fine-Tuning, Computer Vision & LLM Applications",
-    "email": "tech@aifoundry.club",
-    "image": "/uploads/team/team-tech.png",
-    "order": 7,
-    "showOnHome": true
-  },
-  {
-    "id": "wing-02",
-    "name": "Product & Startup Incubator",
-    "role": "Venture Acceleration Wing",
-    "category": "team",
-    "affiliation": "Market Research, Prototyping & Business Modeling",
-    "email": "product@aifoundry.club",
-    "image": "/uploads/team/team-product.png",
-    "order": 8,
-    "showOnHome": true
-  },
-  {
-    "id": "wing-03",
-    "name": "Media, Design & Outreach",
-    "role": "Creative & Branding Wing",
-    "category": "team",
-    "affiliation": "Visual Storytelling, UI/UX Systems & Brand Growth",
-    "email": "media@aifoundry.club",
-    "image": "/uploads/team/team-media.png",
-    "order": 9,
-    "showOnHome": true
-  },
-  {
-    "id": "wing-04",
-    "name": "Event Operations & Logistics",
-    "role": "Execution Wing",
-    "category": "team",
-    "affiliation": "Hackathon Logistics, Sponsorships & Stage Operations",
-    "email": "events@aifoundry.club",
-    "image": "/uploads/team/team-events.png",
-    "order": 10,
-    "showOnHome": true
+    "affiliation": "cse",
+    "email": "",
+    "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAlHYmRv5UvJfByZ3NBzHJStQbFL_4zr6bODS_nr-byLotWW4OI2WHdE2tFJWjTUH8vWjC5NQ0-ZYlcXiDeTvpicrhELnBWw36Ot-VMIBkTgzQk_qwVKvXd4kE4qL47PSdZlwlvzljM1b3CMYg3ZWD7iVpXHJjXgnswsSgXUM_n3v-MuEknupsNwErFJmHm2JknF4FR9FElyeY6Pg4X0VFD0NqsI27Z83-1WRayFgqoptOEP0zK62EL",
+    "order": 6,
+    "showOnHome": true,
+    "socialLinks": {
+      "linkedin": "",
+      "github": "",
+      "instagram": ""
+    },
+    "imageFit": "cover",
+    "imagePosition": "center",
+    "homeImage": ""
   }
 ]

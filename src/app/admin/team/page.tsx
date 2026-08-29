@@ -14,7 +14,9 @@ import {
   AlertCircle,
   Users,
   GraduationCap,
+  Eye,
 } from "lucide-react";
+import { ImagePreviewModal, ImagePreviewSettings } from "@/components/admin/image-preview-modal";
 
 export default function AdminTeamPage() {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -25,6 +27,7 @@ export default function AdminTeamPage() {
   // Edit/Add modal state
   const [activeMember, setActiveMember] = useState<TeamMember | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   useEffect(() => {
     fetchMembers();
@@ -95,6 +98,9 @@ export default function AdminTeamPage() {
       affiliation: "",
       email: "",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAlHYmRv5UvJfByZ3NBzHJStQbFL_4zr6bODS_nr-byLotWW4OI2WHdE2tFJWjTUH8vWjC5NQ0-ZYlcXiDeTvpicrhELnBWw36Ot-VMIBkTgzQk_qwVKvXd4kE4qL47PSdZlwlvzljM1b3CMYg3ZWD7iVpXHJjXgnswsSgXUM_n3v-MuEknupsNwErFJmHm2JknF4FR9FElyeY6Pg4X0VFD0NqsI27Z83-1WRayFgqoptOEP0zK62EL",
+      imageFit: "cover",
+      imagePosition: "center",
+      homeImage: "",
       order: members.length + 1,
       showOnHome: true,
       socialLinks: { linkedin: "", github: "", instagram: "" },
@@ -105,6 +111,9 @@ export default function AdminTeamPage() {
   const openEditModal = (member: TeamMember) => {
     setActiveMember({
       ...member,
+      imageFit: member.imageFit || "cover",
+      imagePosition: member.imagePosition || "center",
+      homeImage: member.homeImage || "",
       socialLinks: {
         linkedin: member.socialLinks?.linkedin || "",
         github: member.socialLinks?.github || "",
@@ -140,140 +149,214 @@ export default function AdminTeamPage() {
           className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-md shadow-cyan-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
         >
           <Plus className="size-4" />
-          <span>Add Member</span>
+          <span>Add Team Member</span>
         </button>
       </div>
 
+      {/* Notice Banner */}
       {notice && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
+          className={`p-4 rounded-2xl flex items-center justify-between gap-3 text-sm font-medium ${
             notice.type === "success"
-              ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
-              : "bg-red-50 border border-red-200 text-red-800"
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+              : "bg-rose-50 text-rose-800 border border-rose-200"
           }`}
         >
-          {notice.type === "success" ? (
-            <CheckCircle2 className="size-4 text-emerald-600" />
-          ) : (
-            <AlertCircle className="size-4 text-red-600" />
-          )}
-          <span>{notice.text}</span>
+          <div className="flex items-center gap-2">
+            {notice.type === "success" ? (
+              <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="size-4 text-rose-600 shrink-0" />
+            )}
+            <span>{notice.text}</span>
+          </div>
+          <button onClick={() => setNotice(null)} className="text-slate-400 hover:text-slate-600">
+            <X className="size-4" />
+          </button>
         </div>
       )}
 
-      {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="size-8 animate-spin text-cyan-600" />
-          <span className="text-xs font-bold">Loading team roster...</span>
+      {/* Faculty Advisory Board Section */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+          <GraduationCap className="size-5 text-cyan-600" />
+          <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
+            1. Faculty Advisory Board &amp; Mentors ({facultyList.length})
+          </h2>
         </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Faculty Members */}
-          <div className="glass-card rounded-3xl p-6 border border-white/80 shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <GraduationCap className="size-5 text-cyan-600" />
-              <span>Faculty Mentors ({facultyList.length})</span>
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {facultyList.map((m) => (
-                <div
-                  key={m.id}
-                  className="p-4 rounded-2xl border border-slate-200 bg-white flex items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-                      <img
-                        src={normalizeImageUrl(m.image, "/images/rectangle-899.png")}
-                        alt={m.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-sm font-bold text-slate-900 block">{m.name}</span>
-                      <span className="text-xs font-semibold text-cyan-700">{m.role}</span>
-                      <span className="text-[11px] text-slate-400 block">{m.affiliation}</span>
-                    </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Loader2 className="size-6 animate-spin text-cyan-600 mr-2" />
+            <span>Loading members...</span>
+          </div>
+        ) : facultyList.length === 0 ? (
+          <p className="text-xs text-slate-400 italic py-4">No faculty advisors added yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {facultyList.map((m) => (
+              <div
+                key={m.id}
+                className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                    <img
+                      src={normalizeImageUrl(m.image)}
+                      alt={m.name}
+                      className="size-full object-cover"
+                    />
                   </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(m)}
-                      className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-cyan-600"
-                    >
-                      <Edit2 className="size-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMember(m.id)}
-                      className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-900 text-sm truncate">{m.name}</h4>
+                    <p className="text-xs text-cyan-700 font-semibold truncate">{m.role}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{m.affiliation || "DSU AI & ML"}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => openEditModal(m)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-cyan-600 transition-colors"
+                  >
+                    <Edit2 className="size-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMember(m.id)}
+                    className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+        )}
+      </div>
 
-          {/* Student Executives & Wings */}
-          <div className="glass-card rounded-3xl p-6 border border-white/80 shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Users className="size-5 text-cyan-600" />
-              <span>Student Executives &amp; Wings ({executiveList.length + wingList.length})</span>
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {[...executiveList, ...wingList].map((m) => (
-                <div
-                  key={m.id}
-                  className="p-4 rounded-2xl border border-slate-200 bg-white flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-                      <img
-                        src={normalizeImageUrl(m.image, "/images/rectangle-899.png")}
-                        alt={m.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-900 block">{m.name}</span>
-                      <span className="text-[11px] font-semibold text-slate-500">{m.role}</span>
-                    </div>
+      {/* Executive Leadership Section */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+          <Users className="size-5 text-cyan-600" />
+          <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
+            2. Executive Leadership Board ({executiveList.length})
+          </h2>
+        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Loader2 className="size-6 animate-spin text-cyan-600 mr-2" />
+            <span>Loading members...</span>
+          </div>
+        ) : executiveList.length === 0 ? (
+          <p className="text-xs text-slate-400 italic py-4">No executive leaders added yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {executiveList.map((m) => (
+              <div
+                key={m.id}
+                className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                    <img
+                      src={normalizeImageUrl(m.image)}
+                      alt={m.name}
+                      className="size-full object-cover"
+                    />
                   </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(m)}
-                      className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-cyan-600"
-                    >
-                      <Edit2 className="size-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMember(m.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-900 text-sm truncate">{m.name}</h4>
+                    <p className="text-xs text-cyan-700 font-semibold truncate">{m.role}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{m.affiliation || "DSU AI Foundry"}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => openEditModal(m)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-cyan-600 transition-colors"
+                  >
+                    <Edit2 className="size-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMember(m.id)}
+                    className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* ===== EDIT / ADD MEMBER MODAL ===== */}
+      {/* Departmental Wing Members Section */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+          <Users className="size-5 text-cyan-600" />
+          <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
+            3. Departmental Wings &amp; Contributors ({wingList.length})
+          </h2>
+        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Loader2 className="size-6 animate-spin text-cyan-600 mr-2" />
+            <span>Loading members...</span>
+          </div>
+        ) : wingList.length === 0 ? (
+          <p className="text-xs text-slate-400 italic py-4">No wing members added yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {wingList.map((m) => (
+              <div
+                key={m.id}
+                className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-12 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                    <img
+                      src={normalizeImageUrl(m.image)}
+                      alt={m.name}
+                      className="size-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-900 text-sm truncate">{m.name}</h4>
+                    <p className="text-xs text-cyan-700 font-semibold truncate">{m.role}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{m.affiliation || "Foundry Wing"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => openEditModal(m)}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-cyan-600 transition-colors"
+                  >
+                    <Edit2 className="size-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMember(m.id)}
+                    className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add / Edit Member Modal Dialog */}
       {isModalOpen && activeMember && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-card bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-900">
-                {members.some((m) => m.id === activeMember.id) ? "Edit Member" : "Add Member"}
+              <h3 className="text-lg font-extrabold text-slate-900">
+                {activeMember.id.startsWith("team-") && !members.some((m) => m.id === activeMember.id)
+                  ? "Add New Team Member"
+                  : "Edit Team Member"}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-full text-slate-400 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
               >
                 <X className="size-5" />
               </button>
@@ -289,6 +372,7 @@ export default function AdminTeamPage() {
                   required
                   value={activeMember.name}
                   onChange={(e) => setActiveMember({ ...activeMember, name: e.target.value })}
+                  placeholder="e.g. Dr. Jane Doe / Alex Rivera"
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -343,9 +427,19 @@ export default function AdminTeamPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold uppercase tracking-wider text-slate-700">
-                  Image URL (Online Link / Google Drive / Local)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-bold uppercase tracking-wider text-slate-700">
+                    Image URL (Online Link / Google Drive / Local)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-[11px] font-bold transition-colors cursor-pointer"
+                  >
+                    <Eye className="size-3.5" />
+                    <span>Preview &amp; Framing</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={activeMember.image}
@@ -355,49 +449,82 @@ export default function AdminTeamPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block font-bold uppercase tracking-wider text-slate-700">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={activeMember.email || ""}
-                  onChange={(e) => setActiveMember({ ...activeMember, email: e.target.value })}
-                  placeholder="name@dsu.edu.in"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-semibold focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-bold uppercase tracking-wider text-slate-700">
-                  LinkedIn URL
-                </label>
-                <input
-                  type="url"
-                  value={activeMember.socialLinks?.linkedin || ""}
-                  onChange={(e) =>
-                    setActiveMember({
-                      ...activeMember,
-                      socialLinks: { ...activeMember.socialLinks, linkedin: e.target.value },
-                    })
-                  }
-                  placeholder="https://linkedin.com/in/username"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-mono focus:outline-none focus:border-cyan-500"
-                />
+              {/* Social Channels & Contact Details Grid */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <span className="block font-extrabold uppercase tracking-wider text-slate-700 text-[11px]">
+                  Social Media Links &amp; Contact (Icons appear on page only if provided)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-600 mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      value={activeMember.email || ""}
+                      onChange={(e) => setActiveMember({ ...activeMember, email: e.target.value })}
+                      placeholder="user@dsu.edu.in"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-600 mb-1">LinkedIn URL</label>
+                    <input
+                      type="url"
+                      value={activeMember.socialLinks?.linkedin || ""}
+                      onChange={(e) =>
+                        setActiveMember({
+                          ...activeMember,
+                          socialLinks: { ...activeMember.socialLinks, linkedin: e.target.value },
+                        })
+                      }
+                      placeholder="https://linkedin.com/in/..."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-mono focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-600 mb-1">GitHub URL</label>
+                    <input
+                      type="url"
+                      value={activeMember.socialLinks?.github || ""}
+                      onChange={(e) =>
+                        setActiveMember({
+                          ...activeMember,
+                          socialLinks: { ...activeMember.socialLinks, github: e.target.value },
+                        })
+                      }
+                      placeholder="https://github.com/..."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-mono focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-600 mb-1">Instagram URL</label>
+                    <input
+                      type="url"
+                      value={activeMember.socialLinks?.instagram || ""}
+                      onChange={(e) =>
+                        setActiveMember({
+                          ...activeMember,
+                          socialLinks: { ...activeMember.socialLinks, instagram: e.target.value },
+                        })
+                      }
+                      placeholder="https://instagram.com/..."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-mono focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                  className="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 rounded-full text-white bg-gradient-to-r from-cyan-600 to-blue-600 font-bold shadow-md shadow-cyan-600/25"
+                  className="px-6 py-2.5 rounded-full text-white bg-gradient-to-r from-cyan-600 to-blue-600 font-bold shadow-md shadow-cyan-600/25 cursor-pointer"
                 >
                   Save Member
                 </button>
@@ -405,6 +532,31 @@ export default function AdminTeamPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Visual Image Preview & Framing Inspector Modal */}
+      {activeMember && (
+        <ImagePreviewModal
+          isOpen={previewModalOpen}
+          onClose={() => setPreviewModalOpen(false)}
+          title={`Team Member Portrait - ${activeMember.name || "New Member"}`}
+          imageUrl={activeMember.image}
+          homeImageUrl={activeMember.homeImage}
+          imageFit={activeMember.imageFit || "cover"}
+          imagePosition={activeMember.imagePosition || "center"}
+          aspectRatioType="team"
+          cardTitle={activeMember.name || "Member Name"}
+          cardSubtitle={activeMember.role || "Role / Title"}
+          onApply={(res: ImagePreviewSettings) => {
+            setActiveMember({
+              ...activeMember,
+              image: res.imageUrl,
+              homeImage: res.homeImageUrl,
+              imageFit: res.imageFit,
+              imagePosition: res.imagePosition,
+            });
+          }}
+        />
       )}
     </div>
   );

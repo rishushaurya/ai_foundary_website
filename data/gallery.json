@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "id": "gal-1787509336348",
+    "name": "Inaugural ceremony and teams ",
+    "showOnHome": true,
+    "showOnGalleryPage": true,
+    "items": [
+      {
+        "id": "img-1787511262719",
+        "type": "image",
+        "name": "Event Photograph",
+        "url": "https://i.ibb.co/v6h0dKJ4/def14df6-7a4d-4f25-b125-6892e597db64.webp"
+      },
+      {
+        "id": "img-1787511262999",
+        "type": "image",
+        "name": "Event Photograph",
+        "url": "https://i.ibb.co/TMphJk2N/027b9b66-0002-49e0-9c4e-b1a4d4bbfeec.webp"
+      },
+      {
+        "id": "img-1787511263175",
+        "type": "image",
+        "name": "Event Photograph",
+        "url": "https://i.ibb.co/XxrxS34b/8d450acc-089c-460a-860a-3d7ce3d8703f.webp"
+      },
+      {
+        "id": "img-1787511263359",
+        "type": "image",
+        "name": "Event Photograph",
+        "url": "https://i.ibb.co/VWTz5hMB/80ceb6e1-1dc5-4bcd-b9aa-d6386d0a7ba3.webp"
+      },
+      {
+        "id": "img-1787511263559",
+        "type": "image",
+        "name": "Event Photograph",
+        "url": "https://i.ibb.co/hxdPbkkY/1b5a0ed8-c5ef-4dec-a910-2531d74e9953.webp"
+      },
+      {
+        "id": "img-1787511263735",
+        "type": "image",
+        "name": "Team",
+        "url": "https://i.ibb.co/mCBcfhGr/04f55f35-1b4d-45df-aae0-46062b5dccdf.webp"
+      },
+      {
+        "id": "img-1787511425053",
+        "type": "image",
+        "name": "leads",
+        "url": "https://i.ibb.co/B2BSWCnP/91acc091-15c7-480d-9bfa-6726db8facc3.webp"
+      }
+    ]
+  }
+]

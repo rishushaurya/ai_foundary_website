@@ -27,30 +27,61 @@ export default function TermsPage() {
 
           <div className="space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">1. Eligibility &amp; Membership</h2>
+              <h2 className="text-base font-bold text-slate-900">1. Acceptance of Terms &amp; Eligibility</h2>
               <p>
-                Membership in AI Foundry is open to enrolled students of Dayananda Sagar University. Members agree to uphold academic integrity, foster inclusive collaboration, and adhere to university codes of conduct during all hackathons and workshops.
+                By accessing or using the AI Foundry web platform, registering for events, or submitting recruitment applications, you agree to comply with these Terms &amp; Conditions and all applicable Dayananda Sagar University (DSU) student regulations. Active membership is open to currently enrolled students of Dayananda Sagar University.
               </p>
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">2. Intellectual Property</h2>
+              <h2 className="text-base font-bold text-slate-900">2. Responsible AI &amp; Academic Integrity (RAISE Charter)</h2>
               <p>
-                Projects and prototypes developed during club hackathons and build sprints remain the intellectual property of the respective student creators, subject to university incubation guidelines and open-source project licenses.
+                As DSU&apos;s flagship Responsible AI student organization, members and hackathon participants agree not to develop, train, or deploy AI models designed for malicious exploitation, unauthorized data harvesting, non-consensual deepfakes, or academic plagiarism. All submissions must represent genuine student work with transparent attribution of pre-trained weights and open-source packages.
               </p>
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">3. Code of Conduct &amp; Ethics</h2>
+              <h2 className="text-base font-bold text-slate-900">3. Intellectual Property (IP) Rights</h2>
               <p>
-                All members and event participants must foster a safe, respectful environment free of harassment. Unethical behavior, academic plagiarism, or misuse of club computing resources will result in immediate revocation of membership.
+                Student creators retain 100% intellectual property rights over codebases, neural models, architectures, and startup concepts built during AI Foundry hackathons and build sprints. Projects created under official incubator wings are encouraged to follow permissive open-source licensing (MIT/Apache 2.0). AI Foundry and DSU logos, branding, and design tokens remain the exclusive property of the university and club executive leadership.
               </p>
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">4. Modifications</h2>
+              <h2 className="text-base font-bold text-slate-900">4. Event Participation &amp; Attendance Commitment</h2>
               <p>
-                The executive leadership and faculty advisory board reserve the right to update these terms to align with institutional policies and club expansion goals.
+                Registration for workshops, hackathons, and symposiums constitutes a confirmed seat reservation. Participants who register but fail to attend without at least 24 hours prior written notice may have future registration privileges suspended to ensure fair resource allocation.
+              </p>
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-base font-bold text-slate-900">5. Compute Cluster &amp; Platform Acceptable Use</h2>
+              <p>
+                Access to club compute infrastructure, GPU clusters, lab machines, and administrative endpoints is strictly audited. Any attempt to scrape participant data, bypass authentication controls, perform denial-of-service tests, or misuse computing resources for unauthorized purposes will result in immediate termination of membership and escalation to university disciplinary authorities.
+              </p>
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-base font-bold text-slate-900">6. Media &amp; Photographic Release</h2>
+              <p>
+                By attending on-campus AI Foundry events and workshops, participants grant the club permission to capture and publish photographs, audio, and video recordings for official archival, gallery, and educational promotional purposes.
+              </p>
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-base font-bold text-slate-900">7. Campus Location &amp; Inquiries</h2>
+              <p>
+                AI Foundry operates under the Department of Computer Science &amp; Engineering (AI &amp; Robotics / AI &amp; ML) at:
+                <br />
+                <span className="font-semibold text-slate-900">
+                  Innovation Center, Harohalli Campus, Kanakapura Road, Ramanagara District / Bengaluru South, Karnataka - 562112
+                </span>
+                <br />
+                For legal notices or official inquiries, please write to{" "}
+                <a href="mailto:aifoundry@dsu.edu.in" className="text-cyan-700 font-semibold hover:underline">
+                  aifoundry@dsu.edu.in
+                </a>
+                .
               </p>
             </section>
           </div>

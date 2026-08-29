@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { TransparentHeader } from "@/components/ui/transparent-header";
-import { CustomCursor } from "@/components/ui/custom-cursor";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -59,11 +58,10 @@ export default function RootLayout({
       </head>
       <body
         id="i6mb"
-        className="min-h-full flex flex-col bg-[#F8FAFC] text-slate-900 antialiased overflow-x-hidden selection:bg-cyan-500 selection:text-black"
-        style={{ backgroundColor: "#F8FAFC", color: "#0F172A" }}
+        className="min-h-full flex flex-col bg-[#FFFFE9] text-[#2D2E2A] antialiased overflow-x-hidden selection:bg-[#ECFF17] selection:text-[#000000]"
+        style={{ backgroundColor: "#FFFFE9", color: "#2D2E2A" }}
         suppressHydrationWarning
       >
-        <CustomCursor />
         <TransparentHeader />
         <div className="relative w-full flex-grow bg-transparent">
           {children}

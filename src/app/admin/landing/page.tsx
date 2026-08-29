@@ -10,13 +10,11 @@ import {
   Layers,
   Award,
   Compass,
-  BarChart3,
-  Megaphone,
-  Workflow,
   Plus,
   Trash2,
 } from "lucide-react";
 import { SiteSettings, LandingCustomContent } from "@/lib/data";
+import { ImagePreviewModal, ImagePreviewSettings } from "@/components/admin/image-preview-modal";
 
 export default function AdminLandingPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -27,91 +25,55 @@ export default function AdminLandingPage() {
   const [heroTagline, setHeroTagline] = useState("");
   const [heroSubtext, setHeroSubtext] = useState("");
 
-  // Landing Custom Content Model (exact match to live landing page)
+  // Preview Modal State
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewConfig, setPreviewConfig] = useState<{
+    title: string;
+    imageUrl: string;
+    homeImageUrl?: string;
+    imageFit?: "cover" | "contain";
+    imagePosition?: "center" | "top" | "bottom";
+    aspectRatioType: "event" | "team" | "about" | "general";
+    cardTitle?: string;
+    cardSubtitle?: string;
+    onApply: (settings: ImagePreviewSettings) => void;
+  } | null>(null);
+
+  // Landing Custom Content Model (active sections only)
   const [landingContent, setLandingContent] = useState<LandingCustomContent>({
     heroBadge: "DSU PREMIER AI & VENTURE ACCELERATOR",
     heroTagline: "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
-    heroSubtext: "Dayananda Sagar University's flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures.",
+    heroSubtext: "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence.",
     heroDepartment: "School of Engineering • Department of AI & Robotics • DSU Bengaluru",
     aboutBadge: "ABOUT AI FOUNDRY",
-    aboutHeading: "AI Foundry is the premier student innovation ecosystem established under the Department of Computer Science & Engineering (AI & ML) at Dayananda Sagar University (DSU), Bengaluru.",
-    aboutSecondaryText: "AI Foundry is Dayananda Sagar University's flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing hands-on mentorship, enterprise GPU compute, and a collaborative workspace.",
-    pillarsHeading: "Our approach to innovation is built on three core strategies.",
-    pillarsSubtext: "Empowering students to lead in AI and entrepreneurship, fostering real-world impact and future-ready skills.",
-    pillars: [
-      {
-        id: "p1",
-        title: "Innovation",
-        description: "We encourage groundbreaking ideas and provide GPU compute, lab access, and development toolkits for members to explore the frontiers of AI.",
-      },
-      {
-        id: "p2",
-        title: "Collaboration",
-        description: "We believe in the power of diverse minds working together, fostering a supportive cross-disciplinary environment for peer learning and growth.",
-      },
-      {
-        id: "p3",
-        title: "Impact",
-        description: "Our projects aim to solve real-world problems, making a tangible difference across healthcare, robotics, education, and venture incubation.",
-      },
-    ],
-    approachHeading: "Where your ambition meets innovation.",
+    aboutHeading: "AI Foundry is the go-to spot for student creators at Dayananda Sagar University. We turn cool campus ideas into real-world tech by giving you the right mentors, beastly GPU power, and a local community that helps you grow. It's where the future of AI hits the road.",
+    aboutSecondaryText: "Whether you're fine-tuning custom LLMs, building autonomous agents, designing slick interfaces, or pitching your first venture, you won't be doing it alone. From late-night hackathons and hands-on build sprints to demo days in front of industry veterans, we give you the launchpad to stop just talking about AI and start shipping it.",
+    approachHeading: "OUR APPROACH",
     approachSubtext: "We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures.",
     approach: [
       {
         id: "app1",
-        title: "1. Ideation",
-        description: "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and venture scoping.",
-        image: "/images/rectangle-5.png",
+        title: "1. Ideation & Problem Discovery",
+        description: "We guide members from initial concepts to well-defined project proposals, encouraging creative problem-solving and patent exploration.",
       },
       {
         id: "app2",
-        title: "2. Development",
-        description: "Providing tools, GPU compute clusters, mentorship, and a collaborative space for building production-grade AI solutions.",
+        title: "2. Prototyping & GPU Compute",
+        description: "Providing high-performance compute clusters, research lab access, and technical mentorship for rapid iteration.",
       },
       {
         id: "app3",
-        title: "3. Launch",
-        description: "Supporting projects through deployment, venture accelerator pitch demo days, and continuous real-world user testing.",
-        image: "/images/map.png",
+        title: "3. Venture Incubation & Launch",
+        description: "Supporting student founders through legal incorporation, pitch deck polish, and demo day showcases to seed investors.",
       },
       {
         id: "app4",
-        title: "4. Mentorship",
-        description: "Connecting students with faculty advisors and industry executives for deep architectural and venture guidance.",
-      },
-      {
-        id: "app5",
-        title: "5. Community & Growth",
-        description: "Building a strong, lifelong alumni and student network across Bangalore's tech ecosystem, fostering peer collaboration and opportunities.",
-        image: "/images/rectangle-8.png",
+        title: "4. Community & Knowledge Transfer",
+        description: "Building an enduring alumni and mentor network, hosting weekly paper reading groups, and sharing open-source code.",
       },
     ],
-    processHeading: "How we forge the future.",
-    process: [
-      { num: "01", title: "Idea Generation", desc: "Brainstorming and refining concepts within our collaborative workshops and 24-hour hackathons." },
-      { num: "02", title: "Team Formation", desc: "Connecting students with complementary technical and design skills to form interdisciplinary squads." },
-      { num: "03", title: "Project Incubation", desc: "Providing GPU compute, mentorship, and a supportive environment for full-stack prototype development." },
-      { num: "04", title: "Showcase & Launch", desc: "Presenting completed projects to the tech community, investors, and supporting venture deployment." },
-    ],
-    statsHeading: "We're building a vibrant ecosystem.",
-    stats: {
-      members: "50+",
-      membersLabel: "Active Members",
-      projects: "15+",
-      projectsLabel: "Successful Sprints",
-      duration: "1 Year",
-      durationLabel: "Since Inception",
-      mentors: "20+",
-      mentorsLabel: "Industry Mentors",
-      costReduction: "50%",
-      costReductionLabel: "Build Time Saved",
-      innovationHours: "500+ hrs",
-      innovationHoursLabel: "Innovation Time",
-    },
-    teamSubheading: "LEADERSHIP & ADVISORY",
-    teamHeading: "Meet the minds behind AI Foundry.",
-    teamDescription: "Visionary faculty advisors and dedicated student leaders guiding innovation and community initiatives.",
+    teamSubheading: "MENTORSHIP & GOVERNANCE",
+    teamHeading: "LEADERSHIP & ADVISORY",
     teamMembers: [
       {
         id: "tm-1",
@@ -132,20 +94,21 @@ export default function AdminLandingPage() {
         image: "/images/rectangle-902.png",
       },
     ],
-    ctaHeading: "Ready to forge the future?",
-    ctaDescription: "Join Dayananda Sagar University's premier venture and AI club. Build, collaborate, and launch alongside elite engineers.",
-    ctaButtonText: "Apply to Join Us",
   });
 
   useEffect(() => {
     async function loadData() {
       try {
-        const settingsRes = await fetch("/api/admin/settings");
-        if (settingsRes.ok) {
-          const s = await settingsRes.json();
+        const res = await fetch("/api/admin/settings");
+        if (res.ok) {
+          const s: SiteSettings = await res.json();
           setSettings(s);
           setHeroTagline(s.heroTagline || "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE");
-          setHeroSubtext(s.heroSubtext || "Dayananda Sagar University's flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures.");
+          setHeroSubtext(
+            s.heroSubtext ||
+              "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence."
+          );
+
           if (s.landingContent) {
             setLandingContent((prev) => ({ ...prev, ...s.landingContent }));
           }
@@ -207,7 +170,7 @@ export default function AdminLandingPage() {
             Homepage Content Management
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Direct real-time editor for all 8 sections displayed on the main landing page.
+            Direct real-time editor for active sections displayed on the new main landing page.
           </p>
         </div>
 
@@ -216,7 +179,7 @@ export default function AdminLandingPage() {
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs no-underline"
           >
             <Eye className="size-3.5 text-cyan-600" />
             <span>Preview Live Site</span>
@@ -283,7 +246,7 @@ export default function AdminLandingPage() {
                 rows={2}
                 value={heroSubtext}
                 onChange={(e) => setHeroSubtext(e.target.value)}
-                placeholder="Dayananda Sagar University's flagship innovation hub empowering student founders, engineers, and researchers to build and launch cutting-edge AI ventures."
+                placeholder="Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence."
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
               />
             </div>
@@ -303,137 +266,119 @@ export default function AdminLandingPage() {
           </div>
         </div>
 
-        {/* ===== BOX 2: ABOUT AI FOUNDRY SECTION ===== */}
+        {/* ===== BOX 2: ABOUT US SECTION ===== */}
         <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Layers className="size-5 text-cyan-600" />
             <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-              2. About AI Foundry Section
+              2. About Us Section
             </h2>
           </div>
 
           <div className="space-y-4 text-xs">
-            <div>
-              <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Section Badge
-              </label>
-              <input
-                type="text"
-                value={landingContent.aboutBadge || ""}
-                onChange={(e) => setLandingContent({ ...landingContent, aboutBadge: e.target.value })}
-                placeholder="ABOUT AI FOUNDRY"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Section Badge
+                </label>
+                <input
+                  type="text"
+                  value={landingContent.aboutBadge || ""}
+                  onChange={(e) => setLandingContent({ ...landingContent, aboutBadge: e.target.value })}
+                  placeholder="ABOUT AI FOUNDRY"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Section Title / Main Heading
+                </label>
+                <input
+                  type="text"
+                  value={landingContent.aboutTitle || ""}
+                  onChange={(e) => setLandingContent({ ...landingContent, aboutTitle: e.target.value })}
+                  placeholder="About Us"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
             </div>
 
             <div>
               <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Main Headline Statement
+                Primary Description Paragraph
               </label>
               <textarea
-                rows={2}
+                rows={3}
                 value={landingContent.aboutHeading || ""}
                 onChange={(e) => setLandingContent({ ...landingContent, aboutHeading: e.target.value })}
-                placeholder="AI Foundry is the premier student innovation ecosystem established under the Department of Computer Science & Engineering (AI & ML) at Dayananda Sagar University (DSU), Bengaluru."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500 leading-relaxed"
+                placeholder="AI Foundry is the go-to spot for student creators at Dayananda Sagar University..."
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-medium text-slate-900 focus:outline-none focus:border-cyan-500 leading-relaxed"
               />
             </div>
 
             <div>
               <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Description Paragraph
+                Secondary Exploration Paragraph
               </label>
               <textarea
                 rows={3}
                 value={landingContent.aboutSecondaryText || ""}
                 onChange={(e) => setLandingContent({ ...landingContent, aboutSecondaryText: e.target.value })}
-                placeholder="AI Foundry is Dayananda Sagar University's flagship technology accelerator and student innovation hub. We bridge the gap between academic exploration and high-impact AI ventures by providing hands-on mentorship, enterprise GPU compute, and a collaborative workspace."
+                placeholder="Whether you're fine-tuning custom LLMs, building autonomous agents, designing slick interfaces..."
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
               />
             </div>
-          </div>
-        </div>
-
-        {/* ===== BOX 3: OUR 3 CORE PILLARS ===== */}
-        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Award className="size-5 text-cyan-600" />
-            <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-              3. Our 3 Core Pillars
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Section Heading
-              </label>
-              <input
-                type="text"
-                value={landingContent.pillarsHeading || ""}
-                onChange={(e) => setLandingContent({ ...landingContent, pillarsHeading: e.target.value })}
-                placeholder="Our approach to innovation is built on three core strategies."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
 
             <div>
-              <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Section Subtitle
-              </label>
-              <input
-                type="text"
-                value={landingContent.pillarsSubtext || ""}
-                onChange={(e) => setLandingContent({ ...landingContent, pillarsSubtext: e.target.value })}
-                placeholder="Empowering students to lead in AI and entrepreneurship, fostering real-world impact and future-ready skills."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-            {(landingContent.pillars || []).map((pillar, idx) => (
-              <div key={pillar.id || idx} className="p-5 rounded-2xl bg-white border border-slate-200 space-y-3">
-                <span className="font-extrabold text-cyan-700 uppercase tracking-widest text-[10px]">
-                  Pillar #{idx + 1}
-                </span>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Pillar Title</label>
-                  <input
-                    type="text"
-                    value={pillar.title}
-                    onChange={(e) => {
-                      const updated = [...(landingContent.pillars || [])];
-                      updated[idx].title = e.target.value;
-                      setLandingContent({ ...landingContent, pillars: updated });
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    value={pillar.description}
-                    onChange={(e) => {
-                      const updated = [...(landingContent.pillars || [])];
-                      updated[idx].description = e.target.value;
-                      setLandingContent({ ...landingContent, pillars: updated });
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
-                  />
-                </div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-bold uppercase tracking-wider text-slate-700">
+                  About Section Featured Image URL
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewConfig({
+                      title: "About Us Feature Image Preview & Framing",
+                      imageUrl: landingContent.aboutImage || "/images/Gemini_Generated_Image_arpro7arpro7arpr.png",
+                      imageFit: landingContent.aboutImageFit || "cover",
+                      imagePosition: landingContent.aboutImagePosition || "center",
+                      aspectRatioType: "about",
+                      cardTitle: landingContent.aboutTitle || "About AI Foundry",
+                      onApply: (res) => {
+                        setLandingContent({
+                          ...landingContent,
+                          aboutImage: res.imageUrl,
+                          aboutImageFit: res.imageFit,
+                          aboutImagePosition: res.imagePosition,
+                        });
+                      },
+                    });
+                    setPreviewModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-[11px] font-bold transition-colors cursor-pointer"
+                >
+                  <Eye className="size-3.5" />
+                  <span>Preview &amp; Framing</span>
+                </button>
               </div>
-            ))}
+              <input
+                type="text"
+                value={landingContent.aboutImage || ""}
+                onChange={(e) => setLandingContent({ ...landingContent, aboutImage: e.target.value })}
+                placeholder="/images/Gemini_Generated_Image_arpro7arpro7arpr.png or https://drive.google.com/..."
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-mono text-xs text-slate-800 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
           </div>
         </div>
 
-        {/* ===== BOX 4: OUR APPROACH (5 STEPS) ===== */}
+        {/* ===== BOX 3: OUR APPROACH (4 STAGES) ===== */}
         <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Compass className="size-5 text-cyan-600" />
             <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-              4. Our Approach &amp; Journey (5 Stages)
+              3. Our Approach (4 Methodological Pillars)
             </h2>
           </div>
 
@@ -444,9 +389,9 @@ export default function AdminLandingPage() {
               </label>
               <input
                 type="text"
-                value={landingContent.approachHeading || ""}
+                value={landingContent.approachHeading || "OUR APPROACH"}
                 onChange={(e) => setLandingContent({ ...landingContent, approachHeading: e.target.value })}
-                placeholder="Where your ambition meets innovation."
+                placeholder="OUR APPROACH"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
               />
             </div>
@@ -465,14 +410,14 @@ export default function AdminLandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-xs">
             {(landingContent.approach || []).map((step, idx) => (
               <div key={step.id || idx} className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
                 <span className="font-extrabold text-cyan-700 uppercase tracking-widest text-[10px]">
-                  Step #{idx + 1}
+                  Pillar #{idx + 1}
                 </span>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Step Title</label>
+                  <label className="block font-bold text-slate-700 mb-1">Title</label>
                   <input
                     type="text"
                     value={step.title}
@@ -497,282 +442,18 @@ export default function AdminLandingPage() {
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
                   />
                 </div>
-                {step.image !== undefined && (
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Artwork / Image Link</label>
-                    <input
-                      type="text"
-                      value={step.image || ""}
-                      onChange={(e) => {
-                        const updated = [...(landingContent.approach || [])];
-                        updated[idx].image = e.target.value;
-                        setLandingContent({ ...landingContent, approach: updated });
-                      }}
-                      placeholder="/images/rectangle-5.png"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 font-mono text-[11px] text-slate-600 focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* ===== BOX 5: OUR PROCESS (4 STAGES) ===== */}
-        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Workflow className="size-5 text-cyan-600" />
-            <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-              5. Our Process (4 Stages)
-            </h2>
-          </div>
-
-          <div>
-            <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1 text-xs">
-              Section Heading
-            </label>
-            <input
-              type="text"
-              value={landingContent.processHeading || "How we forge the future."}
-              onChange={(e) => setLandingContent({ ...landingContent, processHeading: e.target.value })}
-              placeholder="How we forge the future."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-xs focus:outline-none focus:border-cyan-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-xs">
-            {(landingContent.process || []).map((step, idx) => (
-              <div key={idx} className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-cyan-700 uppercase tracking-widest text-[10px]">
-                    Stage #{step.num}
-                  </span>
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Stage Title</label>
-                  <input
-                    type="text"
-                    value={step.title}
-                    onChange={(e) => {
-                      const updated = [...(landingContent.process || [])];
-                      updated[idx].title = e.target.value;
-                      setLandingContent({ ...landingContent, process: updated });
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    value={step.desc}
-                    onChange={(e) => {
-                      const updated = [...(landingContent.process || [])];
-                      updated[idx].desc = e.target.value;
-                      setLandingContent({ ...landingContent, process: updated });
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ===== BOX 6: CLUB STATS (6 METRICS) ===== */}
-        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <BarChart3 className="size-5 text-cyan-600" />
-            <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-              6. Club Stats (6 Metrics)
-            </h2>
-          </div>
-
-          <div>
-            <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1 text-xs">
-              Section Heading
-            </label>
-            <input
-              type="text"
-              value={landingContent.statsHeading || "We're building a vibrant ecosystem."}
-              onChange={(e) => setLandingContent({ ...landingContent, statsHeading: e.target.value })}
-              placeholder="We're building a vibrant ecosystem."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-xs focus:outline-none focus:border-cyan-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-xs">
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-700 text-[11px]">Metric 1 Value</label>
-              <input
-                type="text"
-                value={landingContent.stats?.members || "50+"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), members: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-black text-slate-900"
-              />
-              <label className="block font-bold text-slate-500 text-[10px]">Label</label>
-              <input
-                type="text"
-                value={landingContent.stats?.membersLabel || "Active Members"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), membersLabel: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-[11px]"
-              />
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-700 text-[11px]">Metric 2 Value</label>
-              <input
-                type="text"
-                value={landingContent.stats?.projects || "15+"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), projects: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-black text-slate-900"
-              />
-              <label className="block font-bold text-slate-500 text-[10px]">Label</label>
-              <input
-                type="text"
-                value={landingContent.stats?.projectsLabel || "Successful Sprints"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), projectsLabel: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-[11px]"
-              />
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-700 text-[11px]">Metric 3 Value</label>
-              <input
-                type="text"
-                value={landingContent.stats?.duration || "1 Year"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), duration: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-black text-slate-900"
-              />
-              <label className="block font-bold text-slate-500 text-[10px]">Label</label>
-              <input
-                type="text"
-                value={landingContent.stats?.durationLabel || "Since Inception"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), durationLabel: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-[11px]"
-              />
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-700 text-[11px]">Metric 4 Value</label>
-              <input
-                type="text"
-                value={landingContent.stats?.mentors || "20+"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), mentors: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-black text-slate-900"
-              />
-              <label className="block font-bold text-slate-500 text-[10px]">Label</label>
-              <input
-                type="text"
-                value={landingContent.stats?.mentorsLabel || "Industry Mentors"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), mentorsLabel: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-[11px]"
-              />
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-700 text-[11px]">Metric 5 Value</label>
-              <input
-                type="text"
-                value={landingContent.stats?.costReduction || "50%"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), costReduction: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-black text-slate-900"
-              />
-              <label className="block font-bold text-slate-500 text-[10px]">Label</label>
-              <input
-                type="text"
-                value={landingContent.stats?.costReductionLabel || "Build Time Saved"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), costReductionLabel: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-[11px]"
-              />
-            </div>
-
-            <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
-              <label className="block font-bold text-slate-700 text-[11px]">Metric 6 Value</label>
-              <input
-                type="text"
-                value={landingContent.stats?.innovationHours || "500+ hrs"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), innovationHours: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-black text-slate-900"
-              />
-              <label className="block font-bold text-slate-500 text-[10px]">Label</label>
-              <input
-                type="text"
-                value={landingContent.stats?.innovationHoursLabel || "Innovation Time"}
-                onChange={(e) =>
-                  setLandingContent({
-                    ...landingContent,
-                    stats: { ...(landingContent.stats as any), innovationHoursLabel: e.target.value },
-                  })
-                }
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-[11px]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ===== BOX 7: LEADERSHIP & ADVISORY SHOWCASE ===== */}
+        {/* ===== BOX 4: LEADERSHIP & ADVISORY SHOWCASE ===== */}
         <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Award className="size-5 text-cyan-600" />
               <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-                7. Leadership &amp; Advisory Showcase
+                4. Leadership &amp; Advisory Showcase
               </h2>
             </div>
             <button
@@ -803,11 +484,11 @@ export default function AdminLandingPage() {
               </label>
               <input
                 type="text"
-                value={landingContent.teamSubheading || ""}
+                value={landingContent.teamSubheading || "MENTORSHIP & GOVERNANCE"}
                 onChange={(e) =>
                   setLandingContent({ ...landingContent, teamSubheading: e.target.value })
                 }
-                placeholder="LEADERSHIP & ADVISORY"
+                placeholder="MENTORSHIP & GOVERNANCE"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
               />
             </div>
@@ -817,11 +498,11 @@ export default function AdminLandingPage() {
               </label>
               <input
                 type="text"
-                value={landingContent.teamHeading || ""}
+                value={landingContent.teamHeading || "LEADERSHIP & ADVISORY"}
                 onChange={(e) =>
                   setLandingContent({ ...landingContent, teamHeading: e.target.value })
                 }
-                placeholder="Meet the minds behind AI Foundry."
+                placeholder="LEADERSHIP & ADVISORY"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
               />
             </div>
@@ -878,7 +559,31 @@ export default function AdminLandingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Photo Image URL</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-bold text-slate-700">Photo Image URL</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreviewConfig({
+                          title: `Leadership Card Preview - ${member.name}`,
+                          imageUrl: member.image,
+                          aspectRatioType: "team",
+                          cardTitle: member.name,
+                          cardSubtitle: member.role,
+                          onApply: (res) => {
+                            const updated = [...(landingContent.teamMembers || [])];
+                            updated[idx].image = res.imageUrl;
+                            setLandingContent({ ...landingContent, teamMembers: updated });
+                          },
+                        });
+                        setPreviewModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      <Eye className="size-3" />
+                      <span>Preview</span>
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={member.image}
@@ -893,64 +598,6 @@ export default function AdminLandingPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* ===== BOX 8: BOTTOM CTA ===== */}
-        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Megaphone className="size-5 text-cyan-600" />
-            <h2 className="text-base font-extrabold uppercase tracking-wide text-slate-900">
-              8. Bottom Call to Action
-            </h2>
-          </div>
-
-          <div className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  CTA Heading
-                </label>
-                <input
-                  type="text"
-                  value={landingContent.ctaHeading || ""}
-                  onChange={(e) =>
-                    setLandingContent({ ...landingContent, ctaHeading: e.target.value })
-                  }
-                  placeholder="Ready to forge the future?"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-              <div>
-                <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Button Label
-                </label>
-                <input
-                  type="text"
-                  value={landingContent.ctaButtonText || ""}
-                  onChange={(e) =>
-                    setLandingContent({ ...landingContent, ctaButtonText: e.target.value })
-                  }
-                  placeholder="Apply to Join Us"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Description Subtext
-              </label>
-              <textarea
-                rows={2}
-                value={landingContent.ctaDescription || ""}
-                onChange={(e) =>
-                  setLandingContent({ ...landingContent, ctaDescription: e.target.value })
-                }
-                placeholder="Join Dayananda Sagar University's premier venture and AI club. Build, collaborate, and launch alongside elite engineers."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium focus:outline-none focus:border-cyan-500 leading-relaxed"
-              />
-            </div>
           </div>
         </div>
 
@@ -969,6 +616,26 @@ export default function AdminLandingPage() {
           </button>
         </div>
       </form>
+
+      {/* Visual Image Preview & Framing Inspector Modal */}
+      {previewConfig && (
+        <ImagePreviewModal
+          isOpen={previewModalOpen}
+          onClose={() => {
+            setPreviewModalOpen(false);
+            setPreviewConfig(null);
+          }}
+          title={previewConfig.title}
+          imageUrl={previewConfig.imageUrl}
+          homeImageUrl={previewConfig.homeImageUrl}
+          imageFit={previewConfig.imageFit}
+          imagePosition={previewConfig.imagePosition}
+          aspectRatioType={previewConfig.aspectRatioType}
+          cardTitle={previewConfig.cardTitle}
+          cardSubtitle={previewConfig.cardSubtitle}
+          onApply={previewConfig.onApply}
+        />
+      )}
     </div>
   );
 }

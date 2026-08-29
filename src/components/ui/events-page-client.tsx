@@ -1,33 +1,78 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { EventData } from "@/lib/data";
 import { RegistrationModal } from "@/components/ui/registration-modal";
 import { normalizeImageUrl } from "@/lib/image-helper";
-import { Calendar, MapPin, Sparkles, Timer, Bookmark, ArrowRight, ExternalLink } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Sparkles,
+  ArrowRight,
+  ExternalLink,
+  Search,
+  CheckCircle2,
+  Clock,
+  Info,
+  ChevronRight,
+  X,
+  FileText,
+  Download,
+  Share2,
+} from "lucide-react";
 
 interface EventsPageClientProps {
   events: EventData[];
 }
 
-export function EventsPageClient({ events }: EventsPageClientProps) {
+export function EventsPageClient({ events = [] }: EventsPageClientProps) {
+  const [activeTab, setActiveTab] = useState<"all" | "ongoing" | "upcoming" | "ended">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [detailEvent, setDetailEvent] = useState<EventData | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const toggleBookmark = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    setBookmarkedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  // Group events by status
+  const ongoingEvents = useMemo(() => events.filter((e) => e.status === "ongoing"), [events]);
+  const upcomingEvents = useMemo(() => events.filter((e) => e.status === "upcoming"), [events]);
+  const endedEvents = useMemo(() => events.filter((e) => e.status === "ended"), [events]);
+
+  // Filtered by active tab and search query
+  const filteredEvents = useMemo(() => {
+    let list: EventData[] = [];
+    if (activeTab === "all") list = events;
+    else if (activeTab === "ongoing") list = ongoingEvents;
+    else if (activeTab === "upcoming") list = upcomingEvents;
+    else if (activeTab === "ended") list = endedEvents;
+
+    if (!searchQuery.trim()) return list;
+
+    const q = searchQuery.toLowerCase();
+    return list.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        e.venue.toLowerCase().includes(q)
     );
-  };
+  }, [events, ongoingEvents, upcomingEvents, endedEvents, activeTab, searchQuery]);
 
   const getEventRegistrationStatus = (evt: EventData) => {
     const isEnded = evt.status === "ended" || evt.isRegistrationOpen === false;
-    const isFutureStart = evt.registrationStartDate && new Date(evt.registrationStartDate).getTime() > Date.now();
-    const isPastDeadline = evt.registrationDeadline && new Date(evt.registrationDeadline).getTime() < Date.now();
+    const isFutureStart =
+      evt.isRegistrationOpen === false &&
+      !!evt.registrationStartDate &&
+      new Date(evt.registrationStartDate).getTime() > Date.now();
+    const isPastDeadline =
+      !isFutureStart &&
+      evt.registrationDeadline &&
+      new Date(evt.registrationDeadline).getTime() < Date.now();
 
     if (isEnded || isPastDeadline) {
-      return { canApply: false, label: evt.closedMessage || "Applications Closed", reason: "closed" };
+      return {
+        canApply: false,
+        label: evt.closedMessage || "Applications Closed",
+        reason: "closed",
+      };
     }
     if (isFutureStart) {
       return { canApply: false, label: "Opening Soon", reason: "future" };
@@ -39,11 +84,11 @@ export function EventsPageClient({ events }: EventsPageClientProps) {
     };
   };
 
-  const handleRegisterClick = (evt: EventData) => {
+  const handleRegisterClick = (evt: EventData, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const regStatus = getEventRegistrationStatus(evt);
-    if (!regStatus.canApply) {
-      return;
-    }
+    if (!regStatus.canApply) return;
+
     if (evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl)) {
       window.open(evt.externalRegistrationUrl || evt.googleFormUrl, "_blank");
       return;
@@ -51,293 +96,419 @@ export function EventsPageClient({ events }: EventsPageClientProps) {
     setSelectedEvent(evt);
   };
 
-  // Group events by status
-  const featuredEvent = events.find((e) => e.status === "ongoing") || events[0];
-  const ongoingEvents = events.filter((e) => e.status === "ongoing" && e.id !== featuredEvent?.id);
-  const upcomingEvents = events.filter((e) => e.status === "upcoming" && e.id !== featuredEvent?.id);
-  const pastEvents = events.filter((e) => e.status === "ended" && e.id !== featuredEvent?.id);
+  const handleShare = (evt: EventData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(`${window.location.origin}/events#${evt.id}`);
+      setCopiedId(evt.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
 
   const parseEventDate = (dateStr?: string) => {
-    if (!dateStr) return { month: "OCT", day: "12" };
+    if (!dateStr) return { month: "OCT", day: "25", year: "2026" };
     try {
-      const parts = dateStr.split(" ");
-      if (parts.length >= 2) {
-        return {
-          month: parts[0].substring(0, 3).toUpperCase(),
-          day: parts[1].replace(/[^0-9]/g, "") || "15",
-        };
-      }
       const d = new Date(dateStr);
       if (!isNaN(d.getTime())) {
         return {
           month: d.toLocaleString("default", { month: "short" }).toUpperCase(),
           day: String(d.getDate()).padStart(2, "0"),
+          year: String(d.getFullYear()),
+        };
+      }
+      const parts = dateStr.split(" ");
+      if (parts.length >= 2) {
+        return {
+          month: parts[0].substring(0, 3).toUpperCase(),
+          day: parts[1].replace(/[^0-9]/g, "") || "15",
+          year: parts[2] || "2026",
         };
       }
     } catch {}
-    return { month: "NOV", day: "02" };
+    return { month: "NOV", day: "02", year: "2026" };
   };
 
   return (
-    <div className="w-full">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-44 pb-20 space-y-16">
-        {/* ===== HERO SECTION ===== */}
-        <section className="flex flex-col items-center text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100/90 text-cyan-900 text-xs font-black uppercase tracking-wider border border-cyan-200 shadow-xs">
-            <Sparkles className="size-3.5 text-cyan-700" />
-            <span>AI Foundry Experiences</span>
+    <div className="w-full bg-[#FFFFE9] text-[#2D2E2A] selection:bg-[#ECFF17] selection:text-[#000000]">
+      <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 pt-32 sm:pt-40 pb-24 space-y-16">
+        {/* ===== HERO MASTHEAD ===== */}
+        <section className="flex flex-col items-start space-y-4 border-b border-[#C6CCBD]/70 pb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ECFF17]/30 border border-[#2D2E2A]/15 text-[#2D2E2A] text-[11px] font-jetbrains font-bold uppercase tracking-wider">
+            <Sparkles className="size-3 text-[#2D2E2A]" />
+            <span>DAYANANDA SAGAR UNIVERSITY • RAISE AI CLUB</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 font-['Hanken_Grotesk']">
+          <h1 className="font-libre text-5xl sm:text-7xl lg:text-8xl font-normal tracking-tight text-[#2D2E2A] leading-none select-none">
             Elevated Experiences
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
+          <p className="font-inter text-base sm:text-xl text-[#5E6059] max-w-3xl font-normal leading-relaxed">
             Immerse yourself in high-caliber hackathons, intense deep-dive workshops, and visionary keynotes. Where intelligence meets execution.
           </p>
-        </section>
 
-        {/* ===== FEATURED EVENT CARD ===== */}
-        {featuredEvent && (
-          <section className="relative group">
-            <div className="glass-card rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.005] hover:shadow-2xl flex flex-col md:flex-row relative z-10 border border-white/90 bg-white/80">
-              <div className="w-full md:w-3/5 h-64 md:h-auto min-h-[300px] relative overflow-hidden bg-slate-900">
-                <img
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  src={normalizeImageUrl(
-                    featuredEvent.image,
-                    "https://lh3.googleusercontent.com/aida-public/AB6AXuBqGXvsvKNg8FLCw2KFq974LERIA0x-ed5scbtG-vr7_Erz1LXF0Kxo6IqAt4jUJjdeQwylLItjc3ZIlWy4POUMjToItuEgSL3auk47bkOyypTKJlgIVp-zH_xOVI1B5rjO0mLjpM2L8SLv_2EXACmgePorX1RlrdDiyzJr2_mfCFS0OtkGutcJDkKw7PWNzbGl59kAK4Vn_VSR3N7VpPY09StkEzS5Wmj2LWXxcNiNMtKDurLLha5S"
-                  )}
-                  alt={featuredEvent.title}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent md:bg-gradient-to-r"></div>
-                <div className="absolute top-4 left-4 bg-red-600 text-white px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md">
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                  {featuredEvent.status === "ongoing" ? "Live Now" : "Featured Spotlight"}
-                </div>
-              </div>
-
-              <div className="p-6 sm:p-10 flex flex-col justify-center w-full md:w-2/5 bg-white/70 backdrop-blur-md">
-                <div className="text-xs font-black text-cyan-700 mb-2 uppercase tracking-wider font-mono">
-                  Masterclass &amp; Sprint
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3 tracking-tight">
-                  {featuredEvent.title}
-                </h2>
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed line-clamp-3 font-medium">
-                  {featuredEvent.description ||
-                    "Join lead researchers as they deconstruct the latest breakthroughs in multi-modal foundational models and real-world deployment strategies."}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs text-slate-600 mb-6 font-bold font-mono">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="size-3.5 text-cyan-600" />
-                    <span>{featuredEvent.date}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="size-3.5 text-cyan-600" />
-                    <span>{featuredEvent.venue || "DSU Innovation Hall"}</span>
-                  </div>
-                </div>
-
-                <div>
-                  {(() => {
-                    const regStatus = getEventRegistrationStatus(featuredEvent);
-                    if (!regStatus.canApply) {
-                      return (
-                        <button
-                          disabled
-                          className="inline-flex items-center gap-2 bg-slate-300 text-slate-500 rounded-full px-8 py-3.5 text-xs sm:text-sm font-black cursor-not-allowed shadow-none"
-                        >
-                          <span>{regStatus.label}</span>
-                        </button>
-                      );
-                    }
-                    return (
-                      <button
-                        onClick={() => handleRegisterClick(featuredEvent)}
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full px-8 py-3.5 text-xs sm:text-sm font-black shadow-lg shadow-cyan-600/20 hover:scale-105 hover:from-cyan-500 hover:to-blue-500 transition-all duration-300 active:scale-95 cursor-pointer"
-                      >
-                        <span>{regStatus.label}</span>
-                        {featuredEvent.registrationMode === "external" ? (
-                          <ExternalLink className="size-4" />
-                        ) : (
-                          <ArrowRight className="size-4" />
-                        )}
-                      </button>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ===== ONGOING CHALLENGES SECTION ===== */}
-        <section className="space-y-6">
-          <div className="flex justify-between items-end border-b border-slate-200 pb-3">
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Ongoing Challenges
-            </h3>
-            <span className="text-xs font-black text-cyan-700 uppercase tracking-wider font-mono">
-              {ongoingEvents.length} Active
+          {/* Quick Metrics Bar */}
+          <div className="flex flex-wrap items-center gap-6 pt-4 text-xs font-jetbrains text-[#5E6059]">
+            <span className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <strong className="text-[#2D2E2A] font-bold">{ongoingEvents.length}</strong> Ongoing
+            </span>
+            <span className="text-[#C6CCBD]">•</span>
+            <span className="flex items-center gap-2">
+              <strong className="text-[#2D2E2A] font-bold">{upcomingEvents.length}</strong> Upcoming
+            </span>
+            <span className="text-[#C6CCBD]">•</span>
+            <span className="flex items-center gap-2">
+              <strong className="text-[#2D2E2A] font-bold">{endedEvents.length}</strong> Archived
             </span>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {ongoingEvents.length === 0 ? (
-              <div className="col-span-full py-12 text-center rounded-3xl bg-white/70 border border-slate-200/80 text-slate-500 text-sm font-medium">
-                No active live challenges currently running. Explore upcoming hackathons below.
-              </div>
-            ) : (
-              ongoingEvents.map((evt) => (
-                <div
-                  key={evt.id}
-                  onClick={() => handleRegisterClick(evt)}
-                  className="glass-card rounded-3xl p-6 sm:p-7 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 group cursor-pointer border border-white/90 bg-white/80"
+        {/* ===== CONTROLS: TABS & SEARCH BAR ===== */}
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          {/* Tab buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { key: "all", label: "All Events", count: events.length },
+              { key: "ongoing", label: "Ongoing Events", count: ongoingEvents.length },
+              { key: "upcoming", label: "Upcoming Events", count: upcomingEvents.length },
+              { key: "ended", label: "Archive", count: endedEvents.length },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={`px-4 py-2 rounded-full text-xs font-jetbrains uppercase tracking-wider font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+                  activeTab === tab.key
+                    ? "bg-[#2D2E2A] text-[#FFFFE9] shadow-sm"
+                    : "bg-white/80 text-[#5E6059] hover:text-[#2D2E2A] hover:bg-white border border-[#C6CCBD]/60"
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    activeTab === tab.key
+                      ? "bg-[#ECFF17] text-black font-bold"
+                      : "bg-[#2D2E2A]/5 text-[#5E6059]"
+                  }`}
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="bg-purple-100 text-purple-900 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wide font-mono">
-                      Hackathon
-                    </div>
-                    <div className="text-xs font-bold text-slate-500 flex items-center gap-1 font-mono">
-                      <Timer className="size-3.5 text-cyan-600" />
-                      <span>{evt.date}</span>
-                    </div>
-                  </div>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
 
-                  <h4 className="text-lg sm:text-xl font-black text-slate-900 mb-2 group-hover:text-cyan-700 transition-colors">
-                    {evt.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed mb-5 font-medium">
-                    {evt.description}
-                  </p>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
-                      <MapPin className="size-3.5 text-slate-400" />
-                      <span>{evt.venue || "Campus Lab"}</span>
-                    </span>
-                    <span className="text-xs font-black text-cyan-700 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                      <span>Enter Sprint</span>
-                      <ArrowRight className="size-3.5" />
-                    </span>
-                  </div>
-                </div>
-              ))
+          {/* Search input */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#7A836F]" />
+            <input
+              type="text"
+              placeholder="Search hackathons, topics, venues..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white/90 border border-[#C6CCBD] text-xs font-inter text-[#2D2E2A] placeholder-[#8A8F82] focus:outline-none focus:border-[#2D2E2A] transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#7A836F] hover:text-[#2D2E2A]"
+              >
+                Clear
+              </button>
             )}
           </div>
         </section>
 
-        {/* ===== UPCOMING & ARCHIVE SECTION ===== */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4 pb-8">
-          {/* Upcoming Stack (2 cols) */}
-          <section className="lg:col-span-2 space-y-6">
-            <div className="border-b border-slate-200 pb-3 flex justify-between items-center">
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Upcoming Stack
-              </h3>
-              <span className="text-xs font-bold text-slate-500 font-mono">
-                {upcomingEvents.length} Scheduled
-              </span>
+        {/* ===== ONGOING EVENTS SPOTLIGHT (IF APPLICABLE) ===== */}
+        {activeTab === "ongoing" && ongoingEvents.length === 0 && (
+          <div className="rounded-3xl border border-[#C6CCBD] bg-white/60 p-12 text-center space-y-3">
+            <div className="size-12 rounded-2xl bg-[#FFFFE9] border border-[#C6CCBD] flex items-center justify-center mx-auto text-[#2D2E2A]">
+              <Clock className="size-6 text-[#7A836F]" />
             </div>
+            <h2 className="font-libre text-2xl font-bold text-[#2D2E2A]">No events at the moment</h2>
+            <p className="font-inter text-sm text-[#5E6059] max-w-md mx-auto">
+              There are currently no live ongoing events. Explore our upcoming hackathons or browse the visual archive.
+            </p>
+          </div>
+        )}
 
-            <div className="space-y-4">
-              {upcomingEvents.length === 0 ? (
-                <div className="py-10 text-center rounded-2xl bg-white/70 border border-slate-200/80 text-slate-500 text-sm font-medium">
-                  All upcoming events will be announced shortly.
-                </div>
-              ) : (
-                upcomingEvents.map((evt) => {
-                  const dateBadge = parseEventDate(evt.date);
-                  const isBookmarked = bookmarkedIds.includes(evt.id);
-                  return (
-                    <div
-                      key={evt.id}
-                      onClick={() => handleRegisterClick(evt)}
-                      className="glass-card rounded-3xl p-5 sm:p-6 flex items-center gap-4 sm:gap-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg cursor-pointer group border border-white/90 bg-white/80"
-                    >
-                      {/* Date Badge */}
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-cyan-100 text-cyan-950 flex flex-col items-center justify-center shrink-0 border border-cyan-200">
-                        <span className="text-xs font-black uppercase tracking-wider font-mono">
-                          {dateBadge.month}
+        {/* ===== MAIN EVENTS GRID ===== */}
+        {filteredEvents.length === 0 && activeTab !== "ongoing" ? (
+          <div className="rounded-3xl border border-[#C6CCBD] bg-white/60 p-16 text-center space-y-3">
+            <Info className="size-8 text-[#7A836F] mx-auto" />
+            <h2 className="font-libre text-2xl font-bold text-[#2D2E2A]">No Matching Events Found</h2>
+            <p className="font-inter text-sm text-[#5E6059] max-w-md mx-auto">
+              No events matched your search query. Try clearing the filter or exploring other categories.
+            </p>
+            <button
+              onClick={() => {
+                setActiveTab("all");
+                setSearchQuery("");
+              }}
+              className="mt-2 px-5 py-2 rounded-full bg-[#2D2E2A] text-[#FFFFE9] text-xs font-jetbrains font-bold uppercase tracking-wider hover:bg-black transition-all"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredEvents.map((evt) => {
+              const regStatus = getEventRegistrationStatus(evt);
+              const dateInfo = parseEventDate(evt.date);
+              const isOngoing = evt.status === "ongoing";
+
+              return (
+                <div
+                  key={evt.id}
+                  id={evt.id}
+                  onClick={() => setDetailEvent(evt)}
+                  className={`group relative rounded-3xl border bg-white/80 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer shadow-xs hover:shadow-xl hover:-translate-y-1 ${
+                    isOngoing ? "border-[#2D2E2A] ring-2 ring-[#ECFF17]" : "border-[#C6CCBD] hover:border-[#2D2E2A]/50"
+                  }`}
+                >
+                  <div>
+                    {/* Event Cover Image */}
+                    <div className="relative w-full h-56 overflow-hidden bg-[#2D2E2A]">
+                      <img
+                        src={normalizeImageUrl(evt.image, "/images/rectangle-899.png")}
+                        alt={evt.title}
+                        className={`w-full h-full ${evt.imageFit === 'contain' ? 'object-contain' : 'object-cover'} ${evt.imagePosition === 'top' ? 'object-top' : evt.imagePosition === 'bottom' ? 'object-bottom' : 'object-center'} group-hover:scale-105 transition-transform duration-700`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+                      {/* Top Badges */}
+                      <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                        {/* Status pill */}
+                        <span
+                          className={`px-3 py-1 rounded-full text-[10px] font-jetbrains font-bold uppercase tracking-wider shadow-sm ${
+                            isOngoing
+                              ? "bg-[#ECFF17] text-black"
+                              : evt.status === "upcoming"
+                              ? "bg-[#2D2E2A] text-[#FFFFE9] border border-white/20"
+                              : "bg-[#767574] text-white"
+                          }`}
+                        >
+                          {evt.status === "ongoing"
+                            ? "● LIVE NOW"
+                            : evt.status === "upcoming"
+                            ? "UPCOMING"
+                            : "ARCHIVED"}
                         </span>
-                        <span className="text-xl sm:text-2xl font-black leading-none font-mono">
-                          {dateBadge.day}
+
+                        {/* Share Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleShare(evt, e)}
+                          title="Share event link"
+                          className="size-8 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-[#ECFF17] hover:text-black transition-colors pointer-events-auto"
+                        >
+                          {copiedId === evt.id ? (
+                            <CheckCircle2 className="size-3.5 text-emerald-400" />
+                          ) : (
+                            <Share2 className="size-3.5" />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Floating Date Badge */}
+                      <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md rounded-2xl px-3.5 py-1.5 border border-white/60 shadow-sm text-center">
+                        <span className="block font-jetbrains text-[9px] font-bold text-[#7A836F] uppercase leading-none">
+                          {dateInfo.month}
+                        </span>
+                        <span className="block font-libre text-xl font-bold text-[#2D2E2A] leading-tight">
+                          {dateInfo.day}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="p-6 sm:p-7 space-y-4">
+                      {/* Venue / Timing */}
+                      <div className="flex items-center gap-4 text-xs font-inter text-[#5E6059]">
+                        <span className="inline-flex items-center gap-1.5 line-clamp-1">
+                          <MapPin className="size-3.5 text-[#2D2E2A] shrink-0" />
+                          <span>{evt.venue || "DSU Bengaluru"}</span>
                         </span>
                       </div>
 
-                      {/* Content */}
-                      <div className="flex-grow">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[11px] font-black uppercase tracking-wider text-cyan-700 font-mono">
-                            Upcoming
-                          </span>
+                      {/* Title */}
+                      <h3 className="font-libre text-2xl font-bold text-[#2D2E2A] leading-snug group-hover:text-black transition-colors line-clamp-2">
+                        {evt.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="font-inter text-xs text-[#5E6059] leading-relaxed line-clamp-3">
+                        {evt.description}
+                      </p>
+
+                      {/* Deadline indicator if upcoming */}
+                      {evt.status === "upcoming" && evt.registrationDeadline && (
+                        <div className="pt-1 flex items-center gap-2 font-jetbrains text-[11px] text-[#7A836F]">
+                          <Clock className="size-3.5" />
+                          <span>Deadline: {evt.registrationDeadline}</span>
                         </div>
-                        <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-cyan-700 transition-colors">
-                          {evt.title}
-                        </h4>
-                        <p className="text-xs sm:text-sm text-slate-600 line-clamp-1 font-medium mt-0.5">
-                          {evt.description}
-                        </p>
-                      </div>
+                      )}
+                    </div>
+                  </div>
 
-                      {/* Bookmark action */}
+                  {/* Card Footer / Action Button */}
+                  <div className="p-6 sm:p-7 pt-0 border-t border-[#C6CCBD]/40 flex items-center justify-between gap-3 mt-4">
+                    {regStatus.canApply ? (
                       <button
                         type="button"
-                        onClick={(e) => toggleBookmark(e, evt.id)}
-                        className={`p-2.5 rounded-full hover:bg-slate-100 transition-colors shrink-0 ${
-                          isBookmarked ? "text-cyan-600" : "text-slate-400"
-                        }`}
-                        aria-label="Bookmark event"
+                        onClick={(e) => handleRegisterClick(evt, e)}
+                        className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-5 rounded-full bg-[#2D2E2A] text-[#FFFFE9] text-xs font-jetbrains font-bold uppercase tracking-wider hover:bg-black transition-all shadow-xs group/btn cursor-pointer"
                       >
-                        <Bookmark className={`size-4 ${isBookmarked ? "fill-cyan-600" : ""}`} />
+                        <span>{regStatus.label}</span>
+                        {evt.registrationMode === "external" ? (
+                          <ExternalLink className="size-3.5" />
+                        ) : (
+                          <ArrowRight className="size-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                        )}
                       </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </section>
+                    ) : (
+                      <div className="flex-1 py-3 px-4 rounded-full bg-[#2D2E2A]/5 text-[#7A836F] text-xs font-jetbrains font-bold uppercase tracking-wider text-center border border-[#C6CCBD]/60">
+                        {regStatus.label}
+                      </div>
+                    )}
 
-          {/* Past Events / Retrospectives */}
-          <section className="space-y-6">
-            <div className="border-b border-slate-200 pb-3 flex justify-between items-center">
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Archive
-              </h3>
-              <span className="text-xs font-bold text-slate-500 font-mono">
-                {pastEvents.length} Past
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {pastEvents.length === 0 ? (
-                <div className="py-8 text-center rounded-2xl bg-white/70 border border-slate-200/80 text-slate-400 text-xs font-medium">
-                  No archived events recorded.
-                </div>
-              ) : (
-                pastEvents.map((evt) => (
-                  <div
-                    key={evt.id}
-                    className="glass-card rounded-2xl p-4 border border-white/80 bg-white/60 space-y-1"
-                  >
-                    <span className="text-[10px] font-bold text-slate-400 font-mono uppercase">
-                      {evt.date}
-                    </span>
-                    <h5 className="text-xs font-black text-slate-800">{evt.title}</h5>
+                    {/* Info trigger */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailEvent(evt);
+                      }}
+                      className="size-10 rounded-full border border-[#C6CCBD] bg-white text-[#2D2E2A] flex items-center justify-center hover:bg-[#2D2E2A] hover:text-white transition-colors"
+                      title="View full event details"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
                   </div>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
 
-      {/* Registration Modal */}
+      {/* ===== EVENT DETAILS DRAWER / MODAL ===== */}
+      {detailEvent && (
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setDetailEvent(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[90vh] bg-[#FFFFE9] border border-[#C6CCBD] rounded-3xl shadow-2xl overflow-y-auto p-6 sm:p-8 space-y-6 text-[#2D2E2A]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setDetailEvent(null)}
+              className="absolute top-6 right-6 size-9 rounded-full bg-white/80 border border-[#C6CCBD] flex items-center justify-center text-[#2D2E2A] hover:bg-black hover:text-white transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+
+            {/* Header / Media */}
+            <div className="space-y-4">
+              <div className="relative w-full h-64 rounded-2xl overflow-hidden border border-[#C6CCBD] bg-black">
+                <img
+                  src={normalizeImageUrl(detailEvent.image, "/images/rectangle-899.png")}
+                  alt={detailEvent.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-4 left-4">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-jetbrains font-bold uppercase tracking-wider bg-[#ECFF17] text-black shadow-sm">
+                    {detailEvent.status.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-jetbrains text-[#7A836F]">
+                  <Calendar className="size-3.5" />
+                  <span>{detailEvent.date}</span>
+                  <span>•</span>
+                  <MapPin className="size-3.5" />
+                  <span>{detailEvent.venue}</span>
+                </div>
+                <h2 className="font-libre text-3xl font-bold text-[#2D2E2A]">
+                  {detailEvent.title}
+                </h2>
+              </div>
+            </div>
+
+            {/* Full Description */}
+            <div className="border-t border-[#C6CCBD]/60 pt-4 space-y-3">
+              <h4 className="font-jetbrains text-xs font-bold uppercase tracking-wider text-[#7A836F]">
+                About This Event
+              </h4>
+              <p className="font-inter text-sm text-[#424440] leading-relaxed whitespace-pre-line">
+                {detailEvent.description}
+              </p>
+            </div>
+
+            {/* Downloads / Resources (if any) */}
+            {detailEvent.downloads && detailEvent.downloads.length > 0 && (
+              <div className="border-t border-[#C6CCBD]/60 pt-4 space-y-3">
+                <h4 className="font-jetbrains text-xs font-bold uppercase tracking-wider text-[#7A836F]">
+                  Downloads &amp; Materials
+                </h4>
+                <div className="space-y-2">
+                  {detailEvent.downloads.map((d, i) => (
+                    <a
+                      key={i}
+                      href={d.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-[#C6CCBD] text-xs font-jetbrains hover:bg-[#2D2E2A] hover:text-white transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <FileText className="size-4" />
+                        <span>{d.name}</span>
+                      </span>
+                      <Download className="size-3.5" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Bar inside Drawer */}
+            <div className="border-t border-[#C6CCBD]/60 pt-4 flex flex-col sm:flex-row items-center gap-3">
+              {getEventRegistrationStatus(detailEvent).canApply ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const evt = detailEvent;
+                    setDetailEvent(null);
+                    handleRegisterClick(evt);
+                  }}
+                  className="w-full sm:flex-1 py-3 px-6 rounded-full bg-[#2D2E2A] text-[#FFFFE9] text-xs font-jetbrains font-bold uppercase tracking-wider hover:bg-black transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>{getEventRegistrationStatus(detailEvent).label}</span>
+                  <ArrowRight className="size-3.5" />
+                </button>
+              ) : (
+                <div className="w-full sm:flex-1 py-3 px-6 rounded-full bg-[#2D2E2A]/5 text-[#7A836F] text-xs font-jetbrains font-bold uppercase tracking-wider text-center border border-[#C6CCBD]/60">
+                  {getEventRegistrationStatus(detailEvent).label}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setDetailEvent(null)}
+                className="w-full sm:w-auto py-3 px-6 rounded-full border border-[#C6CCBD] bg-white text-xs font-jetbrains font-bold uppercase tracking-wider text-[#2D2E2A] hover:bg-gray-100 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== REGISTRATION MODAL ===== */}
       <RegistrationModal
         event={selectedEvent}
-        isOpen={Boolean(selectedEvent)}
+        isOpen={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
       />
     </div>
