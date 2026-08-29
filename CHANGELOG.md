@@ -3,6 +3,22 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-30] - Gemini 3.7 Flash - Session 38
+**Description**: Department Details & Campus Location Correction, Complete Localhost Auth Removal, Hardened Google OAuth Identity Verification & Production GitHub Deployment:
+- **Department & Campus Location Footer Updates (`src/components/ui/light-footer.tsx`, `src/components/home/home-view.tsx`, `data/settings.json`)**:
+  - Updated department credentials from legacy `Dept of AI & Robotics` to `School of Engineering • Dept of CSE (AI & ML)`.
+  - Updated university location copy across the footer and institutional metadata to:
+    `"Dayananda Sagar University operates across multiple campuses in Bengaluru, with its primary residential and administrative hub located in the south of the city. The main campus is situated at Devarakaggalahalli, Harohalli, Kanakapura Road, Bengaluru South District, Karnataka, 562112."`
+- **Strict Localhost Auth Removal & Full Google OAuth Hardening (`src/app/admin/login/page.tsx`, `src/app/api/auth/dev-login`)**:
+  - Completely purged the temporary `/api/auth/dev-login` route and removed all localhost bypass triggers from `/admin/login/page.tsx`.
+  - Enforced exclusive cryptographic Google Identity Services authentication against the authorized Gmail admin whitelist (`settings.adminEmails` and root admin `priyanshushaurya9431@gmail.com`).
+- **Production Build & Git Deployment**:
+  - Validated clean TypeScript compilation (`npx tsc --noEmit`) with 0 errors.
+  - Successfully built production bundle (`next build`) across all 30 routes with 0 errors.
+  - Pushed all updates to remote repository `main` branch on GitHub (`git push origin main`).
+
+---
+
 ## [2026-08-30] - Gemini 3.7 Flash - Session 37
 **Description**: Complete Synchronization of **Landing Page Content & Image Layout**, **Dynamic Our Approach Pillars**, **Team Social Channels**, and **Interactive Dual-View Image Preview & Framing Inspector**:
 - **Landing Page About Us Image Layout Overhaul (`src/components/home/home-view.tsx`, `data/settings.json`)**:
