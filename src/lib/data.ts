@@ -265,6 +265,9 @@ export interface LandingTeamMember {
   role: string;
   bio?: string;
   image: string;
+  imageFit?: "cover" | "contain";
+  imagePosition?: "center" | "top" | "bottom";
+  homeImage?: string;
   profileUrl?: string;
 }
 
@@ -309,6 +312,7 @@ export interface LandingCustomContent {
 
 export interface SiteSettings {
   siteTitle: string;
+  activeDesign?: string;
   defaultTheme: string;
   defaultAppearance: string;
   adminEmails: string[];
@@ -327,6 +331,7 @@ export interface SiteSettings {
 export async function getSettings(): Promise<SiteSettings> {
   return readData<SiteSettings>("settings.json", {
     siteTitle: "AI Foundry | Dayananda Sagar University",
+    activeDesign: "ivory-light",
     defaultTheme: "cyan",
     defaultAppearance: "dark",
     adminEmails: ["admin@aifoundry.club", "demo@aifoundry.club"],

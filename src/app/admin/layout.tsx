@@ -17,6 +17,7 @@ import {
   Layers,
   Loader2,
   ShieldCheck,
+  Palette,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -89,6 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Design Switcher", href: "/admin/designs", icon: Palette },
     { label: "Landing Page", href: "/admin/landing", icon: Sparkles },
     { label: "Events & Sprints", href: "/admin/events", icon: Calendar },
     { label: "Team & Mentors", href: "/admin/team", icon: Users },

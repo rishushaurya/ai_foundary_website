@@ -1,5 +1,504 @@
 [
   {
+    "id": "log-1788211911097-xcwuk",
+    "timestamp": "2026-08-31T21:31:51.097Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "24 hour Hackothan",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211881393-42eh2",
+    "timestamp": "2026-08-31T21:31:21.393Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "24 hour Hackothan",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211479908-703n1",
+    "timestamp": "2026-08-31T21:24:39.908Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211433015-b7i2m",
+    "timestamp": "2026-08-31T21:23:53.015Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211425242-tnwj0",
+    "timestamp": "2026-08-31T21:23:45.242Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Deleted Event",
+    "target": "dsfsafa",
+    "status": "warning"
+  },
+  {
+    "id": "log-1788211404567-k83ra",
+    "timestamp": "2026-08-31T21:23:24.567Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211374957-a4be8",
+    "timestamp": "2026-08-31T21:22:54.957Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 1 albums with 7 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211357534-71z1n",
+    "timestamp": "2026-08-31T21:22:37.534Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Deleted Team Member",
+    "target": "eFEWRFWE",
+    "status": "warning"
+  },
+  {
+    "id": "log-1788211341893-w5bwh",
+    "timestamp": "2026-08-31T21:22:21.893Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788211209805-updh2",
+    "timestamp": "2026-08-31T21:20:09.805Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "dsfsafa",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210906558-svgo3",
+    "timestamp": "2026-08-31T21:15:06.558Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210855413-li5st",
+    "timestamp": "2026-08-31T21:14:15.413Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210834787-736y5",
+    "timestamp": "2026-08-31T21:13:54.787Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210790868-cb5c5",
+    "timestamp": "2026-08-31T21:13:10.868Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210710998-tsqp2",
+    "timestamp": "2026-08-31T21:11:50.998Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 2 albums with 11 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210635942-fzz71",
+    "timestamp": "2026-08-31T21:10:35.942Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210620788-1kidd",
+    "timestamp": "2026-08-31T21:10:20.788Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 2 albums with 11 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210609007-vr706",
+    "timestamp": "2026-08-31T21:10:09.007Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Added Team Member",
+    "target": "eFEWRFWE",
+    "details": "EFWEWF (team)",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210585112-10jas",
+    "timestamp": "2026-08-31T21:09:45.112Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Created New Event",
+    "target": "dsfsafa",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210572564-c56dv",
+    "timestamp": "2026-08-31T21:09:32.564Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210542246-jw7tl",
+    "timestamp": "2026-08-31T21:09:02.246Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788210418485-leg0x",
+    "timestamp": "2026-08-31T21:06:58.485Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788209310238-h9q9v",
+    "timestamp": "2026-08-31T20:48:30.238Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Deleted Team Member",
+    "target": "new",
+    "status": "warning"
+  },
+  {
+    "id": "log-1788208901477-4n22f",
+    "timestamp": "2026-08-31T20:41:41.477Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788208867010-7mph8",
+    "timestamp": "2026-08-31T20:41:07.010Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788208838913-84xll",
+    "timestamp": "2026-08-31T20:40:38.913Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788208819238-ni5yu",
+    "timestamp": "2026-08-31T20:40:19.238Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788208792464-rg5ht",
+    "timestamp": "2026-08-31T20:39:52.464Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788208394031-iu071",
+    "timestamp": "2026-08-31T20:33:14.031Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Team Member",
+    "target": "Dr. Jayavrinda Vrindavanam V",
+    "status": "success"
+  },
+  {
+    "id": "log-1788208346925-cd956",
+    "timestamp": "2026-08-31T20:32:26.925Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 1 albums with 7 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207839951-05k3j",
+    "timestamp": "2026-08-31T20:23:59.951Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Added Team Member",
+    "target": "new",
+    "details": "just (team)",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207706659-4jh7b",
+    "timestamp": "2026-08-31T20:21:46.659Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "24 hour Hackothan",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207656009-8ze8b",
+    "timestamp": "2026-08-31T20:20:56.009Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "24 hour Hackothan",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207647075-mqsfm",
+    "timestamp": "2026-08-31T20:20:47.075Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Deleted Event",
+    "target": "thats",
+    "status": "warning"
+  },
+  {
+    "id": "log-1788207611395-ecq13",
+    "timestamp": "2026-08-31T20:20:11.395Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Created New Event",
+    "target": "thats",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207503204-37nqf",
+    "timestamp": "2026-08-31T20:18:23.204Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207440266-jchsr",
+    "timestamp": "2026-08-31T20:17:20.266Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207388245-idw5y",
+    "timestamp": "2026-08-31T20:16:28.245Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Gallery Albums & Direct Links",
+    "details": "Saved 2 albums with 10 total media items",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207277248-77s3o",
+    "timestamp": "2026-08-31T20:14:37.248Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Switched Website UI Design",
+    "target": "Site Settings",
+    "details": "Live visual theme changed from 'ivory-light' to 'wix-bold'",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207187552-h4bp3",
+    "timestamp": "2026-08-31T20:13:07.552Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Switched Website UI Design",
+    "target": "Site Settings",
+    "details": "Live visual theme changed from 'wix-bold' to 'ivory-light'",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207172201-xu1w9",
+    "timestamp": "2026-08-31T20:12:52.201Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788207129721-elrcf",
+    "timestamp": "2026-08-31T20:12:09.721Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Event",
+    "target": "Escape Room",
+    "status": "success"
+  },
+  {
+    "id": "log-1788206621545-eqttx",
+    "timestamp": "2026-08-31T20:03:41.545Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788206608868-zdoq8",
+    "timestamp": "2026-08-31T20:03:28.868Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "::1",
+    "action": "Updated Global Site Settings",
+    "details": "Branding: AI Foundry | Dayananda Sagar University | Tagline: FORGING THE FUTURE OF ENTREPRE...",
+    "status": "success"
+  },
+  {
+    "id": "log-1788203969200-fb6fd",
+    "timestamp": "2026-08-31T19:19:29.200Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Switched Website UI Design",
+    "target": "Site Settings",
+    "details": "Live visual theme changed from 'ivory-light' to 'wix-bold'",
+    "status": "success"
+  },
+  {
+    "id": "log-1788203924161-azjyu",
+    "timestamp": "2026-08-31T19:18:44.161Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Switched Website UI Design",
+    "target": "Site Settings",
+    "details": "Live visual theme changed from 'wix-bold' to 'ivory-light'",
+    "status": "success"
+  },
+  {
+    "id": "log-1788203915750-midpx",
+    "timestamp": "2026-08-31T19:18:35.750Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Localhost Dev Admin Login",
+    "target": "Authentication",
+    "details": "Localhost testing session authenticated from localhost:3000",
+    "status": "success"
+  },
+  {
+    "id": "log-1788198827968-40kst",
+    "timestamp": "2026-08-31T17:53:47.968Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Switched Website UI Design",
+    "target": "Site Settings",
+    "details": "Live visual theme changed from 'ivory-light' to 'wix-bold'",
+    "status": "success"
+  },
+  {
+    "id": "log-1788198732918-zbgnk",
+    "timestamp": "2026-08-31T17:52:12.918Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "action": "Localhost Dev Admin Login",
+    "target": "Authentication",
+    "details": "Localhost testing session authenticated from localhost:3000",
+    "status": "success"
+  },
+  {
+    "id": "log-1788106373816-xnxf3",
+    "timestamp": "2026-08-30T16:12:53.816Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "106.192.239.46",
+    "action": "Revoked Admin Whitelist",
+    "target": "rishushaurya9431@gmail.com",
+    "details": "Revoked administrative access from: rishushaurya9431@gmail.com",
+    "status": "warning"
+  },
+  {
+    "id": "log-1788106321700-78npt",
+    "timestamp": "2026-08-30T16:12:01.700Z",
+    "adminEmail": "rishushaurya9431@gmail.com",
+    "ip": "106.222.251.54",
+    "action": "Google Admin Login Successful",
+    "details": "Authenticated via Google OAuth (Name: Rishu Shaurya)",
+    "status": "success"
+  },
+  {
+    "id": "log-1788106299339-6b9ax",
+    "timestamp": "2026-08-30T16:11:39.339Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "106.192.239.46",
+    "action": "Authorized Admin Whitelist",
+    "target": "rishushaurya9431@gmail.com",
+    "details": "Granted full administrative Google access to: rishushaurya9431@gmail.com",
+    "status": "success"
+  },
+  {
+    "id": "log-1788047318570-xiq7g",
+    "timestamp": "2026-08-29T23:48:38.570Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "104.28.220.175",
+    "action": "Updated Team Member",
+    "target": "Priyanshu Shaurya",
+    "status": "success"
+  },
+  {
+    "id": "log-1788046704138-csikk",
+    "timestamp": "2026-08-29T23:38:24.138Z",
+    "adminEmail": "priyanshushaurya9431@gmail.com",
+    "ip": "104.28.220.175",
+    "action": "Google Admin Login Successful",
+    "details": "Authenticated via Google OAuth (Name: Inferno VI -Priyanshu Shaurya)",
+    "status": "success"
+  },
+  {
+    "id": "log-1788046684742-buppj",
+    "timestamp": "2026-08-29T23:38:04.742Z",
+    "adminEmail": "namaskar829@gmail.com",
+    "ip": "104.28.220.175",
+    "action": "Unauthorized Google Login Attempt",
+    "details": "Google ID: 102539269680997074736 - Email 'namaskar829@gmail.com' is not in the administrator whitelist",
+    "status": "error"
+  },
+  {
     "id": "log-1788046180170-57fjo",
     "timestamp": "2026-08-29T23:29:40.170Z",
     "adminEmail": "priyanshushaurya9431@gmail.com",

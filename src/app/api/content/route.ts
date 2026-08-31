@@ -17,11 +17,13 @@ export async function GET() {
       getGallerySections(),
     ]);
 
+    const { adminEmails, ...safeSettings } = settings;
+
     return NextResponse.json({
       content,
       events,
       team,
-      settings,
+      settings: safeSettings,
       gallery,
     });
   } catch (err: any) {

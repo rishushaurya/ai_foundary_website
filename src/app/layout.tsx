@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { TransparentHeader } from "@/components/ui/transparent-header";
+import { getSettings } from "@/lib/data";
+import React, { Suspense } from "react";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -44,11 +46,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSettings();
+  const isDarkDesign = settings.activeDesign === "wix-bold";
+
   return (
     <html lang="en" className="h-full scroll-smooth">
       <head>
@@ -58,11 +63,23 @@ export default function RootLayout({
       </head>
       <body
         id="i6mb"
-        className="min-h-full flex flex-col bg-[#FFFFE9] text-[#2D2E2A] antialiased overflow-x-hidden selection:bg-[#ECFF17] selection:text-[#000000]"
-        style={{ backgroundColor: "#FFFFE9", color: "#2D2E2A" }}
+        className={`min-h-full flex flex-col antialiased overflow-x-hidden ${
+          isDarkDesign
+            ? "bg-[#040812] text-slate-100 selection:bg-[#ECFF17] selection:text-black"
+            : "bg-[#FFFFE9] text-[#2D2E2A] selection:bg-[#ECFF17] selection:text-[#000000]"
+        }`}
+        style={{
+          backgroundColor: isDarkDesign ? "#040812" : "#FFFFE9",
+          color: isDarkDesign ? "#F1F5F9" : "#2D2E2A",
+        }}
         suppressHydrationWarning
       >
-        <TransparentHeader />
+        <Suspense fallback={null}>
+          <TransparentHeader
+            activeDesign={settings.activeDesign}
+            visiblePages={settings.visiblePages}
+          />
+        </Suspense>
         <div className="relative w-full flex-grow bg-transparent">
           {children}
         </div>

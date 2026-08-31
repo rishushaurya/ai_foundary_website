@@ -13,6 +13,8 @@ import {
   Eye,
   Sliders,
   Sparkles,
+  Palette,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -281,6 +283,71 @@ export default function AdminSettingsPage() {
               </label>
             );
           })}
+        </div>
+      </div>
+
+      {/* ===== 2.5 ACTIVE UI DESIGN ENGINE ===== */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-sm space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <Palette className="size-5 text-cyan-600" />
+            <span>Active Visual UI Design Engine</span>
+          </h2>
+          <a
+            href="/admin/designs"
+            className="text-xs font-bold text-cyan-600 hover:text-cyan-700 hover:underline flex items-center gap-1"
+          >
+            <span>Open Design Gallery</span>
+            <ExternalLink className="size-3" />
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <label
+            className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+              settings.activeDesign === "ivory-light" || !settings.activeDesign
+                ? "border-cyan-500 bg-cyan-50/50 shadow-sm ring-1 ring-cyan-500"
+                : "border-slate-200 bg-white hover:bg-slate-50"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-extrabold text-slate-900 text-sm">Ivory Minimalist (Design 1)</span>
+              <input
+                type="radio"
+                name="activeDesign"
+                value="ivory-light"
+                checked={settings.activeDesign === "ivory-light" || !settings.activeDesign}
+                onChange={() => setSettings({ ...settings, activeDesign: "ivory-light" })}
+                className="accent-cyan-600"
+              />
+            </div>
+            <p className="text-slate-500 leading-relaxed">
+              Warm ivory canvas (#FFFFE9), high-legibility serif headings, and lime accents.
+            </p>
+          </label>
+
+          <label
+            className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+              settings.activeDesign === "wix-bold"
+                ? "border-cyan-500 bg-cyan-50/50 shadow-sm ring-1 ring-cyan-500"
+                : "border-slate-200 bg-white hover:bg-slate-50"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-extrabold text-slate-900 text-sm">Obsidian Cyber Bold (Design 2)</span>
+              <input
+                type="radio"
+                name="activeDesign"
+                value="wix-bold"
+                checked={settings.activeDesign === "wix-bold"}
+                onChange={() => setSettings({ ...settings, activeDesign: "wix-bold" })}
+                className="accent-cyan-600"
+              />
+            </div>
+            <p className="text-slate-500 leading-relaxed">
+              Futuristic dark theme (#040812) with glowing neon accents and frosted cyber cards.
+            </p>
+          </label>
         </div>
       </div>
 

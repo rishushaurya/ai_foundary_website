@@ -73,6 +73,25 @@ export function RegistrationModal({ event, isOpen, onClose }: ModalProps) {
     e.preventDefault();
     if (!event) return;
 
+    // Check if event registration is disabled, future, or past deadline
+    if (event.status === "ended" || event.isRegistrationOpen === false) {
+      setStatus("error");
+      setErrorMessage(event.closedMessage || "Applications for this event are currently closed.");
+      return;
+    }
+
+    if (event.registrationStartDate && new Date(event.registrationStartDate).getTime() > Date.now()) {
+      setStatus("error");
+      setErrorMessage("Applications for this event have not opened yet.");
+      return;
+    }
+
+    if (event.registrationDeadline && new Date(event.registrationDeadline).getTime() < Date.now()) {
+      setStatus("error");
+      setErrorMessage("The application deadline for this event has passed.");
+      return;
+    }
+
     setStatus("loading");
     setErrorMessage("");
 

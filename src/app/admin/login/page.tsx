@@ -185,8 +185,8 @@ export default function AdminLoginPage() {
               </button>
             )}
 
-            <p className="text-[11px] text-slate-400 text-center font-sans max-w-xs leading-relaxed">
-              Google cryptographically verifies your identity. Only email accounts authorized in the admin whitelist are granted access.
+            <p className="text-[11px] text-slate-400 text-center font-sans max-w-xs leading-relaxed pt-2">
+              Google cryptographically verifies your identity. Only email accounts authorized in the administrator whitelist are granted access.
             </p>
           </div>
         </GlassCardContent>

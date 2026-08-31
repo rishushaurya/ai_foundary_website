@@ -567,12 +567,21 @@ export default function AdminLandingPage() {
                         setPreviewConfig({
                           title: `Leadership Card Preview - ${member.name}`,
                           imageUrl: member.image,
+                          homeImageUrl: member.homeImage,
+                          imageFit: member.imageFit || "cover",
+                          imagePosition: member.imagePosition || "center",
                           aspectRatioType: "team",
                           cardTitle: member.name,
                           cardSubtitle: member.role,
                           onApply: (res) => {
                             const updated = [...(landingContent.teamMembers || [])];
-                            updated[idx].image = res.imageUrl;
+                            updated[idx] = {
+                              ...updated[idx],
+                              image: res.imageUrl,
+                              homeImage: res.homeImageUrl,
+                              imageFit: res.imageFit,
+                              imagePosition: res.imagePosition,
+                            };
                             setLandingContent({ ...landingContent, teamMembers: updated });
                           },
                         });

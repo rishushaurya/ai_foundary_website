@@ -3,7 +3,7 @@
     "id": "evt-1787509204597",
     "title": "Escape Room",
     "description": "",
-    "date": "Sep 16, 2026",
+    "date": "Sep 26 2026",
     "venue": "DSU Innovation Hall",
     "image": "https://i.ibb.co/MTjjz28/escaperoom.png",
     "status": "upcoming",
@@ -35,11 +35,11 @@
     ],
     "googleFormUrl": "https://forms.gle/cCHJAbBDCkJPARtk7",
     "isRegistrationOpen": false,
-    "registrationStartDate": "Aug 15, 2026 06:00 AM",
+    "registrationStartDate": "2026-09-03T04:35:00.000Z",
     "registrationDeadline": "Sep 15,2026 06:00 AM",
     "closedMessage": "Applications Closed",
     "imageFit": "contain",
-    "imagePosition": "top",
+    "imagePosition": "bottom",
     "homeImage": ""
   },
   {
@@ -79,6 +79,9 @@
       }
     ],
     "registrations": [],
-    "googleFormUrl": "https://forms.gle/wbSx17QW3SR5P5NJ6"
+    "googleFormUrl": "https://forms.gle/wbSx17QW3SR5P5NJ6",
+    "imageFit": "cover",
+    "imagePosition": "center",
+    "homeImage": ""
   }
 ]

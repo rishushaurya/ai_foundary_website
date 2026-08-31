@@ -3,6 +3,182 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-08-31] - Gemini 3.7 Flash - Session 46
+**Description**: Complete **Admin Authentication Hardening, Removal of Localhost Dev Bypass, Google OAuth Exclusive Verification & Full Platform Security Audit**:
+- **Removal of Localhost Dev Bypass (`src/app/admin/login/page.tsx`, `src/app/api/auth/dev-login`)**:
+  - Permanently removed the localhost dev-login bypass endpoint (`/api/auth/dev-login`).
+  - Removed dev bypass UI button from the Admin Login screen.
+- **Exclusive Google OAuth & Cryptographic Whitelist Verification (`src/app/api/auth/google/route.ts`)**:
+  - Enforced strict Google ID token validation against Google's official OAuth2 tokeninfo API.
+  - Required verified Google email addresses and checked membership against the admin whitelist.
+  - Signed session tokens using `jose` HS256 JWT in `httpOnly` secure cookies.
+- **Public API Data Sanitization (`src/app/api/content/route.ts`)**:
+  - Stripped `adminEmails` from the public `/api/content` endpoint to eliminate information exposure.
+- **Path Traversal & Rate Limiting Hardening**:
+  - Audited and verified path traversal prevention on file uploads/deletions (`src/lib/local-db.ts`).
+  - Verified sliding window rate limiting and honeypot traps on public recruitment forms (`src/lib/rate-limiter.ts`, `/api/recruit/submit`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled cleanly across all 32 routes.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 45
+**Description**: Complete **Image Preview, Framing & Aspect Ratio Synchronization for Design 2 & Admin Portal**:
+- **Design 2 Event Images (`src/designs/wix-bold/home-view.tsx`, `src/designs/wix-bold/events-page.tsx`)**:
+  - Bound `imageFit` ("cover" | "contain"), `imagePosition` ("top" | "center" | "bottom"), and `homeImage` settings from the admin portal to Design 2 event cards (Ongoing, Upcoming, and Archive sections).
+  - Used `normalizeImageUrl` across all event card containers for cross-domain and data URL support.
+- **Design 2 Leadership & Team Photos (`src/designs/wix-bold/home-view.tsx`, `src/designs/wix-bold/team-view.tsx`)**:
+  - Bound dynamic `imageFit` and `imagePosition` to Leadership and Team portrait cards across all 3 tiers (Faculty, Executives, Domain Leads).
+- **Admin Landing Page Leadership Preview Modal (`src/app/admin/landing/page.tsx`, `src/lib/data.ts`)**:
+  - Extended `LandingTeamMember` with `imageFit`, `imagePosition`, and `homeImage`.
+  - Fixed `onApply` handler in `/admin/landing` so that when administrators adjust framing in the visual inspector modal, the alignment properties are properly saved to state and persisted.
+- **Zero-Touch Safety & Security**:
+  - Google OAuth / session security preserved.
+  - GitHub push freeze maintained (no `git push`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 33 routes.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 44
+**Description**: Complete **Event Registration Timing & Future Start Date Enforcement Hardening Across All Designs & API**:
+- **Event Registration Timing Guard (`src/components/home/home-view.tsx`, `src/components/ui/events-page-client.tsx`, `src/designs/wix-bold/*`)**:
+  - Fixed a condition in Design 1 and Design 2 where future `registrationStartDate` timestamps were improperly coupling with `isRegistrationOpen === false`.
+  - Future dates set in the Admin Portal calendar picker now **unconditionally lock registration, block modal opening, and display "Opening Soon"** regardless of the manual toggle state.
+- **Client & Backend Safety Guards (`src/components/ui/registration-modal.tsx`, `src/app/api/events/register/route.ts`)**:
+  - Reinforced client-side registration modal submit handler to validate `registrationStartDate` against `Date.now()`, preventing unauthorized submissions for un-opened events.
+- **Zero-Touch Safety & Security**:
+  - Google OAuth / session security preserved.
+  - GitHub push freeze maintained (no `git push`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 33 routes.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 43
+**Description**: Complete **Hero Right Robot Image Replacement**, **Hero Headline & Subtext Rightward Alignment**, and **Our Approach Innovation Illustration Embedding (with Mobile Hide Rule)**:
+- **Hero Right Robot Artwork (`src/designs/wix-bold/home-view.tsx`, `public/images/design2/`)**:
+  - Replaced the right-side tilted robot illustration with the exact requested reference asset: `public/images/design2/robot_hero_right.png`.
+- **Hero Headline & Subtext Proportional Alignment**:
+  - Added balanced left indent padding (`pl-2 sm:pl-8 md:pl-12 lg:pl-16`) to the script headline and subtext container, aligning it with the centered header for proportional balance.
+- **Our Approach Section Artwork Embedding**:
+  - Embedded the requested innovation diagram (`public/images/design2/approach_illustration.png`) below the *OUR APPROACH* heading and subtext on the left column.
+  - Implemented responsive visibility rule (`hidden md:block`) so it renders cleanly on desktop/tablet viewports while staying hidden on mobile phones.
+- **Zero-Touch Safety & Security**:
+  - Google OAuth / session security preserved.
+  - GitHub push freeze maintained (no `git push`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 33 routes.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 42
+**Description**: Complete **Admin Landing Team Synchronization (Strict Display of Admin-Configured Leadership)**, **Removal of Preview Option in Admin Design Panel**, and **Full Bidirectional Multi-Design CMS Verification**:
+- **Landing Page Leadership Member Strict Alignment (`src/designs/wix-bold/home-view.tsx`)**:
+  - Prioritized `landingContent.teamMembers` directly from the admin panel (`/admin/landing`), ensuring only the exact individuals configured by administrators appear on the landing page (e.g. 3 faculty coordinators) rather than pulling extraneous members from the full team database.
+  - Retained verified social profile and email enrichment by cross-referencing member profiles.
+- **Admin Design Switcher Streamlining (`src/app/admin/designs/page.tsx`)**:
+  - Removed the `Preview in Live Site` button from design cards in the admin panel.
+  - Made the `Activate Live (1-Click)` button the primary, full-width action for switching between Design 1 (`ivory-light`) and Design 2 (`wix-bold`).
+- **Full Bidirectional Multi-Design Sync Verification**:
+  - Verified that changes made in `/admin/landing`, `/admin/events`, `/admin/team`, `/admin/gallery`, `/admin/content`, and `/admin/settings` immediately update both Design 1 and Design 2.
+- **Zero-Touch Safety & Security**:
+  - Google OAuth / session security preserved.
+  - GitHub push freeze maintained (no `git push`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 33 routes.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 41
+**Description**: Complete **Backend CMS Binding for Design 2**, **Script Calligraphic Headline Typography**, **Real-Time Admin-Controlled Hackathon Registration & Modals**, **Event Archive & Past Initiative Management in Admin Portal**, **Strictly Verified Team Social Media SVG Badges (No Defaults/Dead Links)**, **Dynamic Admin Album Category Binding for Gallery**, **Embedded Design 2 Landing Footer**, and Hardened Safeguards:
+- **Full Backend Binding for Design 2 (`src/designs/wix-bold/*`)**:
+  - `HomeView`: Fully dynamic binding to `events`, `team`, `gallerySections`, `heroTagline`, `aboutText`, `landingContent`, `socialLinks`, and `visiblePages` props with embedded native `WixBoldFooter`.
+  - `Hero Headline`: Rendered calligraphic script font (`𝐹𝒪𝑅𝒢𝐼𝒩𝒢 𝒯𝐻𝐸 𝐹𝒰𝒯𝒰𝑅𝐸 𝒪𝐹 𝐸𝒩𝒯𝑅𝐸𝒫𝑅𝐸𝒩𝐸𝒰𝑅𝒮𝐻𝐼𝒫 & 𝒜𝑅𝒯𝐼𝐹𝐼𝒞𝐼𝒜𝐿 𝐼𝒩𝒯𝐸𝐿𝐿𝐼𝒢𝐸𝒩𝒞𝐸`).
+  - `EventsPage`: Dynamically connects to CMS events list with robotic monospace date badges (`font-mono bg-[#2D2E2A] text-[#ECFF17] [ DATE • TIME ]`), real-time admin availability checks, external redirection, and in-place `RegistrationModal`.
+  - `TeamView & Leadership`: Strict verification filter that **ONLY** renders social media badges and email links for users who actually have URLs uploaded in the database (`data/team.json`). Removed all generic/placeholder link defaults.
+  - `GalleryView`: Category selector pills are strictly derived from real album names created in the Admin Panel (`/admin/gallery`), removing all arbitrary hardcoded categories.
+  - `Navbar`: Respects `visiblePages` configuration toggled via the Admin Portal.
+  - `Footer`: Dynamically injects `socialLinks` (LinkedIn, Instagram, GitHub, X/Twitter, WhatsApp) across all pages and rendered on landing page.
+- **Admin Panel Event & Archive Management (`src/app/admin/events/page.tsx`)**:
+  - Added filter tabs: `All Events`, `🟢 Upcoming`, `🟡 Ongoing`, `📁 Archive / Ended`.
+  - Added 1-click **Archive / Restore** quick action in event table rows.
+  - Added dedicated `+ Add to Archive` past initiative workflow.
+  - Upgraded `registrationStartDate` and `registrationDeadline` to native `datetime-local` pickers with timezones and live preview timestamps.
+- **Zero-Touch Safety & Security**:
+  - **Google OAuth / Backend Security**: 100% untouched and verified.
+  - **Design 1 (`src/designs/ivory-light/*`)**: Untouched and operational.
+  - **GitHub Push Freeze**: Maintained strictly per user directive (no `git push`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 33 routes.
+  - Live verified on `http://localhost:3000`.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 40
+**Description**: Complete Native React Component Implementation of **Design 2 (Wix Minimalist / Reference Match)**, Restoration of **AI Foundry Circular Logo Badge**, Dynamic **Hackathon Cards with Image Slots & Auto-Growth**, Continuous **Marquee Gallery Ribbon**, **Leadership & Advisory Member Cards Grid**, Dark **Team Container Background**, Full **Mobile Responsiveness**, and 100% Preservation of Design 1 & Backend Security:
+- **Restoration of AI Foundry Logo Badge & Hero Robots (`src/designs/wix-bold/home-view.tsx`, `public/images/design2/`)**:
+  - Restored the circular AI Foundry logo badge (`raise_logo_badge.png`) right next to the *About US* heading.
+  - Re-anchored the dual robot illustrations (`robot_hero.png`) placed above the main hero heading.
+  - Rendered clean vector illustration of the robot holding the *About US* banner (`robot_about_banner.svg`).
+- **Dynamic Hackathon & Event Cards (`src/designs/wix-bold/home-view.tsx`, `src/designs/wix-bold/events-page.tsx`)**:
+  - Implemented responsive card grid in soft sage `#C6CCBD` with rounded-3xl borders and cream `#FFFFE9` register pill buttons.
+  - Added support for optional photo cover slots inside cards.
+  - Designed auto-growing height containers that naturally expand as descriptions or custom details grow.
+- **Life at AI Foundry Marquee Gallery Ribbon (`src/designs/wix-bold/home-view.tsx`, `src/designs/wix-bold/gallery-view.tsx`)**:
+  - Built continuous horizontal auto-scrolling marquee ribbon with hover-to-pause and image zoom effects.
+  - Framed cards with real photo imagery, titles, and subtext.
+  - Built full `/gallery` view with album categories, counts, and interactive fullscreen lightbox preview modal.
+- **Leadership & Advisory Section with Member Cards (`src/designs/wix-bold/home-view.tsx`)**:
+  - Added styled leadership member cards directly below the `LEADERSHIP & ADVISORY` heading with photo frames, member names, executive titles, and profile links.
+- **Team Page with Dark Obsidian Background (`src/designs/wix-bold/team-view.tsx`)**:
+  - Added elegant dark container background (`#232521` / `#2D2E2A`) with light ivory typography (`#FFFFE9`), frosted card borders, and neon yellow accents (`#ECFF17`).
+  - Structured 3 tiers: Faculty Advisory Board, Executive Leadership Board, and Foundry Domain Wings.
+- **Responsive Navigation & Footers for Mobile (`src/designs/wix-bold/navbar.tsx`, `src/designs/wix-bold/footer.tsx`)**:
+  - Added mobile hamburger menu with smooth drawer navigation.
+  - Refactored footer into responsive 3-column layout matching original content (Institutional Statement, Social Bullet Points, Legal/Accessibility) with proper mobile wrapping.
+- **Zero-Touch Safety & Security**:
+  - **Design 1 (`src/designs/ivory-light/*`)**: 100% untouched and operational.
+  - **Backend & Database**: Untouched.
+  - **Google OAuth / Security**: Untouched.
+  - **GitHub Push Freeze**: Maintained strictly per user directive (no `git push`).
+- **Validation & Health**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Compiled with 0 errors across all 33 routes.
+  - Live verified on `http://localhost:3000`.
+
+---
+
+## [2026-08-31] - Gemini 3.7 Flash - Session 39
+**Description**: Implementation of Universal **Multi-Design Engine**, High-Fidelity **Obsidian Cyber Bold Design (Design 2)** from Custom Front-End Reference, **1-Click Admin Design Switcher & Live Preview Bar**, and Hardened **Localhost Developer Auth Testing Bypass**:
+- **Multi-Design Engine Architecture (`src/designs/types.ts`, `src/designs/registry.ts`, `src/lib/data.ts`, `data/settings.json`)**:
+  - Implemented the central Design Registry architecture decoupled from database and business logic.
+  - Added `activeDesign` key to `SiteSettings` with dual-engine filesystem & Upstash Redis persistence.
+  - Registered **Design 1: Ivory Minimalist (`src/designs/ivory-light/`)** wrapping existing production UI with 100% fidelity.
+  - Registered **Design 2: Obsidian Cyber Bold (`src/designs/wix-bold/`)** featuring futuristic dark canvas (`#040812`), glowing cyber accents (`#ECFF17`), frosted glass cards, and geometric typography.
+  - Designed zero-data-disruption contract: All CMS data, events, team members, faculty profiles, and gallery media dynamically render across any selected design.
+- **Admin Design Switcher & Live Preview Mode (`src/app/admin/designs/page.tsx`, `src/app/admin/settings/page.tsx`, `src/app/api/admin/design/route.ts`, `src/components/ui/admin-preview-bar.tsx`)**:
+  - Built dedicated visual admin switcher with theme cards, live badges, and 1-click activation.
+  - Added server-side admin preview mode (`?preview-design=<id>`) displaying a top floating bar with instant live activation and exit controls.
+  - Added Design Switcher navigation item to Admin Layout with Palette icon.
+- **Localhost Developer Authentication Bypass (`src/app/api/auth/dev-login/route.ts`, `src/app/admin/login/page.tsx`)**:
+  - Created isolated localhost-only dev login route validating request host headers and issuing signed 7-day JWT admin session cookies.
+  - Added `⚡ Quick Localhost Admin Access` button on `/admin/login` visible exclusively on local testing environments.
+  - Preserved 100% cryptographic Google OAuth verification security without any changes to `/api/auth/google`.
+- **System Verification & Build Validation**:
+  - Validated TypeScript typecheck (`npx tsc --noEmit`) with 0 errors.
+  - Ran diagnostics suite (`node diagnostics.js`) with 4/4 checks passing.
+  - Successfully generated Next.js production build (`npm run build`) across all 33 routes with 0 errors.
+  - Maintained GitHub push freeze as requested by user.
+
+---
+
 ## [2026-08-30] - Gemini 3.7 Flash - Session 38
 **Description**: Department Details & Campus Location Correction, Complete Localhost Auth Removal, Hardened Google OAuth Identity Verification & Production GitHub Deployment:
 - **Department & Campus Location Footer Updates (`src/components/ui/light-footer.tsx`, `src/components/home/home-view.tsx`, `data/settings.json`)**:

@@ -7,18 +7,24 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { VisiblePagesConfig } from "@/lib/data";
 
-export function LightNavbar() {
+export function LightNavbar({
+  visiblePages: initialVisiblePages,
+}: {
+  visiblePages?: VisiblePagesConfig;
+} = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [visiblePages, setVisiblePages] = useState<VisiblePagesConfig>({
-    about: true,
-    events: true,
-    team: true,
-    gallery: true,
-    recruit: true,
-  });
+  const [visiblePages, setVisiblePages] = useState<VisiblePagesConfig>(
+    initialVisiblePages || {
+      about: true,
+      events: true,
+      team: true,
+      gallery: true,
+      recruit: true,
+    }
+  );
 
   useEffect(() => {
     const handleScroll = () => {

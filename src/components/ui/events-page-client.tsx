@@ -57,26 +57,46 @@ export function EventsPageClient({ events = [] }: EventsPageClientProps) {
   }, [events, ongoingEvents, upcomingEvents, endedEvents, activeTab, searchQuery]);
 
   const getEventRegistrationStatus = (evt: EventData) => {
-    const isEnded = evt.status === "ended" || evt.isRegistrationOpen === false;
-    const isFutureStart =
-      evt.isRegistrationOpen === false &&
-      !!evt.registrationStartDate &&
-      new Date(evt.registrationStartDate).getTime() > Date.now();
-    const isPastDeadline =
-      !isFutureStart &&
-      evt.registrationDeadline &&
-      new Date(evt.registrationDeadline).getTime() < Date.now();
+    const now = Date.now();
 
-    if (isEnded || isPastDeadline) {
+    if (evt.status === "ended") {
+      return {
+        canApply: false,
+        label: evt.closedMessage || "Applications Closed",
+        reason: "ended",
+      };
+    }
+
+    if (evt.registrationStartDate) {
+      const startTime = new Date(evt.registrationStartDate).getTime();
+      if (!isNaN(startTime) && startTime > now) {
+        return {
+          canApply: false,
+          label: "Opening Soon",
+          reason: "future",
+        };
+      }
+    }
+
+    if (evt.registrationDeadline) {
+      const deadlineTime = new Date(evt.registrationDeadline).getTime();
+      if (!isNaN(deadlineTime) && deadlineTime <= now) {
+        return {
+          canApply: false,
+          label: evt.closedMessage || "Applications Closed",
+          reason: "deadline_passed",
+        };
+      }
+    }
+
+    if (evt.isRegistrationOpen === false) {
       return {
         canApply: false,
         label: evt.closedMessage || "Applications Closed",
         reason: "closed",
       };
     }
-    if (isFutureStart) {
-      return { canApply: false, label: "Opening Soon", reason: "future" };
-    }
+
     return {
       canApply: true,
       label: evt.registrationMode === "external" ? "Register (External)" : "Register Now",

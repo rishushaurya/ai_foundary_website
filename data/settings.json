@@ -10,7 +10,7 @@
     "11182aditya@gmail.com"
   ],
   "heroTagline": "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
-  "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence.",
+  "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence. ",
   "facultyHeading": "FACULTY MENTORS",
   "studentHeading": "CLUB LEADERSHIP & TEAMS",
   "developerHeading": "PLATFORM ARCHITECTS",
@@ -21,7 +21,7 @@
     "events": true,
     "team": true,
     "gallery": true,
-    "recruit": true
+    "recruit": false
   },
   "socialLinks": {
     "instagram": "https://www.instagram.com/raiseaiclub.dsu?utm_source=qr&igsh=MXN6bHYyNDJ2NjNnYg%3D%3D",
@@ -32,14 +32,14 @@
     "email": "raise.ai.club@gmail.com"
   },
   "landingContent": {
-    "heroBadge": "DSU PREMIER AI & VENTURE ACCELERATOR",
+    "heroBadge": "DSU PREMIER AI & VENTURE ACCELERATOR ",
     "heroTagline": "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
-    "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence.",
-    "heroDepartment": "School of Engineering • Department of CSE (AI & ML) • DSU Bengaluru",
+    "heroSubtext": "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders in artificial intelligence. ",
+    "heroDepartment": "School of Engineering • Department of AI & Robotics • DSU Bengaluru",
     "aboutBadge": "ABOUT AI FOUNDRY",
-    "aboutHeading": "AI Foundry is the go-to spot for student creators at Dayananda Sagar University. We turn cool campus ideas into real-world tech by giving you the right mentors, beastly GPU power, and a local community that helps you grow. It's where the future of AI hits the road.",
+    "aboutHeading": "AI Foundry is the go-to spot for student creators at Dayananda Sagar University. We turn cool campus ideas into real-world tech by giving you the right mentors, beastly GPU power, and a local community that helps you grow. It's where the future of AI hits the road. ",
     "aboutSecondaryText": "Whether you're fine-tuning custom LLMs, building autonomous agents, designing slick interfaces, or pitching your first venture, you won't be doing it alone. From late-night hackathons and hands-on build sprints to demo days in front of industry veterans, we give you the launchpad to stop just talking about AI and start shipping it.",
-    "approachHeading": "OUR APPROACH",
+    "approachHeading": "OUR APPROACH ",
     "approachSubtext": "We foster a dynamic environment where students can transform their ideas into impactful AI and entrepreneurial ventures.",
     "approach": [
       {
@@ -72,27 +72,27 @@
     "teamMembers": [
       {
         "id": "tm-1",
-        "name": "Dr. Jayavrinda Vrindavanam V",
+        "name": "Dr. Jayavrinda Vrindavanam V ",
         "role": "Club Coordinator & Chairperson CSE (AI & ML)",
         "bio": "Professor and Chairperson leading the AI & ML department at DSU.",
-        "image": "https://i.ibb.co/Cp38dC4N/edited-photo-2.jpg"
+        "image": "https://i.ibb.co/Cp38dC4N/edited-photo-2.jpg "
       },
       {
         "id": "tm-2",
         "name": "Dr. M Lakshmanan",
         "role": "Club Advisor",
         "bio": "Assistant Professor, CSE(AI and ML), DSU.",
-        "image": "https://i.ibb.co/DPSZJQkQ/lakshmanan.png"
+        "image": "https://i.ibb.co/DPSZJQkQ/lakshmanan.png "
       },
       {
         "id": "tm-3",
         "name": "Dr. A. A. Nippun Kumaar",
         "role": "Club Advisor",
         "bio": "Associate Professor, CSE(AI and ML), DSU.",
-        "image": "https://i.ibb.co/RkmB4tJm/AA-Nippunkumar.jpg"
+        "image": "https://i.ibb.co/RkmB4tJm/AA-Nippunkumar.jpg "
       }
     ],
-    "aboutTitle": "About Us",
+    "aboutTitle": "About Us ",
     "aboutImage": "/images/Gemini_Generated_Image_arpro7arpro7arpr.png",
     "aboutImageFit": "cover",
     "aboutImagePosition": "center",
@@ -206,5 +206,6 @@
         "avatar": "/images/image-1928.png"
       }
     ]
-  }
+  },
+  "activeDesign": "wix-bold"
 }

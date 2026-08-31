@@ -13,7 +13,9 @@
       "linkedin": "",
       "github": "",
       "instagram": ""
-    }
+    },
+    "imageFit": "contain",
+    "imagePosition": "center"
   },
   {
     "id": "fac-02",
@@ -87,20 +89,20 @@
   },
   {
     "id": "team-1788044006339",
-    "name": "me",
-    "role": "team lead",
+    "name": "Priyanshu Shaurya",
+    "role": "Tech lead",
     "category": "team",
-    "affiliation": "cse",
-    "email": "",
-    "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAlHYmRv5UvJfByZ3NBzHJStQbFL_4zr6bODS_nr-byLotWW4OI2WHdE2tFJWjTUH8vWjC5NQ0-ZYlcXiDeTvpicrhELnBWw36Ot-VMIBkTgzQk_qwVKvXd4kE4qL47PSdZlwlvzljM1b3CMYg3ZWD7iVpXHJjXgnswsSgXUM_n3v-MuEknupsNwErFJmHm2JknF4FR9FElyeY6Pg4X0VFD0NqsI27Z83-1WRayFgqoptOEP0zK62EL",
+    "affiliation": "CSE-core ",
+    "email": "priyanshushaurya9431@gmail.com",
+    "image": "https://i.ibb.co/tTNPdw2k/1000085349.jpg",
     "order": 6,
     "showOnHome": true,
     "socialLinks": {
-      "linkedin": "",
-      "github": "",
+      "linkedin": "https://www.linkedin.com/in/priyanshu-shaurya-3ba575380/",
+      "github": "https://github.com/rishushaurya?tab=overview&from=2026-07-01&to=2026-07-31",
       "instagram": ""
     },
-    "imageFit": "cover",
+    "imageFit": "contain",
     "imagePosition": "center",
     "homeImage": ""
   }

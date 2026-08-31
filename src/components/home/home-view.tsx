@@ -314,10 +314,34 @@ export function HomeView({
               year: "numeric",
             });
 
-            const isEnded = evt.status === "ended" || evt.isRegistrationOpen === false;
-            const isFutureStart = evt.isRegistrationOpen === false && !!evt.registrationStartDate && new Date(evt.registrationStartDate).getTime() > Date.now();
-            const isPastDeadline = !isFutureStart && evt.registrationDeadline && new Date(evt.registrationDeadline).getTime() < Date.now();
-            const isClosed = isEnded || isPastDeadline;
+            const getEventRegistrationStatus = (e: EventData) => {
+              const now = Date.now();
+              if (e.status === "ended") {
+                return { canApply: false, label: e.closedMessage || "Applications Closed", reason: "ended" };
+              }
+              if (e.registrationStartDate) {
+                const startTime = new Date(e.registrationStartDate).getTime();
+                if (!isNaN(startTime) && startTime > now) {
+                  return { canApply: false, label: "Opening Soon", reason: "future" };
+                }
+              }
+              if (e.registrationDeadline) {
+                const deadlineTime = new Date(e.registrationDeadline).getTime();
+                if (!isNaN(deadlineTime) && deadlineTime <= now) {
+                  return { canApply: false, label: e.closedMessage || "Applications Closed", reason: "deadline_passed" };
+                }
+              }
+              if (e.isRegistrationOpen === false) {
+                return { canApply: false, label: e.closedMessage || "Applications Closed", reason: "closed" };
+              }
+              return {
+                canApply: true,
+                label: e.registrationMode === "external" ? "Register (External)" : "Register",
+                reason: "open",
+              };
+            };
+
+            const regStatus = getEventRegistrationStatus(evt);
 
             return (
               <div
@@ -329,7 +353,7 @@ export function HomeView({
                   <div className="flex items-center justify-between">
                     <span
                       className={`px-3 py-1 rounded-full text-[10px] font-jetbrains font-bold uppercase tracking-wider ${
-                        isClosed
+                        !regStatus.canApply
                           ? "bg-[#2D2E2A]/10 text-[#5F6360]"
                           : "bg-[#ECFF17] text-[#2D2E2A] border border-[#2D2E2A]/20"
                       }`}
@@ -373,19 +397,16 @@ export function HomeView({
 
                 {/* Registration Button */}
                 <div className="pt-6 mt-4 border-t border-[#C6CCBD]/60">
-                  {isClosed ? (
+                  {!regStatus.canApply ? (
                     <button
                       disabled
-                      className="w-full py-3 px-6 rounded-full bg-[#C6CCBD]/40 text-[#7A836F] font-jetbrains font-bold text-xs uppercase tracking-wider cursor-not-allowed border-none"
+                      className={`w-full py-3 px-6 rounded-full font-jetbrains font-bold text-xs uppercase tracking-wider cursor-not-allowed ${
+                        regStatus.reason === "future"
+                          ? "bg-[#ECFF17]/40 text-[#2D2E2A] border border-[#2D2E2A]/20"
+                          : "bg-[#C6CCBD]/40 text-[#7A836F] border-none"
+                      }`}
                     >
-                      <span>{evt.closedMessage || "Applications Closed"}</span>
-                    </button>
-                  ) : isFutureStart ? (
-                    <button
-                      disabled
-                      className="w-full py-3 px-6 rounded-full bg-[#ECFF17]/40 text-[#2D2E2A] font-jetbrains font-bold text-xs uppercase tracking-wider cursor-not-allowed border border-[#2D2E2A]/20"
-                    >
-                      <span>Opening Soon</span>
+                      <span>{regStatus.label}</span>
                     </button>
                   ) : evt.registrationMode === "external" && (evt.externalRegistrationUrl || evt.googleFormUrl) ? (
                     <a
