@@ -385,18 +385,18 @@ export function WixBoldHomeView({
             </div>
           </div>
 
-          {/* Script / Calligraphic Headline: 𝐹𝒪𝑅𝒢𝐼𝒩𝒢 𝒯𝐻𝐸 𝐹𝒰𝒯𝒰𝑅𝐸 𝒪𝐹 𝐸𝒩𝒯𝑅𝐸𝒫𝑅𝐸𝒩𝐸𝒰𝑅𝒮𝐻𝐼𝒫 & 𝒜𝑅𝒯𝐼𝐹𝐼𝒞𝐼𝒜𝐿 𝐼𝒩𝒯𝐸𝐿𝐿𝐼𝒢𝐸𝒩𝒞𝐸 */}
+          {/* Script / Calligraphic Headline */}
           <div className="space-y-8 pl-2 sm:pl-8 md:pl-12 lg:pl-16">
-            <h1 className="text-2xl sm:text-4xl md:text-[46px] font-serif font-normal tracking-wide text-[#2D2E2A] leading-[1.3] max-w-4xl selection:bg-[#2D2E2A] selection:text-[#FFFFE9]">
-              <span className="block text-3xl sm:text-5xl md:text-[52px] tracking-wider mb-2">
-                𝐹𝒪𝑅𝒢𝐼𝒩𝒢 𝒯𝐻𝐸 𝐹𝒰𝒯𝒰𝑅𝐸 𝒪𝐹
+            <h1 className="text-[22px] sm:text-4xl md:text-[46px] font-serif italic font-normal tracking-wide text-[#2D2E2A] leading-[1.35] max-w-4xl selection:bg-[#2D2E2A] selection:text-[#FFFFE9] break-words [overflow-wrap:break-word] [word-break:break-word]">
+              <span className="block text-[26px] sm:text-5xl md:text-[52px] tracking-wider mb-2">
+                FORGING THE FUTURE OF
               </span>
-              <span className="italic underline decoration-[#2D2E2A]/30 decoration-1 underline-offset-8">
-                𝐸𝒩𝒯𝑅𝐸𝒫𝑅𝐸𝒩𝐸𝒰𝑅𝒮𝐻𝐼𝒫
+              <span className="underline decoration-[#2D2E2A]/30 decoration-1 underline-offset-8">
+                ENTREPRENEURSHIP
               </span>{" "}
               &amp;{" "}
               <span className="tracking-wide">
-                𝒜𝑅𝒯𝐼𝐹𝐼𝒞𝐼𝒜𝐿 𝐼𝒩𝒯𝐸𝐿𝐿𝐼𝒢𝐸𝒩𝒞𝐸
+                ARTIFICIAL INTELLIGENCE
               </span>
             </h1>
 
