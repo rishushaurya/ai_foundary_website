@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { TeamMember, SiteSettings } from "@/lib/data";
 import { normalizeImageUrl } from "@/lib/image-helper";
+import Link from "next/link";
 import {
   Sparkles,
   Mail,
@@ -11,6 +12,8 @@ import {
   ShieldCheck,
   Search,
   ExternalLink,
+  Trophy,
+  ArrowRight,
 } from "lucide-react";
 import { LinkedinIcon, GithubIcon, InstagramIcon, TwitterIcon } from "@/components/ui/icons";
 
@@ -98,19 +101,30 @@ export function NewTeamView({
             Meet the minds behind AI Foundry &amp; RAISE AI CLUB — faculty mentors, executive leadership, and functional student wings shaping the frontier of artificial intelligence.
           </p>
 
-          {/* Quick Metrics */}
-          <div className="flex items-center gap-6 pt-4 text-xs font-jetbrains text-[#5E6059]">
-            <span>
-              <strong className="text-[#2D2E2A] font-bold">{faculty.length}</strong> Faculty Mentors
-            </span>
-            <span className="text-[#C6CCBD]">•</span>
-            <span>
-              <strong className="text-[#2D2E2A] font-bold">{executives.length}</strong> Executive Board
-            </span>
-            <span className="text-[#C6CCBD]">•</span>
-            <span>
-              <strong className="text-[#2D2E2A] font-bold">{wings.length}</strong> Student Leads
-            </span>
+          {/* Quick Metrics & Live Tournament Action */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 w-full">
+            <div className="flex items-center gap-6 text-xs font-jetbrains text-[#5E6059]">
+              <span>
+                <strong className="text-[#2D2E2A] font-bold">{faculty.length}</strong> Faculty Mentors
+              </span>
+              <span className="text-[#C6CCBD]">•</span>
+              <span>
+                <strong className="text-[#2D2E2A] font-bold">{executives.length}</strong> Executive Board
+              </span>
+              <span className="text-[#C6CCBD]">•</span>
+              <span>
+                <strong className="text-[#2D2E2A] font-bold">{wings.length}</strong> Student Leads
+              </span>
+            </div>
+
+            <Link
+              href="/leaderboard"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2D2E2A] text-[#FFFFE9] hover:text-[#ECFF17] text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer shadow-xs"
+            >
+              <Trophy className="size-3.5 text-[#ECFF17]" />
+              <span>Live Tournament Arena</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
           </div>
         </section>
 

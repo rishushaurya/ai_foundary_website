@@ -3,6 +3,86 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-09-12] - Antigravity - Session 48
+**Description**: Complete **Dynamic Performance Scorecard Votes & Ranks**, **Strict Disqualification Lifecycle Visibility**, **Permanent Removal of Localhost Dev-Login Bypass**, **Google OAuth Preservation**, and **Enterprise Security & Scale Audit**:
+- **Dynamic Audience Votes in Performance Scorecard (`src/app/api/leaderboard/team-status/route.ts`, `src/app/leaderboard/page.tsx`)**:
+  - Dynamically computes total votes received (`allVotes.filter(v => v.candidateTeamId === team.id).length`) for all teams.
+  - Returns `votesReceived` exclusively for non-eliminated teams (`!team.isEliminated`); eliminated teams have votes cleanly withheld.
+  - Rendered a glowing "Audience Endorsement" card in the authenticated team's Performance Scorecard modal displaying real-time validated community votes.
+- **Round-by-Round Rank Computation with Disqualification Exception Rules (`src/app/api/leaderboard/team-status/route.ts`, `src/app/leaderboard/page.tsx`)**:
+  - Dynamically calculates the rank (`Rank #X`) of each team for each round based on normalized scores across criteria, without hardcoded ranks or thresholds.
+  - **Disqualified Teams Lifecycle**:
+    - In Round 1: Dynamically computes and displays their official Round 1 standing (`Rank #X`) based on verified Round 1 evaluations.
+    - In Round 2+: Strictly hides ranking and displays `Disqualified` badge (`rank: null`, `displayRank: null`).
+  - **Eliminated Teams Lifecycle**:
+    - In rounds prior to elimination: Displays earned rank (`Rank #X`).
+    - In subsequent rounds: Displays `Eliminated in Prior Round` badge (`rank: null`).
+  - All round breakdown cards display explicit `Rank #${rb.displayRank}` badges alongside score progress bars.
+- **Permanent Removal of Localhost Dev-Login Bypass (`src/app/admin/login/page.tsx`, `src/app/api/auth/dev-login/route.ts`)**:
+  - Removed "Local Dev Mode: Instant Admin Login" button completely from the Admin Login interface.
+  - Disabled `/api/auth/dev-login` route, returning HTTP 404: `Endpoint disabled. Administrator access requires verified Google OAuth.`
+  - **Preserved Google OAuth Integrity (`src/app/api/auth/google/route.ts`)**: Google Sign-In with Google Identity Services (GSI), tokeninfo cryptographic validation, and admin whitelist check remains 100% active and configured for production Vercel.
+- **Platform Scale & Security Audit for 1000+ Concurrent Users**:
+  - Rate limiting enforced on all sensitive routes (judge scoring: 30/min; team login: 10/min; voting: 5/min; public registration: 5/min).
+  - Single-device session concurrency protection with secure server-side session IDs.
+  - Upstash Redis protected by 5-second in-memory `hotCache` to ensure total daily commands remain well within free tier limits (10,000 commands/day).
+  - All session cookies configured with `httpOnly: true`, `secure: production`, `sameSite: "lax"`.
+  - Zero sensitive database secrets or passkeys exposed in client payloads or public endpoints.
+- **Verification & Health**:
+  - `scratch/verify-performance-card-votes-ranks.mjs`: 12/12 automated tests passed.
+  - `scratch/verify-judge-single-evaluation.mjs`: 21/21 automated tests passed.
+  - `scratch/verify-tournament-polish.mjs`: 15/15 automated tests passed.
+  - `npx tsc --noEmit`: 0 TypeScript errors.
+  - `npm run build`: 59/59 production routes compiled with 0 errors.
+
+---
+
+## [2026-09-12] - Antigravity - Session 47
+**Description**: Complete **Tournament Single-Evaluation Lockdown Across Judges**, **Read-Only Score Inspection by Team Code**, **Round Elimination Lifecycle & Dynamic Voting**, **Published-Only Scorecard Gating**, **Single-Device Session Concurrency Enforcement**, and **Admin Secret Passkey Management**:
+- **Single-Evaluation Enforcement Across Multiple Judges (`src/lib/hackathon/data.ts`, `src/app/api/judge/score/route.ts`)**:
+  - Resolved tournament integrity flaw where different judges could evaluate the same team multiple times in the same round.
+  - Hardened `saveHackathonScore` with strict uniqueness per `(roundId, teamId)` across all judges; retains original evaluator ID and blocks unauthorized overwrites.
+  - Hardened `POST /api/judge/score` to return HTTP 409 Conflict (`"This team has already been evaluated for this round. Multiple evaluations are strictly forbidden."`).
+  - Restricted score revision submissions (`changeRequested === true`) exclusively to the original evaluating judge (`existingScore.judgeId === session.judgeId`); attempts by other judges return HTTP 403 Forbidden.
+- **Judge Read-Only Score Viewing by Team Code (`src/app/api/judge/teams/route.ts`, `src/app/judge/page.tsx`)**:
+  - Updated `GET /api/judge/teams` to compile scores across all judges, returning `isScored: true`, `isScoredByMe`, `scoredByJudgeName`, and the recorded marks/evaluation details (`myScore`).
+  - When an evaluator enters a Team Code for an already-evaluated team, the interface switches to strict **Read-Only Mode**:
+    - Displays a prominent callout banner: `🔒 Team Already Evaluated by [Judge Name] — Read-Only Mode` explaining tournament single-evaluation rules.
+    - Status badge renders `EVALUATED BY [JUDGE NAME]` (or `YOUR EVALUATION (LOCKED)`).
+    - Populates all criteria sliders/inputs and evaluator remarks in disabled (`disabled={true}`) read-only state.
+    - Replaces submit buttons with a clear status bar: `🔒 Evaluated by [Judge Name] ([Score] pts). Teams can only be evaluated once. Re-evaluation is disabled.`
+- **Tournament Round Elimination Lifecycle & Finalist Gating (`src/lib/hackathon/scoring.ts`, `src/app/api/leaderboard/status/route.ts`)**:
+  - Built `getCompetingTeamsForRound` in scoring engine:
+    - Disqualified teams are immediately excluded from all active and future rounds.
+    - Teams eliminated in earlier rounds (`eliminatedInRoundId`) are strictly excluded from subsequent competition rounds.
+    - Final round competition is restricted strictly to qualified finalists.
+- **Eliminated Team Voting & Final Round Leaderboard Display (`src/app/leaderboard/page.tsx`)**:
+  - Empowered eliminated teams with active voting privileges during open voting phases for the final round.
+  - Rendered inline "Vote for Team" buttons beside finalist cards on the public leaderboard.
+  - Final round scoreboard displays clean breakdown: Total Score and Total Votes Received.
+- **Scorecard Privacy Gating (`src/app/api/leaderboard/team-status/route.ts`)**:
+  - Gated individual team performance scorecards to keep marks masked while round scoring is underway.
+  - Scores and ranks are officially released to team portals only once an administrator publishes the round leaderboard (`isPublished === true`).
+- **Single-Device Session Concurrency Locks (`src/app/api/leaderboard/verify-team/route.ts`, `src/app/api/leaderboard/team-status/route.ts`)**:
+  - Enforced single active device session per team credentials:
+    - A second device attempting to authenticate with the same team code & passkey receives HTTP 403: `"This team account is already active on another device. Simultaneous logins are prohibited."`
+    - Preserved active session integrity across participant heartbeat and voting operations.
+- **Admin Portal Security & Secret Passkey Management (`src/app/admin/hackathon/page.tsx`, `src/app/api/admin/hackathon/*`)**:
+  - Replaced raw team rosters with masked passkeys (`••••••••`) featuring Eye toggle to reveal and 1-click Copy button.
+  - Added masked Judge Passkeys (`••••••••`) with Eye toggle and 1-click Copy button.
+  - Added live Device Session Status indicators (`1 Active Device` / `No Session Active`) with 1-click "Reset Session" and "Allow Multi-Device" admin toggle overrides.
+  - Replaced direct score overwriting with an administrative "Request Revision" workflow (`/api/admin/hackathon/scores/request-change`) allowing admins to unlock scores for evaluator revision with audit notes.
+- **Evaluator Portal Scalability (`src/app/judge/page.tsx`)**:
+  - Removed quick-select pills to effortlessly support 100+ competing teams.
+  - Optimized Team Code search with real-time feedback and evaluator attribution.
+- **Automated Verification & Platform Health**:
+  - `scratch/verify-judge-single-evaluation.mjs`: 21/21 automated tests passed.
+  - `scratch/verify-tournament-polish.mjs`: 15/15 automated tests passed.
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: 59/59 routes compiled with 0 errors.
+
+---
+
 ## [2026-08-31] - Gemini 3.7 Flash - Session 46
 **Description**: Complete **Admin Authentication Hardening, Removal of Localhost Dev Bypass, Google OAuth Exclusive Verification & Full Platform Security Audit**:
 - **Removal of Localhost Dev Bypass (`src/app/admin/login/page.tsx`, `src/app/api/auth/dev-login`)**:

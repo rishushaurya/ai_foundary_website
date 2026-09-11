@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { Trophy } from "lucide-react";
 import { EventsPageProps } from "../types";
 import { RegistrationModal } from "@/components/ui/registration-modal";
 import { EventData } from "@/lib/data";
@@ -197,6 +199,14 @@ export function WixBoldEventsPage({ events }: EventsPageProps) {
                 {tab.label}
               </button>
             ))}
+
+            <Link
+              href="/leaderboard"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#ECFF17] text-[#2D2E2A] hover:bg-[#d8ea13] transition-all cursor-pointer shadow-xs"
+            >
+              <Trophy className="size-3" />
+              <span>Live Leaderboard</span>
+            </Link>
           </div>
         </div>
 

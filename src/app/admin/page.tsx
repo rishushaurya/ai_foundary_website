@@ -13,6 +13,7 @@ import {
   Sparkles,
   Layers,
   Shield,
+  Trophy,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -98,6 +99,29 @@ export default async function AdminDashboardPage() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <Link
+            href="/admin/hackathon"
+            className="flex items-center justify-between p-5 rounded-2xl border-2 border-cyan-500/30 bg-cyan-50/40 hover:bg-cyan-50/70 hover:border-cyan-500/70 shadow-xs transition-all group no-underline text-slate-900 sm:col-span-2"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="size-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Trophy className="size-5" />
+              </div>
+              <div>
+                <span className="font-bold text-sm block text-slate-900 mb-0.5 flex items-center gap-2">
+                  <span>Hackathon &amp; Leaderboard Management</span>
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-600 text-[10px] font-extrabold text-white uppercase tracking-wider">
+                    NEW
+                  </span>
+                </span>
+                <span className="text-slate-600 text-xs">
+                  Create events, configure rounds &amp; criteria, register teams, manage judges &amp; live voting
+                </span>
+              </div>
+            </div>
+            <ArrowRight className="size-4 text-cyan-600 group-hover:translate-x-1 transition-all" />
+          </Link>
+
           <Link
             href="/admin/landing"
             className="flex items-center justify-between p-5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-cyan-500/50 shadow-xs transition-all group no-underline text-slate-900"

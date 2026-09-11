@@ -1,0 +1,24 @@
+[
+  {
+    "id": "round-event-1789155565229-1-1789155616462",
+    "eventId": "event-1789155565229",
+    "roundNumber": 1,
+    "name": "Round 1",
+    "type": "qualifier",
+    "status": "scoring",
+    "isElimination": true,
+    "isPublished": true,
+    "createdAt": "2026-09-11T19:40:16.502Z"
+  },
+  {
+    "id": "round-event-1789155565229-2-1789155624704",
+    "eventId": "event-1789155565229",
+    "roundNumber": 2,
+    "name": "Round 2",
+    "type": "final",
+    "status": "completed",
+    "isElimination": true,
+    "isPublished": true,
+    "createdAt": "2026-09-11T19:40:25.104Z"
+  }
+]

@@ -1,0 +1,500 @@
+[
+  {
+    "eventId": "event-1789155565229",
+    "action": "Participant Team Verified",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155583286-knn6",
+    "details": {
+      "teamCode": "TEAM-802",
+      "ip": "::1"
+    },
+    "id": "log-1789158085043-ntca5",
+    "timestamp": "2026-09-11T20:21:25.043Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Participant Team Verified",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155570918-m35a",
+    "details": {
+      "teamCode": "TEAM-220",
+      "ip": "::1"
+    },
+    "id": "log-1789157204827-4o662",
+    "timestamp": "2026-09-11T20:06:44.827Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Round Advancement Executed",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "completedRound": "Round 2",
+      "nextRound": "Finalized",
+      "advancedCount": 2,
+      "eliminatedCount": 0
+    },
+    "id": "log-1789156636905-6sray",
+    "timestamp": "2026-09-11T19:57:16.905Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Round Advancement Executed",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "completedRound": "Round 2",
+      "nextRound": "Finalized",
+      "advancedCount": 1,
+      "eliminatedCount": 1
+    },
+    "id": "log-1789156609565-kxvhx",
+    "timestamp": "2026-09-11T19:56:49.565Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Round Round 2 scores Published Live"
+      ]
+    },
+    "id": "log-1789156595455-dglnp",
+    "timestamp": "2026-09-11T19:56:35.455Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Voting Closed"
+      ]
+    },
+    "id": "log-1789156587053-3thji",
+    "timestamp": "2026-09-11T19:56:27.053Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Vote Cast",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155583286-knn6",
+    "details": {
+      "candidateTeamId": "team-event-1789155565229-1789155577741-7o3n",
+      "candidateName": "adsdsa",
+      "ip": "::1"
+    },
+    "id": "log-1789156557938-jwmom",
+    "timestamp": "2026-09-11T19:55:57.938Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Participant Team Verified",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155583286-knn6",
+    "details": {
+      "teamCode": "TEAM-802",
+      "ip": "::1"
+    },
+    "id": "log-1789156528519-bc0si",
+    "timestamp": "2026-09-11T19:55:28.519Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Participant Team Verified",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155577741-7o3n",
+    "details": {
+      "teamCode": "TEAM-738",
+      "ip": "::1"
+    },
+    "id": "log-1789156480904-jy1fl",
+    "timestamp": "2026-09-11T19:54:40.904Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Voting Opened"
+      ]
+    },
+    "id": "log-1789156434054-pice1",
+    "timestamp": "2026-09-11T19:53:54.054Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Score Submitted",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155590348-cuoe",
+    "details": {
+      "teamId": "team-event-1789155565229-1789155577741-7o3n",
+      "teamCode": "TEAM-738",
+      "roundId": "round-event-1789155565229-2-1789155624704",
+      "normalizedScore": 40
+    },
+    "id": "log-1789156413309-6xlf9",
+    "timestamp": "2026-09-11T19:53:33.309Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Score Submitted",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155590348-cuoe",
+    "details": {
+      "teamId": "team-event-1789155565229-1789155570918-m35a",
+      "teamCode": "TEAM-220",
+      "roundId": "round-event-1789155565229-2-1789155624704",
+      "normalizedScore": 42.5
+    },
+    "id": "log-1789156393295-vbvgt",
+    "timestamp": "2026-09-11T19:53:13.295Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Round Round 2 status -> scoring"
+      ]
+    },
+    "id": "log-1789156354728-scf8n",
+    "timestamp": "2026-09-11T19:52:34.728Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Round Round 1 scores Published Live"
+      ]
+    },
+    "id": "log-1789156172328-rscwj",
+    "timestamp": "2026-09-11T19:49:32.328Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Round Advancement Executed",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "completedRound": "Round 1",
+      "nextRound": "Round 2",
+      "advancedCount": 2,
+      "eliminatedCount": 1
+    },
+    "id": "log-1789156135513-c5l9k",
+    "timestamp": "2026-09-11T19:48:55.513Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Active round -> round-event-1789155565229-1-1789155616462"
+      ]
+    },
+    "id": "log-1789156121103-xdk0b",
+    "timestamp": "2026-09-11T19:48:41.103Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Score Submitted",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155590348-cuoe",
+    "details": {
+      "teamId": "team-event-1789155565229-1789155583286-knn6",
+      "teamCode": "TEAM-802",
+      "roundId": "round-event-1789155565229-1-1789155616462",
+      "normalizedScore": 30
+    },
+    "id": "log-1789156097970-3gmiz",
+    "timestamp": "2026-09-11T19:48:17.970Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Score Submitted",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155590348-cuoe",
+    "details": {
+      "teamId": "team-event-1789155565229-1789155577741-7o3n",
+      "teamCode": "TEAM-738",
+      "roundId": "round-event-1789155565229-1-1789155616462",
+      "normalizedScore": 85
+    },
+    "id": "log-1789156075846-4fxs6",
+    "timestamp": "2026-09-11T19:47:55.846Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Score Submitted",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155867123-h22z",
+    "details": {
+      "teamId": "team-event-1789155565229-1789155570918-m35a",
+      "teamCode": "TEAM-220",
+      "roundId": "round-event-1789155565229-1-1789155616462",
+      "normalizedScore": 60
+    },
+    "id": "log-1789155951693-34npn",
+    "timestamp": "2026-09-11T19:45:51.693Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Judge Login Successful",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155867123-h22z",
+    "details": {
+      "email": "sagarbitian@gmail.com",
+      "ip": "::1"
+    },
+    "id": "log-1789155879665-1d3ca",
+    "timestamp": "2026-09-11T19:44:39.665Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Judge Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "name": "YE",
+      "email": "sagarbitian@gmail.com"
+    },
+    "id": "log-1789155867655-rf6wu",
+    "timestamp": "2026-09-11T19:44:27.655Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Score Submitted",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155590348-cuoe",
+    "details": {
+      "teamId": "team-event-1789155565229-1789155570918-m35a",
+      "teamCode": "TEAM-220",
+      "roundId": "round-event-1789155565229-1-1789155616462",
+      "normalizedScore": 65
+    },
+    "id": "log-1789155835023-z3om4",
+    "timestamp": "2026-09-11T19:43:55.023Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event State Modified",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "updates": [
+        "Round Round 1 status -> scoring"
+      ]
+    },
+    "id": "log-1789155811699-5jwao",
+    "timestamp": "2026-09-11T19:43:31.699Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Judge Login Successful",
+    "actorType": "judge",
+    "actorId": "judge-event-1789155565229-1789155590348-cuoe",
+    "details": {
+      "email": "noi@gmail.com",
+      "ip": "::1"
+    },
+    "id": "log-1789155782511-drkp1",
+    "timestamp": "2026-09-11T19:43:02.511Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Updated",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-220",
+      "teamName": "sad"
+    },
+    "id": "log-1789155751877-4w8ph",
+    "timestamp": "2026-09-11T19:42:31.877Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Updated",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-220",
+      "teamName": "sad"
+    },
+    "id": "log-1789155746301-0doe8",
+    "timestamp": "2026-09-11T19:42:26.301Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Updated",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-220",
+      "teamName": "sad"
+    },
+    "id": "log-1789155742356-g5h8o",
+    "timestamp": "2026-09-11T19:42:22.356Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Participant Team Verified",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155570918-m35a",
+    "details": {
+      "teamCode": "TEAM-220",
+      "ip": "::1"
+    },
+    "id": "log-1789155731838-7afgr",
+    "timestamp": "2026-09-11T19:42:11.838Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Updated",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-220",
+      "teamName": "sad"
+    },
+    "id": "log-1789155723950-52xr7",
+    "timestamp": "2026-09-11T19:42:03.950Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Participant Team Verified",
+    "actorType": "participant",
+    "actorId": "team-event-1789155565229-1789155570918-m35a",
+    "details": {
+      "teamCode": "TEAM-220",
+      "ip": "::1"
+    },
+    "id": "log-1789155669872-q2e7n",
+    "timestamp": "2026-09-11T19:41:09.872Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Round Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "name": "Round 2",
+      "roundNumber": 2,
+      "status": "pending"
+    },
+    "id": "log-1789155625421-vbc7o",
+    "timestamp": "2026-09-11T19:40:25.421Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Round Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "name": "Round 1",
+      "roundNumber": 1,
+      "status": "pending"
+    },
+    "id": "log-1789155616638-bxjww",
+    "timestamp": "2026-09-11T19:40:16.638Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Criteria Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "name": "sdds",
+      "maxMarks": 10,
+      "roundId": ""
+    },
+    "id": "log-1789155613415-ilwgj",
+    "timestamp": "2026-09-11T19:40:13.415Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Criteria Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "name": "SWSA",
+      "maxMarks": 10,
+      "roundId": ""
+    },
+    "id": "log-1789155610111-z7kau",
+    "timestamp": "2026-09-11T19:40:10.111Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Judge Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "name": "adssa",
+      "email": "noi@gmail.com"
+    },
+    "id": "log-1789155591040-o5cep",
+    "timestamp": "2026-09-11T19:39:51.040Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-802",
+      "teamName": "adsdasdsa"
+    },
+    "id": "log-1789155584001-542zp",
+    "timestamp": "2026-09-11T19:39:44.001Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-738",
+      "teamName": "adsdsa"
+    },
+    "id": "log-1789155578384-kcy5b",
+    "timestamp": "2026-09-11T19:39:38.384Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Team Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "teamCode": "TEAM-220",
+      "teamName": "sad"
+    },
+    "id": "log-1789155571648-fcyjw",
+    "timestamp": "2026-09-11T19:39:31.648Z"
+  },
+  {
+    "eventId": "event-1789155565229",
+    "action": "Event Created",
+    "actorType": "admin",
+    "actorId": "admin",
+    "details": {
+      "title": "24",
+      "status": "draft"
+    },
+    "id": "log-1789155565715-w83y9",
+    "timestamp": "2026-09-11T19:39:25.715Z"
+  }
+]

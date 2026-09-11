@@ -1,0 +1,18 @@
+[
+  {
+    "id": "crit-1789155609393-cans",
+    "eventId": "event-1789155565229",
+    "roundId": "",
+    "name": "SWSA",
+    "maxMarks": 10,
+    "weight": 1
+  },
+  {
+    "id": "crit-1789155613274-u8wx",
+    "eventId": "event-1789155565229",
+    "roundId": "",
+    "name": "sdds",
+    "maxMarks": 10,
+    "weight": 1
+  }
+]

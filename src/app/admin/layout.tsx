@@ -18,6 +18,7 @@ import {
   Loader2,
   ShieldCheck,
   Palette,
+  Trophy,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -90,6 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Hackathons", href: "/admin/hackathon", icon: Trophy },
     { label: "Design Switcher", href: "/admin/designs", icon: Palette },
     { label: "Landing Page", href: "/admin/landing", icon: Sparkles },
     { label: "Events & Sprints", href: "/admin/events", icon: Calendar },
@@ -146,7 +148,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               {navLinks.map((link) => {
                 const Icon = link.icon;
-                const isActive = pathname === link.href;
+                const isActive =
+                  pathname === link.href ||
+                  (link.href !== "/admin" && pathname.startsWith(link.href));
                 return (
                   <Link
                     key={link.href}

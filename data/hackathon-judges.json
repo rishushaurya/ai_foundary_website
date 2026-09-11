@@ -1,0 +1,22 @@
+[
+  {
+    "id": "judge-event-1789155565229-1789155590348-cuoe",
+    "eventId": "event-1789155565229",
+    "name": "adssa",
+    "email": "noi@gmail.com",
+    "accessCodeHash": "$2b$10$dQc5DscaqPYXUoFnlYJLNunjVqGgusw1NoAvRDGBpq80cE9suIF1O",
+    "accessCode": "GVVGYR",
+    "active": true,
+    "createdAt": "2026-09-11T19:39:50.701Z"
+  },
+  {
+    "id": "judge-event-1789155565229-1789155867123-h22z",
+    "eventId": "event-1789155565229",
+    "name": "YE",
+    "email": "sagarbitian@gmail.com",
+    "accessCodeHash": "$2b$10$BWidOVqHQrkh0x.3zYB5j.6KvZcSdtooVd4mlysO6yRmQpL04TIpq",
+    "accessCode": "K7PE7G",
+    "active": true,
+    "createdAt": "2026-09-11T19:44:27.338Z"
+  }
+]

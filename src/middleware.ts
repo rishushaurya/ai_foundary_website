@@ -43,6 +43,25 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Protect /judge routes (except /judge/login)
+  if (pathname.startsWith("/judge") && pathname !== "/judge/login") {
+    const judgeToken = request.cookies.get("judge-session")?.value;
+    if (!judgeToken) {
+      return NextResponse.redirect(new URL("/judge/login", request.url));
+    }
+    try {
+      const { payload } = await jwtVerify(judgeToken, JWT_SECRET);
+      if (payload.role !== "judge") {
+        throw new Error("Invalid role");
+      }
+      return NextResponse.next();
+    } catch {
+      const response = NextResponse.redirect(new URL("/judge/login", request.url));
+      response.cookies.set("judge-session", "", { maxAge: 0, path: "/" });
+      return response;
+    }
+  }
+
   return NextResponse.next();
 }
 
@@ -52,5 +71,7 @@ export const config = {
     "/admin/:path*",
     "/api/admin",
     "/api/admin/:path*",
+    "/judge",
+    "/judge/:path*",
   ],
 };

@@ -1,0 +1,48 @@
+[
+  {
+    "id": "team-event-1789155565229-1789155570918-m35a",
+    "eventId": "event-1789155565229",
+    "teamCode": "TEAM-220",
+    "teamName": "sad",
+    "members": [],
+    "verificationCodeHash": "$2b$10$bgk1wrRG4i6yPswLhq/hTukl4K/37CF6xEsfypdK2Lxptjyre.mUu",
+    "passkey": "DUJJIM",
+    "allowMultipleLogins": false,
+    "isEliminated": false,
+    "finalist": true,
+    "disqualified": false,
+    "createdAt": "2026-09-11T19:39:31.296Z",
+    "eliminatedInRoundId": "round-event-1789155565229-2-1789155624704",
+    "lastLoginAt": "2026-09-11T20:06:43.296Z"
+  },
+  {
+    "id": "team-event-1789155565229-1789155577741-7o3n",
+    "eventId": "event-1789155565229",
+    "teamCode": "TEAM-738",
+    "teamName": "adsdsa",
+    "members": [],
+    "verificationCodeHash": "$2b$10$qONbjLGYucak90x30wOLG.u/DI01s14ybXf7o1TMEnm0lcwRl6KUK",
+    "passkey": "ZKYTSM",
+    "isEliminated": false,
+    "finalist": true,
+    "disqualified": false,
+    "createdAt": "2026-09-11T19:39:38.129Z",
+    "lastLoginAt": "2026-09-11T19:54:39.091Z"
+  },
+  {
+    "id": "team-event-1789155565229-1789155583286-knn6",
+    "eventId": "event-1789155565229",
+    "teamCode": "TEAM-802",
+    "teamName": "adsdasdsa",
+    "members": [],
+    "verificationCodeHash": "$2b$10$BYCAWhollZ6sQrbEewPO1.JMcGzlWgLYVyEaOS9MVsvJ/OyZyyIv.",
+    "passkey": "W3DH25",
+    "isEliminated": true,
+    "finalist": false,
+    "disqualified": false,
+    "createdAt": "2026-09-11T19:39:43.411Z",
+    "eliminatedInRoundId": "round-event-1789155565229-1-1789155616462",
+    "lastLoginAt": "2026-09-11T20:21:21.019Z",
+    "activeSessionId": "sess_1789158081019_issc47r"
+  }
+]

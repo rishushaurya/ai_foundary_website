@@ -188,6 +188,16 @@ export default function AdminLoginPage() {
             <p className="text-[11px] text-slate-400 text-center font-sans max-w-xs leading-relaxed pt-2">
               Google cryptographically verifies your identity. Only email accounts authorized in the administrator whitelist are granted access.
             </p>
+
+            {/* Judge Portal Link */}
+            <div className="pt-3 border-t border-white/10 w-full text-center">
+              <a
+                href="/judge/login"
+                className="inline-flex items-center justify-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-sans transition-colors font-semibold"
+              >
+                Hackathon Judge Portal &rarr;
+              </a>
+            </div>
           </div>
         </GlassCardContent>
       </GlassCard>

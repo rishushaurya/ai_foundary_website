@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { Trophy, ArrowRight } from "lucide-react";
 import { normalizeImageUrl } from "@/lib/image-helper";
 import { TeamViewProps } from "../types";
 
@@ -231,6 +233,17 @@ export function WixBoldTeamView({ faculty, executives, wings }: TeamViewProps) {
             Faculty mentors, executive founders, and student domain leads driving the
             AI Foundry innovation ecosystem at Dayananda Sagar University.
           </p>
+
+          <div className="pt-2">
+            <Link
+              href="/leaderboard"
+              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#2D2E2A] text-[#FFFFE9] hover:text-[#ECFF17] text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:shadow-md"
+            >
+              <Trophy className="size-3.5 text-[#ECFF17]" />
+              <span>Live Tournament Leaderboard</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 

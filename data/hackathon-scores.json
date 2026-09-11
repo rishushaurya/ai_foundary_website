@@ -1,0 +1,99 @@
+[
+  {
+    "id": "score-judge-event-1789155565229-1789155590348-cuoe-team-event-1789155565229-1789155570918-m35a-round-event-1789155565229-1-1789155616462",
+    "eventId": "event-1789155565229",
+    "roundId": "round-event-1789155565229-1-1789155616462",
+    "judgeId": "judge-event-1789155565229-1789155590348-cuoe",
+    "teamId": "team-event-1789155565229-1789155570918-m35a",
+    "criterionScores": {
+      "crit-1789155609393-cans": 7.5,
+      "crit-1789155613274-u8wx": 5.5
+    },
+    "totalMarksAwarded": 13,
+    "totalMaxPossible": 20,
+    "normalizedScore": 65,
+    "feedback": "Strong architectural foundation",
+    "submittedAt": "2026-09-11T19:43:54.836Z"
+  },
+  {
+    "id": "score-judge-event-1789155565229-1789155590348-cuoe-team-event-1789155565229-1789155577741-7o3n-round-event-1789155565229-1-1789155616462",
+    "eventId": "event-1789155565229",
+    "roundId": "round-event-1789155565229-1-1789155616462",
+    "judgeId": "judge-event-1789155565229-1789155590348-cuoe",
+    "teamId": "team-event-1789155565229-1789155577741-7o3n",
+    "criterionScores": {
+      "crit-1789155609393-cans": 10,
+      "crit-1789155613274-u8wx": 7
+    },
+    "totalMarksAwarded": 17,
+    "totalMaxPossible": 20,
+    "normalizedScore": 85,
+    "feedback": "Excellent execution and presentation",
+    "submittedAt": "2026-09-11T19:47:55.123Z"
+  },
+  {
+    "id": "score-judge-event-1789155565229-1789155590348-cuoe-team-event-1789155565229-1789155583286-knn6-round-event-1789155565229-1-1789155616462",
+    "eventId": "event-1789155565229",
+    "roundId": "round-event-1789155565229-1-1789155616462",
+    "judgeId": "judge-event-1789155565229-1789155590348-cuoe",
+    "teamId": "team-event-1789155565229-1789155583286-knn6",
+    "criterionScores": {
+      "crit-1789155609393-cans": 3.5,
+      "crit-1789155613274-u8wx": 2.5
+    },
+    "totalMarksAwarded": 6,
+    "totalMaxPossible": 20,
+    "normalizedScore": 30,
+    "feedback": "Prototype needs further refinement",
+    "submittedAt": "2026-09-11T19:48:17.248Z"
+  },
+  {
+    "id": "score-judge-event-1789155565229-1789155590348-cuoe-team-event-1789155565229-1789155570918-m35a-round-event-1789155565229-2-1789155624704",
+    "eventId": "event-1789155565229",
+    "roundId": "round-event-1789155565229-2-1789155624704",
+    "judgeId": "judge-event-1789155565229-1789155590348-cuoe",
+    "teamId": "team-event-1789155565229-1789155570918-m35a",
+    "criterionScores": {
+      "crit-1789155609393-cans": 4.5,
+      "crit-1789155613274-u8wx": 4
+    },
+    "totalMarksAwarded": 8.5,
+    "totalMaxPossible": 20,
+    "normalizedScore": 42.5,
+    "feedback": "Solid effort in finals",
+    "submittedAt": "2026-09-11T19:53:13.148Z"
+  },
+  {
+    "id": "score-judge-event-1789155565229-1789155590348-cuoe-team-event-1789155565229-1789155577741-7o3n-round-event-1789155624704",
+    "eventId": "event-1789155565229",
+    "roundId": "round-event-1789155565229-2-1789155624704",
+    "judgeId": "judge-event-1789155565229-1789155590348-cuoe",
+    "teamId": "team-event-1789155565229-1789155577741-7o3n",
+    "criterionScores": {
+      "crit-1789155609393-cans": 4.5,
+      "crit-1789155613274-u8wx": 3.5
+    },
+    "totalMarksAwarded": 8,
+    "totalMaxPossible": 20,
+    "normalizedScore": 40,
+    "feedback": "Good presentation in finals",
+    "submittedAt": "2026-09-11T19:53:33.212Z"
+  },
+  {
+    "id": "score-j1-team-single-eval-unit-round-1",
+    "eventId": "test-event-single-eval",
+    "roundId": "round-1",
+    "judgeId": "judge-alpha",
+    "teamId": "team-single-eval-unit",
+    "criterionScores": {
+      "crit-1": 15
+    },
+    "totalMarksAwarded": 15,
+    "totalMaxPossible": 20,
+    "normalizedScore": 75,
+    "feedback": "Initial evaluation by Judge Alpha",
+    "submittedAt": "2026-09-11T20:18:28.697Z",
+    "changeRequested": false,
+    "updatedAt": "2026-09-11T20:18:29.053Z"
+  }
+]
