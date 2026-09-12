@@ -3,6 +3,47 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-09-12] - Antigravity - Session 49
+**Description**: Complete **70/30 Scoring Formula Overhaul**, **Excel Export Suite (Teams 2-Sheet, Judges, Marks, Votes)**, **Universal & Per-Team Score Revision System ("Change Marks")**, **Audit Trail Admin Attribution**, **Root Admin Hierarchy & Irreversible Protection**, and **Secure Localhost Dev Authentication**:
+- **70/30 Scoring Formula Overhaul (`src/lib/hackathon/constants.ts`, `src/lib/hackathon/scoring.ts`, `src/app/leaderboard/page.tsx`, `src/app/admin/hackathon/page.tsx`)**:
+  - Updated tournament final round weights from 60/40 to **70/30**: 70% Evaluator Judge score + 30% Audience Votes score (`JUDGE_WEIGHT = 0.70`, `VOTE_WEIGHT = 0.30`).
+  - Updated all leaderboard calculations, final score normalizations, and public/admin descriptive text.
+- **Comprehensive Excel Export Suite (`src/lib/hackathon/excel-export.ts`, `src/app/api/admin/hackathon/export/route.ts`)**:
+  - Built high-fidelity workbook generators using `xlsx`:
+    - **Teams Workbook**: Generates a 2-sheet Excel file:
+      - Sheet 1: `Teams - Public Roster` (Sl No, Team Code, Team Name, Leader info, Members, Status, Stage - 100% sanitized with no passkeys).
+      - Sheet 2: `Credentials - Passkeys` (Team Code, Team Name, and confidential **Secret Passkey**, session status, and login metadata).
+    - **Judges Workbook**: Generates `Judges Directory` containing Judge Name, Email, Access Passkey, Status, and Created timestamp.
+    - **Marks Workbook**: Generates complete score matrix for each round or all rounds, including Official Rank, individual criteria point awards, average judge score, 70/30 final weighted calculation, evaluating judge name, and evaluator remarks.
+    - **Votes Workbook**: Generates `Audience Votes Audit` with timestamp, voter team code/name, candidate team code/name, and IP address.
+  - Added dedicated one-click **"Export Excel"** buttons across Teams, Judges, Scores Matrix, and Votes tabs in the Admin Hackathon console.
+- **Score Revision Architecture ("Change Marks") (`src/app/api/admin/hackathon/scores/request-change/route.ts`, `src/app/api/judge/score/route.ts`, `src/app/api/judge/teams/route.ts`, `src/app/judge/page.tsx`, `src/app/admin/hackathon/page.tsx`)**:
+  - Added dual revision scopes:
+    - **Universal (Round-wide)** toggle: Admin can enable revisions round-wide (`allowRevisions: true`), allowing all judges to revise/edit any team's scores in that round.
+    - **Per-Team Revision**: Admin can click "Change" on any specific score record to unlock only that team for re-evaluation.
+  - Judge Portal behavior:
+    - When unlocked, displays an amber **"⚠️ Score Revision Unlocked"** banner and a **"✏️ Edit Score"** button.
+    - Judge enters revised marks and clicks "Resubmit Revised Score".
+    - Backend accepts the revision (`allowUpdate = true`), replaces ONLY that team's score record, resets the change request flag, and leaves all other teams' scores completely intact.
+- **Audit Trail Attribution (`src/app/api/admin/hackathon/*`, `src/app/admin/hackathon/page.tsx`)**:
+  - Hackathon audit logs now capture the verified Admin email (`actorId: adminEmail`) for all tournament actions.
+  - Displayed in the Admin Security Trail with a distinct purple `Admin: [email]` badge.
+- **Root Admin Hierarchy & Irreversible Protection (`data/settings.json`, `src/lib/data.ts`, `src/app/api/admin/settings/route.ts`, `src/app/admin/settings/page.tsx`)**:
+  - Configured `rootAdminEmails` with `priyanshushaurya9431@gmail.com` as permanent Root Admin.
+  - Root admins have authority to promote standard admins to Root Admin.
+  - Root Admin status is strictly permanent and irreversible: deletion or demotion is blocked in `saveSettings` and API handlers.
+- **Temporary Localhost Dev Login (`src/app/api/auth/dev-login/route.ts`, `src/app/admin/login/page.tsx`)**:
+  - Added a convenient one-click dev login button on `/admin/login` that functions strictly on `localhost` / `127.0.0.1` (`NODE_ENV !== "production"`).
+  - Production security is strictly maintained: requests on production Vercel domains are blocked. Google OAuth integrity remains 100% active and untouched.
+- **Verification & Health**:
+  - `scripts/verify-full-features.mjs`: 100% passed (70/30 scoring, 2-sheet teams export, judges export, marks export, votes export).
+  - `scripts/verify-api-features.mjs`: 100% passed (Root admin protection, score revision isolation, dev login boundary).
+  - `npx tsc --noEmit`: 0 TypeScript errors.
+  - `npm run build`: 60/60 production routes compiled cleanly with 0 errors.
+  - Browser subagent verified localhost admin login and all export controls on Hackathon Admin dashboard.
+
+---
+
 ## [2026-09-12] - Antigravity - Session 48
 **Description**: Complete **Dynamic Performance Scorecard Votes & Ranks**, **Strict Disqualification Lifecycle Visibility**, **Permanent Removal of Localhost Dev-Login Bypass**, **Google OAuth Preservation**, and **Enterprise Security & Scale Audit**:
 - **Dynamic Audience Votes in Performance Scorecard (`src/app/api/leaderboard/team-status/route.ts`, `src/app/leaderboard/page.tsx`)**:

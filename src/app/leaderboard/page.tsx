@@ -1051,7 +1051,7 @@ export default function PublicLeaderboardPage() {
               ) : myTeamData.voting?.canVote ? (
                 <div className="space-y-3">
                   <p className="text-xs text-[#5E6059] leading-relaxed">
-                    As an eliminated team, your vote carries 40% of the stage evaluation weight. Cast your ballot for your top finalist:
+                    As an eliminated team, your vote carries 30% of the stage evaluation weight. Cast your ballot for your top finalist:
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

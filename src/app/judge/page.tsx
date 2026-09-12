@@ -324,8 +324,8 @@ export default function JudgeDashboardPage() {
         {/* Selected Team Profile & Evaluation Form */}
         {activeTeam ? (
           <div style={{ border: "1px solid #e5e7eb", borderRadius: "8px", padding: "20px", backgroundColor: "#ffffff" }}>
-            {/* Admin Revision Notice (Only for the original evaluating judge) */}
-            {activeTeam.isScored && activeTeam.changeRequested && activeTeam.isScoredByMe && (
+            {/* Admin Revision Notice (Only for the evaluating judge when revision is enabled) */}
+            {activeTeam.isScored && activeTeam.canEdit && (
               <div
                 style={{
                   marginBottom: "16px",
@@ -342,10 +342,10 @@ export default function JudgeDashboardPage() {
               >
                 <div>
                   <div style={{ fontSize: "13px", fontWeight: "700", color: "#92400e" }}>
-                    ⚠️ Admin Requested Score Revision
+                    ⚠️ Score Revision Unlocked
                   </div>
                   <div style={{ fontSize: "12px", color: "#b45309", marginTop: "2px" }}>
-                    {activeTeam.changeReason || "The organizing committee requested you re-examine this score."}
+                    {activeTeam.changeReason || "Administrator has authorized a score edit for this team."}
                   </div>
                 </div>
                 {!isEditing && (
@@ -353,24 +353,24 @@ export default function JudgeDashboardPage() {
                     type="button"
                     onClick={() => setIsEditing(true)}
                     style={{
-                      padding: "8px 14px",
+                      padding: "8px 16px",
                       backgroundColor: "#b45309",
                       color: "#ffffff",
                       border: "none",
-                      borderRadius: "4px",
+                      borderRadius: "6px",
                       fontSize: "12px",
                       fontWeight: "700",
                       cursor: "pointer",
                     }}
                   >
-                    Edit & Revise Score
+                    ✏️ Edit Score
                   </button>
                 )}
               </div>
             )}
 
             {/* Already Evaluated by Current Judge Banner */}
-            {activeTeam.isScored && activeTeam.isScoredByMe && !activeTeam.changeRequested && (
+            {activeTeam.isScored && activeTeam.isScoredByMe && !activeTeam.canEdit && (
               <div
                 style={{
                   marginBottom: "16px",

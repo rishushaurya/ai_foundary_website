@@ -66,8 +66,10 @@ export async function POST(request: Request) {
     const allScores = await getHackathonScores(session.eventId, roundId);
     const existingScore = allScores.find((s) => s.roundId === roundId && s.teamId === teamId);
 
+    let isRevision = false;
     if (existingScore) {
-      if (!existingScore.changeRequested) {
+      const isRevisionAllowed = existingScore.changeRequested === true || round.allowRevisions === true;
+      if (!isRevisionAllowed) {
         return NextResponse.json(
           {
             error: "This team has already been evaluated for this round. Multiple evaluations are strictly forbidden.",
@@ -83,6 +85,7 @@ export async function POST(request: Request) {
           { status: 403 }
         );
       }
+      isRevision = true;
     }
 
     // 3. Verify criteria and compute scores
@@ -123,14 +126,14 @@ export async function POST(request: Request) {
       submittedAt: new Date().toISOString(),
     };
 
-    const res = await saveHackathonScore(scoreRecord, false);
+    const res = await saveHackathonScore(scoreRecord, isRevision);
     if (!res.ok) {
       return NextResponse.json({ error: res.error || "Failed to record score." }, { status: 409 });
     }
 
     await logHackathonActivity({
       eventId: session.eventId,
-      action: "Score Submitted",
+      action: isRevision ? `Score Revised & Resubmitted for Team ${team.teamCode}` : "Score Submitted",
       actorType: "judge",
       actorId: session.judgeId,
       details: {
@@ -138,6 +141,8 @@ export async function POST(request: Request) {
         teamCode: team.teamCode,
         roundId,
         normalizedScore: normalized,
+        isRevision,
+        judgeName: session.name,
       },
     });
 

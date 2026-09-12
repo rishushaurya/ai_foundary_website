@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonJudges,
   getHackathonJudgeById,
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const { id, eventId, name, email, accessCode, active, assignedRoundIds } = body;
 
@@ -75,9 +77,9 @@ export async function POST(request: Request) {
 
     await logHackathonActivity({
       eventId,
-      action: existing ? "Judge Updated" : "Judge Created",
+      action: existing ? `Judge Updated: ${judge.name}` : `Judge Registered: ${judge.name}`,
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: { name: judge.name, email: judge.email },
     });
 
@@ -97,6 +99,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const adminEmail = await getAdminEmailFromRequest(request);
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {
@@ -112,10 +115,10 @@ export async function DELETE(request: Request) {
   if (existing) {
     await logHackathonActivity({
       eventId: existing.eventId,
-      action: "Judge Deleted",
+      action: `Judge Deleted: ${existing.name}`,
       actorType: "admin",
-      actorId: "admin",
-      details: { id, email: existing.email },
+      actorId: adminEmail,
+      details: { id, email: existing.email, name: existing.name },
     });
   }
 

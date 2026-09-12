@@ -10,6 +10,7 @@ import {
   Plus,
   Trash2,
   Shield,
+  ShieldCheck,
   Eye,
   Sliders,
   Sparkles,
@@ -20,12 +21,19 @@ import {
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [newEmail, setNewEmail] = useState("");
+  const [currentAdminEmail, setCurrentAdminEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     fetchSettings();
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.user?.email) setCurrentAdminEmail(d.user.email);
+      })
+      .catch(() => {});
   }, []);
 
   const fetchSettings = async () => {
@@ -100,10 +108,48 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const handlePromoteToRoot = async (emailToPromote: string) => {
+    if (!settings) return;
+    const clean = emailToPromote.trim().toLowerCase();
+    const rootAdmins = (settings.rootAdminEmails || ["priyanshushaurya9431@gmail.com"]).map((e) => e.toLowerCase());
+    if (rootAdmins.includes(clean)) return;
+
+    const confirmed = window.confirm(
+      `PERMANENT PROMOTION:\n\nPromoting ${emailToPromote} to Root Administrator is IRREVERSIBLE.\n` +
+      `They will hold permanent Root Admin authority and can NEVER be demoted back to a normal admin or removed.\n\n` +
+      `Do you want to permanently promote ${emailToPromote}?`
+    );
+    if (!confirmed) return;
+
+    const updatedRoots = Array.from(new Set([...rootAdmins, clean]));
+    const updatedSettings: SiteSettings = {
+      ...settings,
+      rootAdminEmails: updatedRoots,
+    };
+
+    setSettings(updatedSettings);
+    setNotice({ type: "success", text: `Promoting ${clean} to permanent Root Administrator...` });
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedSettings),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to promote administrator");
+      setSettings(data.settings);
+      setNotice({ type: "success", text: `Successfully promoted ${clean} to permanent Root Administrator!` });
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message || "Failed to promote administrator" });
+    }
+  };
+
   const handleRemoveEmail = async (emailToRemove: string) => {
     if (!settings) return;
-    if (emailToRemove.toLowerCase() === "priyanshushaurya9431@gmail.com") {
-      setNotice({ type: "error", text: "priyanshushaurya9431@gmail.com is permanently authorized as the root administrator." });
+    const rootAdmins = (settings.rootAdminEmails || ["priyanshushaurya9431@gmail.com"]).map((e) => e.toLowerCase());
+    if (rootAdmins.includes(emailToRemove.toLowerCase())) {
+      setNotice({ type: "error", text: `${emailToRemove} is permanently authorized as a Root Administrator and cannot be demoted or removed.` });
       return;
     }
 
@@ -215,30 +261,47 @@ export default function AdminSettingsPage() {
 
           <div className="flex flex-wrap gap-2 pt-2">
             {settings.adminEmails.map((email) => {
-              const isRoot = email.toLowerCase() === "priyanshushaurya9431@gmail.com";
+              const rootAdmins = (settings.rootAdminEmails || ["priyanshushaurya9431@gmail.com"]).map((e) => e.toLowerCase());
+              const isRoot = rootAdmins.includes(email.toLowerCase());
+              const isCurrentUserRoot = rootAdmins.includes(currentAdminEmail.toLowerCase());
+
               return (
                 <div
                   key={email}
                   className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold ${
                     isRoot
-                      ? "bg-cyan-50 border border-cyan-300 text-cyan-900 shadow-xs"
+                      ? "bg-amber-50 border border-amber-300 text-amber-950 shadow-xs"
                       : "bg-slate-100 border border-slate-200 text-slate-800"
                   }`}
                 >
                   <span>{email}</span>
                   {isRoot ? (
-                    <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 bg-cyan-200 text-cyan-900 rounded-md">
-                      Root Admin
+                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 bg-amber-200 text-amber-900 rounded-md flex items-center gap-1">
+                      <ShieldCheck className="size-3 text-amber-700" />
+                      <span>Root Admin</span>
                     </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveEmail(email)}
-                      className="text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
-                      title="Remove Whitelist Email"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {isCurrentUserRoot && (
+                        <button
+                          type="button"
+                          onClick={() => handlePromoteToRoot(email)}
+                          className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 transition-colors cursor-pointer flex items-center gap-1"
+                          title="Promote to Root Administrator (Permanent & Irreversible)"
+                        >
+                          <Sparkles className="size-2.5 text-amber-700" />
+                          <span>Promote to Root</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEmail(email)}
+                        className="text-slate-400 hover:text-red-600 transition-colors cursor-pointer p-0.5"
+                        title="Remove Whitelist Email"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </div>
                   )}
                 </div>
               );

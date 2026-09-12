@@ -79,9 +79,11 @@ export async function GET(request: Request) {
       isScoredByMe,
       scoredByJudgeName,
       scoredByJudgeId: existingScore?.judgeId || null,
-      canEdit: existingScore ? (isScoredByMe && existingScore.changeRequested === true) : true,
-      changeRequested: existingScore ? existingScore.changeRequested === true : false,
-      changeReason: existingScore?.changeReason,
+      canEdit: existingScore
+        ? (isScoredByMe && (existingScore.changeRequested === true || activeRound.allowRevisions === true))
+        : true,
+      changeRequested: existingScore ? (existingScore.changeRequested === true || activeRound.allowRevisions === true) : false,
+      changeReason: existingScore?.changeReason || (activeRound.allowRevisions ? "Administrator opened universal score revisions for this round" : undefined),
       myScore: existingScore
         ? {
             id: existingScore.id,
@@ -93,8 +95,8 @@ export async function GET(request: Request) {
             totalMaxPossible: existingScore.totalMaxPossible,
             normalizedScore: existingScore.normalizedScore,
             feedback: existingScore.feedback,
-            changeRequested: existingScore.changeRequested === true,
-            changeReason: existingScore.changeReason,
+            changeRequested: existingScore.changeRequested === true || activeRound.allowRevisions === true,
+            changeReason: existingScore.changeReason || (activeRound.allowRevisions ? "Administrator opened universal score revisions for this round" : undefined),
             submittedAt: existingScore.submittedAt,
             updatedAt: existingScore.updatedAt,
           }
@@ -117,6 +119,7 @@ export async function GET(request: Request) {
       name: r.name,
       type: r.type,
       status: r.status,
+      allowRevisions: r.allowRevisions === true,
     })),
     activeRound: {
       id: activeRound.id,
@@ -124,6 +127,7 @@ export async function GET(request: Request) {
       name: activeRound.name,
       type: activeRound.type,
       status: activeRound.status,
+      allowRevisions: activeRound.allowRevisions === true,
     },
     criteria: roundCriteria.map((c) => ({
       id: c.id,

@@ -101,7 +101,7 @@ export function calculateJudgeNormalizedScore(
  * Calculates full leaderboard rankings for a specific round.
  * Handles:
  * - Qualifier/Semi-final judge averaging
- * - Final round 60/40 judge/audience vote split
+ * - Final round 70/30 judge/audience vote split
  * - Tie detection and manual tiebreaker adjustments
  * - Disqualifications
  */
@@ -183,7 +183,7 @@ export function computeRoundLeaderboard(
     let votesCount = 0;
     let voteScore = 0;
 
-    // Apply 60/40 rule if final round
+    // Apply 70/30 rule if final round (70% Judges, 30% Audience Votes)
     if (isFinalRound) {
       const teamVotes = roundVotes.filter((v) => v.candidateTeamId === team.id);
       votesCount = teamVotes.length;
@@ -192,8 +192,8 @@ export function computeRoundLeaderboard(
       const votePercentage = totalVotesCast > 0 ? (votesCount / totalVotesCast) * 100 : 0;
       voteScore = roundToPrecision(votePercentage);
 
-      const judgeComponent = avgJudgeScore * HACKATHON_CONSTANTS.JUDGE_WEIGHT; // 60%
-      const voteComponent = votePercentage * HACKATHON_CONSTANTS.VOTE_WEIGHT; // 40%
+      const judgeComponent = avgJudgeScore * HACKATHON_CONSTANTS.JUDGE_WEIGHT; // 70%
+      const voteComponent = votePercentage * HACKATHON_CONSTANTS.VOTE_WEIGHT; // 30%
       finalScore = roundToPrecision(judgeComponent + voteComponent);
     }
 

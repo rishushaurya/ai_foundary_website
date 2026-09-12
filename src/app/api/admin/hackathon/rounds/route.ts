@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonRounds,
   getHackathonRoundById,
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const { id, eventId, roundNumber, name, type, status, cutoffRank, isElimination, isPublished, description } = body;
 
@@ -64,6 +66,7 @@ export async function POST(request: Request) {
       cutoffRank: cutoffRank ? Number(cutoffRank) : undefined,
       isElimination: typeof isElimination === "boolean" ? isElimination : true,
       isPublished: typeof isPublished === "boolean" ? isPublished : (existing?.isPublished || false),
+      allowRevisions: typeof body.allowRevisions === "boolean" ? body.allowRevisions : (existing?.allowRevisions || false),
       description: description ? sanitizeString(description) : undefined,
       createdAt: existing?.createdAt || new Date().toISOString(),
     };
@@ -75,10 +78,10 @@ export async function POST(request: Request) {
 
     await logHackathonActivity({
       eventId,
-      action: existing ? "Round Updated" : "Round Created",
+      action: existing ? `Round Updated: ${round.name}` : `Round Created: ${round.name}`,
       actorType: "admin",
-      actorId: "admin",
-      details: { name: round.name, roundNumber: round.roundNumber, status: round.status },
+      actorId: adminEmail,
+      details: { name: round.name, roundNumber: round.roundNumber, status: round.status, allowRevisions: round.allowRevisions },
     });
 
     return NextResponse.json({ success: true, round });
@@ -88,6 +91,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const adminEmail = await getAdminEmailFromRequest(request);
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {
@@ -103,10 +107,10 @@ export async function DELETE(request: Request) {
   if (existing) {
     await logHackathonActivity({
       eventId: existing.eventId,
-      action: "Round Deleted",
+      action: `Round Deleted: ${existing.name}`,
       actorType: "admin",
-      actorId: "admin",
-      details: { id, name: existing.name },
+      actorId: adminEmail,
+      details: { id, name: existing.name, roundNumber: existing.roundNumber },
     });
   }
 

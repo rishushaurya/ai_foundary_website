@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonTeams,
   getHackathonTeamById,
@@ -41,6 +42,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const {
       id,
@@ -116,9 +118,9 @@ export async function POST(request: Request) {
 
     await logHackathonActivity({
       eventId,
-      action: existing ? "Team Updated" : "Team Created",
+      action: existing ? `Team Updated: ${team.teamCode} (${team.teamName})` : `Team Registered: ${team.teamCode} (${team.teamName})`,
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: { teamCode: team.teamCode, teamName: team.teamName },
     });
 
@@ -137,6 +139,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const adminEmail = await getAdminEmailFromRequest(request);
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {
@@ -152,9 +155,9 @@ export async function DELETE(request: Request) {
   if (existing) {
     await logHackathonActivity({
       eventId: existing.eventId,
-      action: "Team Deleted",
+      action: `Team Deleted: ${existing.teamCode} (${existing.teamName})`,
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: { id, teamCode: existing.teamCode, teamName: existing.teamName },
     });
   }

@@ -1,12 +1,12 @@
 /**
  * Hackathon Leaderboard - Core System Constants & Interfaces
- * Enforces architectural rules: 60/40 judge/vote split, 100 scale, 2-decimal precision
+ * Enforces architectural rules: 70/30 judge/vote split, 100 scale, 2-decimal precision
  */
 
 export const HACKATHON_CONSTANTS = {
-  // Scoring split for Final Round
-  JUDGE_WEIGHT: 0.60,
-  VOTE_WEIGHT: 0.40,
+  // Scoring split for Final Round (70% Judges, 30% Audience Votes)
+  JUDGE_WEIGHT: 0.70,
+  VOTE_WEIGHT: 0.30,
   MAX_SCORE_SCALE: 100.0,
   DECIMAL_PRECISION: 2,
 
@@ -46,7 +46,7 @@ export interface HackathonEvent {
   theme?: string;
   status: EventStatus;
   currentRoundNumber: number;
-  isVotingOpen: boolean;
+  isVotingOpen: boolean; // Active audience voting toggle
   activeRoundId?: string;
   createdAt: string;
   updatedAt: string;
@@ -62,6 +62,7 @@ export interface HackathonRound {
   cutoffRank?: number; // e.g. Top 10 advance
   isElimination: boolean;
   isPublished?: boolean; // Whether marks/rankings are visible to public
+  allowRevisions?: boolean; // Universal toggle: allows judges to revise submitted scores for this round
   description?: string;
   createdAt: string;
 }

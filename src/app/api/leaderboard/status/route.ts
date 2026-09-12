@@ -105,48 +105,55 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({
-    availableEvents: publicEvents.map((e) => ({
-      id: e.id,
-      title: e.title,
-      description: e.description,
-      theme: e.theme,
-      status: e.status,
-      currentRoundNumber: e.currentRoundNumber,
-    })),
-    event: {
-      id: event.id,
-      title: event.title,
-      description: event.description,
-      theme: event.theme,
-      status: event.status,
-      currentRoundNumber: event.currentRoundNumber,
+  return NextResponse.json(
+    {
+      availableEvents: publicEvents.map((e) => ({
+        id: e.id,
+        title: e.title,
+        description: e.description,
+        theme: e.theme,
+        status: e.status,
+        currentRoundNumber: e.currentRoundNumber,
+      })),
+      event: {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        theme: event.theme,
+        status: event.status,
+        currentRoundNumber: event.currentRoundNumber,
+        isVotingOpen: event.isVotingOpen,
+      },
+      rounds: rounds.map((r) => ({
+        id: r.id,
+        roundNumber: r.roundNumber,
+        name: r.name,
+        type: r.type,
+        status: r.status,
+        cutoffRank: r.cutoffRank,
+        isElimination: r.isElimination,
+        isPublished: r.isPublished === true,
+      })),
+      activeRound: activeRound
+        ? {
+            id: activeRound.id,
+            roundNumber: activeRound.roundNumber,
+            name: activeRound.name,
+            type: activeRound.type,
+            status: activeRound.status,
+            cutoffRank: activeRound.cutoffRank,
+            isPublished,
+          }
+        : null,
+      leaderboard,
       isVotingOpen: event.isVotingOpen,
+      isPublished,
+      timestamp: new Date().toISOString(),
     },
-    rounds: rounds.map((r) => ({
-      id: r.id,
-      roundNumber: r.roundNumber,
-      name: r.name,
-      type: r.type,
-      status: r.status,
-      cutoffRank: r.cutoffRank,
-      isElimination: r.isElimination,
-      isPublished: r.isPublished === true,
-    })),
-    activeRound: activeRound
-      ? {
-          id: activeRound.id,
-          roundNumber: activeRound.roundNumber,
-          name: activeRound.name,
-          type: activeRound.type,
-          status: activeRound.status,
-          cutoffRank: activeRound.cutoffRank,
-          isPublished,
-        }
-      : null,
-    leaderboard,
-    isVotingOpen: event.isVotingOpen,
-    isPublished,
-    timestamp: new Date().toISOString(),
-  });
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=3, stale-while-revalidate=10",
+      },
+    }
+  );
 }

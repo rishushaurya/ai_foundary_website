@@ -12,17 +12,35 @@ async function handleSaveSettings(request: Request) {
   try {
     const updated = (await request.json()) as Partial<SiteSettings>;
     const current = await getSettings();
+    const adminEmail = await getAdminEmailFromRequest(request);
+    const rootAdmins = (current.rootAdminEmails || ["priyanshushaurya9431@gmail.com"]).map((e) => e.trim().toLowerCase());
+    const isCallerRoot = rootAdmins.some((e) => e === adminEmail.toLowerCase());
+
+    let normalizedRoots = [...rootAdmins];
+    if (updated.rootAdminEmails && Array.isArray(updated.rootAdminEmails)) {
+      if (!isCallerRoot) {
+        return NextResponse.json(
+          { error: "Unauthorized: Only an existing Root Administrator can promote administrators to Root Admin." },
+          { status: 403 }
+        );
+      }
+      // Irreversible: Can only add to rootAdminEmails, never remove existing roots
+      const requestedRoots = updated.rootAdminEmails.map((e) => e.trim().toLowerCase());
+      normalizedRoots = Array.from(new Set([...rootAdmins, ...requestedRoots]));
+    }
+
     // Ensure permanent root admin is always present in admin whitelist
     const rootAdmin = "priyanshushaurya9431@gmail.com";
     const rawEmails = updated.adminEmails || current.adminEmails || [];
     const normalizedEmails = Array.from(
-      new Set([rootAdmin, ...rawEmails.map((e) => e.trim().toLowerCase())])
+      new Set([rootAdmin, ...normalizedRoots, ...rawEmails.map((e) => e.trim().toLowerCase())])
     );
 
     const merged: SiteSettings = {
       ...current,
       ...updated,
       adminEmails: normalizedEmails,
+      rootAdminEmails: normalizedRoots,
       visiblePages: {
         ...current.visiblePages,
         ...(updated.visiblePages || {}),
@@ -46,7 +64,21 @@ async function handleSaveSettings(request: Request) {
     } catch {}
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
-    const adminEmail = await getAdminEmailFromRequest(request);
+
+    // Detect Root Admin Promotions
+    const currentRoots = (current.rootAdminEmails || []).map((e) => e.trim().toLowerCase());
+    const newlyPromotedRoots = normalizedRoots.filter((e) => !currentRoots.includes(e));
+
+    if (newlyPromotedRoots.length > 0) {
+      await logAdminAction({
+        adminEmail,
+        ip,
+        action: "Promoted to Root Administrator",
+        target: newlyPromotedRoots.join(", "),
+        details: `${adminEmail} permanently promoted: ${newlyPromotedRoots.join(", ")} to Root Administrator status`,
+        status: "success",
+      });
+    }
 
     // Detect Whitelist Additions & Removals for Security Audit Trail
     const currentEmails = (current.adminEmails || []).map((e) => e.trim().toLowerCase());

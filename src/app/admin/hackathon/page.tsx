@@ -29,6 +29,8 @@ import {
   Copy,
   EyeOff,
   Radio,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   HackathonEvent,
@@ -235,6 +237,44 @@ export default function AdminHackathonPage() {
       setNotice({
         type: "success",
         text: `Multi-device login ${!currentAllow ? "enabled" : "disabled"} for team.`,
+      });
+      await fetchEventData(selectedEventId);
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleExport = (type: string, options?: { roundId?: string; mode?: string }) => {
+    if (!selectedEventId) {
+      setNotice({ type: "error", text: "Please select an event to export." });
+      return;
+    }
+    const params = new URLSearchParams({ type, eventId: selectedEventId });
+    if (options?.roundId) params.set("roundId", options.roundId);
+    if (options?.mode) params.set("mode", options.mode);
+    window.open(`/api/admin/hackathon/export?${params.toString()}`, "_blank");
+  };
+
+  const handleToggleUniversalRevisions = async (roundId: string, currentAllow: boolean) => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/hackathon/scores/request-change", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: selectedEventId,
+          roundId,
+          universal: true,
+          allowRevisions: !currentAllow,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to toggle universal revisions.");
+      setNotice({
+        type: "success",
+        text: data.message || `Universal score revisions ${!currentAllow ? "enabled" : "disabled"}.`,
       });
       await fetchEventData(selectedEventId);
     } catch (err: any) {
@@ -1051,7 +1091,7 @@ export default function AdminHackathonPage() {
                       {isFinal && currentEvent && (
                         <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs font-bold">
                           <Vote className="size-3.5 text-purple-600" />
-                          <span>Audience Voting (40%):</span>
+                          <span>Audience Voting (30%):</span>
                           <button
                             onClick={() => handleStateToggle({ isVotingOpen: !currentEvent.isVotingOpen })}
                             className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase cursor-pointer transition-all ${
@@ -1146,6 +1186,14 @@ export default function AdminHackathonPage() {
               <p className="text-xs text-slate-500">Only Team Code and Team Name are required.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => handleExport("teams")}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                title="Export complete 2-sheet Excel file (Sheet 1: Public Roster, Sheet 2: Secret Passkeys)"
+              >
+                <FileSpreadsheet className="size-3.5" />
+                <span>Export Excel (2 Sheets)</span>
+              </button>
               <button
                 onClick={() => setCsvModalOpen(true)}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
@@ -1355,21 +1403,31 @@ export default function AdminHackathonPage() {
               <h2 className="text-base font-black text-slate-900">Judges Roster ({judges.length})</h2>
               <p className="text-xs text-slate-500">Evaluators use access codes on mobile or desktop to score assigned rounds.</p>
             </div>
-            <button
-              onClick={() => {
-                setNewlyCreatedJudgeCode(null);
-                setEditingJudge({
-                  name: "",
-                  email: "",
-                  accessCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-                });
-                setJudgeModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold transition-all cursor-pointer"
-            >
-              <Plus className="size-3.5" />
-              <span>Register Judge</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => handleExport("judges")}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                title="Export Judges Directory with Access Passkeys to Excel"
+              >
+                <FileSpreadsheet className="size-3.5" />
+                <span>Export Excel</span>
+              </button>
+              <button
+                onClick={() => {
+                  setNewlyCreatedJudgeCode(null);
+                  setEditingJudge({
+                    name: "",
+                    email: "",
+                    accessCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                  });
+                  setJudgeModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold transition-all cursor-pointer"
+              >
+                <Plus className="size-3.5" />
+                <span>Register Judge</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -1496,34 +1554,68 @@ export default function AdminHackathonPage() {
               ))}
             </div>
 
-            {/* Publishing Action for Filtered Round */}
-            {scoreFilterRoundId !== "all" && (
-              <div className="flex items-center gap-2">
-                {(() => {
+            {/* Actions for Filtered Round or All Rounds */}
+            <div className="flex flex-wrap items-center gap-2">
+              {scoreFilterRoundId === "all" ? (
+                <button
+                  onClick={() => handleExport("marks")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  title="Export all marks from all rounds to Excel"
+                >
+                  <FileSpreadsheet className="size-3.5" />
+                  <span>Export All Marks (Excel)</span>
+                </button>
+              ) : (
+                (() => {
                   const targetRound = rounds.find((r) => r.id === scoreFilterRoundId);
                   if (!targetRound) return null;
                   const isPub = targetRound.isPublished === true;
+                  const allowRev = targetRound.allowRevisions === true;
                   return (
-                    <button
-                      onClick={() =>
-                        handleStateToggle({
-                          roundId: targetRound.id,
-                          isPublished: !isPub,
-                        })
-                      }
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                        isPub
-                          ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
-                          : "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
-                      }`}
-                    >
-                      {isPub ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                      <span>{isPub ? "Unpublish Scores (Make Draft)" : "Publish Round Scores to Public Live"}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => handleToggleUniversalRevisions(targetRound.id, allowRev)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          allowRev
+                            ? "bg-amber-500 text-white shadow-xs hover:bg-amber-600"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        }`}
+                        title="Universal score change: allows all judges to revise/edit any team's scores in this round"
+                      >
+                        <Edit2 className="size-3.5" />
+                        <span>{allowRev ? "Universal Revisions ON (Round-wide)" : "Enable Round-wide Revisions"}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleExport("marks", { roundId: targetRound.id })}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                        title="Export this round's complete score details & rankings to Excel"
+                      >
+                        <FileSpreadsheet className="size-3.5" />
+                        <span>Export Round Marks (Excel)</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          handleStateToggle({
+                            roundId: targetRound.id,
+                            isPublished: !isPub,
+                          })
+                        }
+                        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                          isPub
+                            ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
+                            : "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700"
+                        }`}
+                      >
+                        {isPub ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                        <span>{isPub ? "Unpublish Scores (Make Draft)" : "Publish Round Scores to Public Live"}</span>
+                      </button>
+                    </div>
                   );
-                })()}
-              </div>
-            )}
+                })()
+              )}
+            </div>
           </div>
 
           {/* Scores table grouped by filtered round */}
@@ -1613,12 +1705,22 @@ export default function AdminHackathonPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-black text-slate-900">
-                Audience Voting Tallies (40% Final Component)
+                Audience Voting Tallies (30% Final Component)
               </h2>
               <p className="text-xs text-slate-500">Votes cast by eliminated teams for final candidates.</p>
             </div>
-            <div className="text-xs font-bold text-slate-600">
-              Total Votes Cast: <span className="text-slate-900 font-black">{votesData.totalVotes}</span>
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-bold text-slate-600">
+                Total Votes Cast: <span className="text-slate-900 font-black">{votesData.totalVotes}</span>
+              </div>
+              <button
+                onClick={() => handleExport("votes")}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                title="Export Audience Voting Audit to Excel"
+              >
+                <FileSpreadsheet className="size-3.5" />
+                <span>Export Votes (Excel)</span>
+              </button>
             </div>
           </div>
 
@@ -1706,11 +1808,17 @@ export default function AdminHackathonPage() {
             {logs.map((log) => (
               <div key={log.id} className="p-4 flex items-center justify-between text-xs hover:bg-slate-50/50 gap-4">
                 <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-black text-slate-900">{log.action}</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 text-slate-600">
-                      {log.actorType}: {log.actorId}
-                    </span>
+                    {log.actorType === "admin" ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs">
+                        Admin: {log.actorId || "System Admin"}
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 text-slate-600">
+                        {log.actorType}: {log.actorId}
+                      </span>
+                    )}
                   </div>
                   {log.details && (
                     <p className="text-[11px] text-slate-500 font-mono">
@@ -1872,7 +1980,7 @@ export default function AdminHackathonPage() {
                 >
                   <option value="qualifier">Qualifier</option>
                   <option value="semi-final">Semi-Final</option>
-                  <option value="final">Final (Activates 60/40 Split & Voting)</option>
+                  <option value="final">Final (Activates 70/30 Split & Voting)</option>
                 </select>
               </div>
 

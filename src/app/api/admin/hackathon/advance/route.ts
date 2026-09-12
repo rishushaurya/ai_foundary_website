@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonEventById,
   saveHackathonEvent,
@@ -16,6 +17,7 @@ import { computeRoundLeaderboard } from "@/lib/hackathon/scoring";
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const { eventId, currentRoundId, nextRoundId, advancingTeamIds, cutoffRank } = body;
 
@@ -117,7 +119,7 @@ export async function POST(request: Request) {
       eventId,
       action: "Round Advancement Executed",
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: {
         completedRound: currentRound.name,
         nextRound: nextRound?.name || "Finalized",

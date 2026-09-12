@@ -316,6 +316,7 @@ export interface SiteSettings {
   defaultTheme: string;
   defaultAppearance: string;
   adminEmails: string[];
+  rootAdminEmails?: string[]; // Permanent root administrators who can promote others
   heroTagline: string;
   heroSubtext: string;
   facultyHeading: string;
@@ -329,12 +330,13 @@ export interface SiteSettings {
 }
 
 export async function getSettings(): Promise<SiteSettings> {
-  return readData<SiteSettings>("settings.json", {
+  const settings = await readData<SiteSettings>("settings.json", {
     siteTitle: "AI Foundry | Dayananda Sagar University",
     activeDesign: "ivory-light",
     defaultTheme: "cyan",
     defaultAppearance: "dark",
-    adminEmails: ["admin@aifoundry.club", "demo@aifoundry.club"],
+    adminEmails: ["priyanshushaurya9431@gmail.com"],
+    rootAdminEmails: ["priyanshushaurya9431@gmail.com"],
     heroTagline: "FORGING THE FUTURE OF ENTREPRENEURSHIP & ARTIFICIAL INTELLIGENCE",
     heroSubtext: "Dayananda Sagar University's premier innovation ecosystem uniting engineers, designers, researchers, and student founders.",
     facultyHeading: "FACULTY MENTORS",
@@ -472,8 +474,32 @@ export async function getSettings(): Promise<SiteSettings> {
       ctaButtonText: "Join Us",
     },
   });
+
+  if (!settings.rootAdminEmails || !Array.isArray(settings.rootAdminEmails) || settings.rootAdminEmails.length === 0) {
+    settings.rootAdminEmails = ["priyanshushaurya9431@gmail.com"];
+  } else if (!settings.rootAdminEmails.some((e) => e.toLowerCase() === "priyanshushaurya9431@gmail.com")) {
+    settings.rootAdminEmails.unshift("priyanshushaurya9431@gmail.com");
+  }
+
+  return settings;
 }
 
 export async function saveSettings(settings: SiteSettings): Promise<boolean> {
+  const current = await getSettings();
+  const existingRoots = (current.rootAdminEmails || ["priyanshushaurya9431@gmail.com"]).map((e) => e.toLowerCase());
+
+  // Enforce irreversible hierarchy: existing root admins can never be demoted back to normal admin
+  const proposedRoots = (settings.rootAdminEmails || []).map((e) => e.toLowerCase());
+  const mergedRoots = Array.from(new Set([...existingRoots, ...proposedRoots]));
+  if (!mergedRoots.includes("priyanshushaurya9431@gmail.com")) {
+    mergedRoots.unshift("priyanshushaurya9431@gmail.com");
+  }
+  settings.rootAdminEmails = mergedRoots;
+
+  // Root admins must unconditionally remain in adminEmails
+  const proposedAdmins = (settings.adminEmails || []).map((e) => e.toLowerCase());
+  const mergedAdmins = Array.from(new Set([...proposedAdmins, ...mergedRoots]));
+  settings.adminEmails = mergedAdmins;
+
   return writeData("settings.json", settings);
 }

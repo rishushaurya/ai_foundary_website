@@ -7,17 +7,30 @@ interface RateLimitRecord {
   timestamps: number[];
 }
 
-const rateLimitMap = new Map<string, RateLimitRecord>();
+const globalForRateLimit = globalThis as unknown as {
+  __rateLimitMap?: Map<string, RateLimitRecord>;
+  __rateLimitInterval?: NodeJS.Timeout;
+};
+
+const rateLimitMap = globalForRateLimit.__rateLimitMap ?? new Map<string, RateLimitRecord>();
+globalForRateLimit.__rateLimitMap = rateLimitMap;
+
+const MAX_MAP_SIZE = 50000; // Protection against unbounded memory growth
 
 // Cleanup stale records periodically (every 5 minutes)
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
+if (!globalForRateLimit.__rateLimitInterval && typeof setInterval !== "undefined") {
+  globalForRateLimit.__rateLimitInterval = setInterval(() => {
     const now = Date.now();
     for (const [key, record] of rateLimitMap.entries()) {
       record.timestamps = record.timestamps.filter((t) => now - t < 600000); // 10 minutes
       if (record.timestamps.length === 0) {
         rateLimitMap.delete(key);
       }
+    }
+    // Hard cap eviction if map grows too large under DDoS
+    if (rateLimitMap.size > MAX_MAP_SIZE) {
+      const keysToDelete = Array.from(rateLimitMap.keys()).slice(0, 10000);
+      keysToDelete.forEach((k) => rateLimitMap.delete(k));
     }
   }, 300000);
 }
