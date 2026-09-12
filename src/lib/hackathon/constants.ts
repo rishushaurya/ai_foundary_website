@@ -23,13 +23,13 @@ export const HACKATHON_CONSTANTS = {
   COOKIE_PARTICIPANT: "participant-session",
   COOKIE_ADMIN: "admin-token",
 
-  // Rate Limiting (calls allowed per window)
+  // Rate Limiting (calls allowed per window - calibrated for smooth hackathon live operation)
   RATE_LIMITS: {
-    JUDGE_LOGIN: { limit: 5, windowMs: 15 * 60 * 1000 }, // 5 per 15 min
-    PARTICIPANT_VERIFY: { limit: 10, windowMs: 10 * 60 * 1000 }, // 10 per 10 min
-    JUDGE_SCORE: { limit: 60, windowMs: 60 * 1000 }, // 60 per min
-    VOTE_SUBMIT: { limit: 3, windowMs: 5 * 60 * 1000 }, // 3 per 5 min
-    PUBLIC_POLL: { limit: 120, windowMs: 60 * 1000 }, // 120 per min per IP
+    JUDGE_LOGIN: { limit: 30, windowMs: 60 * 1000 }, // 30 per min (smooth, prevents 15-min lockout)
+    PARTICIPANT_VERIFY: { limit: 60, windowMs: 60 * 1000 }, // 60 per min (allows 100+ teams on venue Wi-Fi)
+    JUDGE_SCORE: { limit: 120, windowMs: 60 * 1000 }, // 120 per min (zero friction for evaluators)
+    VOTE_SUBMIT: { limit: 20, windowMs: 30 * 1000 }, // 20 per 30s (smooth, immediate vote casting without delays)
+    PUBLIC_POLL: { limit: 300, windowMs: 60 * 1000 }, // 300 per min (supports fast live updates)
   },
 } as const;
 

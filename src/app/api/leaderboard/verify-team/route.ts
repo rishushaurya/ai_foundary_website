@@ -14,19 +14,6 @@ import { checkRateLimit } from "@/lib/rate-limiter";
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
 
-  // Rate Limiting
-  const rate = checkRateLimit(
-    `team-verify-${ip}`,
-    HACKATHON_CONSTANTS.RATE_LIMITS.PARTICIPANT_VERIFY.limit,
-    HACKATHON_CONSTANTS.RATE_LIMITS.PARTICIPANT_VERIFY.windowMs
-  );
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: `Too many verification attempts. Please wait ${rate.retryAfterSeconds}s.` },
-      { status: 429 }
-    );
-  }
-
   try {
     const body = await request.json();
     const { teamCode, passkey, eventId } = body;
@@ -38,8 +25,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const allTeams = await getHackathonTeams(eventId);
     const normalized = teamCode.trim().toUpperCase();
+
+    // Smooth Rate Limiting per Team Code (prevents venue Wi-Fi NAT collisions)
+    const rate = checkRateLimit(
+      `team-verify-${normalized}`,
+      HACKATHON_CONSTANTS.RATE_LIMITS.PARTICIPANT_VERIFY.limit,
+      HACKATHON_CONSTANTS.RATE_LIMITS.PARTICIPANT_VERIFY.windowMs
+    );
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: `Too many attempts for this team. Please wait ${rate.retryAfterSeconds}s.` },
+        { status: 429 }
+      );
+    }
+
+    const allTeams = await getHackathonTeams(eventId);
     const candidates = allTeams.filter(
       (t) => t.teamCode.trim().toUpperCase() === normalized
     );

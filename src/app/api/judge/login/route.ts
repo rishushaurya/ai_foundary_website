@@ -8,19 +8,6 @@ import { checkRateLimit } from "@/lib/rate-limiter";
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
 
-  // Rate Limiting
-  const rate = checkRateLimit(
-    `judge-login-${ip}`,
-    HACKATHON_CONSTANTS.RATE_LIMITS.JUDGE_LOGIN.limit,
-    HACKATHON_CONSTANTS.RATE_LIMITS.JUDGE_LOGIN.windowMs
-  );
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: `Too many login attempts. Please try again in ${rate.retryAfterSeconds}s.` },
-      { status: 429 }
-    );
-  }
-
   try {
     const body = await request.json();
     const { email, accessCode, eventId } = body;
@@ -32,8 +19,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const judges = await getHackathonJudges();
     const normalizedEmail = email.trim().toLowerCase();
+
+    // Smooth Rate Limiting per Judge Email (prevents venue Wi-Fi NAT collisions)
+    const rate = checkRateLimit(
+      `judge-login-${normalizedEmail}`,
+      HACKATHON_CONSTANTS.RATE_LIMITS.JUDGE_LOGIN.limit,
+      HACKATHON_CONSTANTS.RATE_LIMITS.JUDGE_LOGIN.windowMs
+    );
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: `Too many login attempts. Please try again in ${rate.retryAfterSeconds}s.` },
+        { status: 429 }
+      );
+    }
+    const judges = await getHackathonJudges();
     const candidates = judges.filter(
       (j) => j.email.trim().toLowerCase() === normalizedEmail && j.active && (!eventId || j.eventId === eventId)
     );

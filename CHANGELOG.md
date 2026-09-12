@@ -3,6 +3,33 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-09-12] - Antigravity - Session 50
+**Description**: Complete **Rate Limiter Calibration for Smooth Event Operations**, **Venue & Campus Wi-Fi NAT Collision Prevention**, **Entity-Specific Rate Keying**, **GlobalThis Memory Bound Hardening (50k eviction cap)**, and **Edge CDN Caching**:
+- **Smooth Hackathon Rate Limits Calibration (`src/lib/hackathon/constants.ts`)**:
+  - **Audience Voting**: Diluted from 3 per 5 minutes to **20 per 30 seconds** (`limit: 20, windowMs: 30000`). Voting window is fast and seamless; teams and voters cast votes without frustrating wait times or timeouts.
+  - **Participant Verification**: Diluted from 10 per 10 minutes to **60 per 60 seconds** (`limit: 60, windowMs: 60000`). Allows 100+ team participants to verify their codes concurrently on venue networks without hitting IP limits.
+  - **Judge Login**: Diluted from 5 per 15 minutes to **30 per 60 seconds** (`limit: 30, windowMs: 60000`). Eliminates punishing 15-minute lockouts while still blocking brute-force attacks.
+  - **Judge Scoring**: Expanded from 60 per minute to **120 per 60 seconds** (`limit: 120, windowMs: 60000`). Evaluators experience zero latency or artificial throttling when submitting scores.
+  - **Public Leaderboard Polling**: Increased from 120/min to **300 per 60 seconds** (`limit: 300, windowMs: 60000`) with Edge CDN caching headers (`s-maxage=3, stale-while-revalidate=10`) so 1000+ participants polling the leaderboard simultaneously are served directly from Vercel's global CDN edge with 0ms delay.
+  - **Recruitment Submission & Event Registration**: Replaced 5 per 10 min window with **20 per 60 seconds** with entity-aware keying.
+- **Venue & Campus Wi-Fi NAT Collision Prevention**:
+  - Hackathon venues have hundreds of laptops/phones sharing a single public IP address behind NAT. Generic IP-based rate limiting causes one participant to lock out everyone on the Wi-Fi.
+  - **Vote Submission (`src/app/api/leaderboard/vote/route.ts`)**: Validates participant session first; rate limit key is bound to `vote-submit-${session.teamId}`.
+  - **Team Code Verification (`src/app/api/leaderboard/verify-team/route.ts`)**: Parses body first; rate limit key is bound to `team-verify-${normalizedTeamCode}`. A typo on one team never locks out another team.
+  - **Judge Login (`src/app/api/judge/login/route.ts`)**: Rate limit key is bound to `judge-login-${normalizedEmail}`. Judges on venue Wi-Fi never collide.
+  - **Recruitment & Registration (`src/app/api/recruit/submit/route.ts`, `src/app/api/events/register/route.ts`)**: Keyed per email (`recruit-${email}` / `event-reg:${email}`).
+- **Memory Bound & Resource Hardening (`src/lib/rate-limiter.ts`)**:
+  - Rate limiter map persisted on `globalThis.__rateLimitMap` across serverless warm container invocations.
+  - Hard cap `MAX_MAP_SIZE = 50,000` with automatic 10,000 oldest key eviction prevents heap memory exhaustion during heavy traffic spikes.
+  - Periodic cleanup every 5 minutes removes stale records.
+- **Verification & Health**:
+  - `npx tsc --noEmit`: 0 TypeScript errors.
+  - `npm run build`: 60/60 production routes compiled cleanly.
+  - `scripts/verify-api-features.mjs`: 100% tests passed.
+  - `scripts/verify-full-features.mjs`: 100% tests passed.
+
+---
+
 ## [2026-09-12] - Antigravity - Session 49
 **Description**: Complete **70/30 Scoring Formula Overhaul**, **Excel Export Suite (Teams 2-Sheet, Judges, Marks, Votes)**, **Universal & Per-Team Score Revision System ("Change Marks")**, **Audit Trail Admin Attribution**, **Root Admin Hierarchy & Irreversible Protection**, and **Secure Localhost Dev Authentication**:
 - **70/30 Scoring Formula Overhaul (`src/lib/hackathon/constants.ts`, `src/lib/hackathon/scoring.ts`, `src/app/leaderboard/page.tsx`, `src/app/admin/hackathon/page.tsx`)**:

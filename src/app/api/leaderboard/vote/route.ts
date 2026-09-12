@@ -13,24 +13,25 @@ import { HACKATHON_CONSTANTS, HackathonVote } from "@/lib/hackathon/constants";
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
 
-  // Rate Limiting
-  const rate = checkRateLimit(
-    `vote-submit-${ip}`,
-    HACKATHON_CONSTANTS.RATE_LIMITS.VOTE_SUBMIT.limit,
-    HACKATHON_CONSTANTS.RATE_LIMITS.VOTE_SUBMIT.windowMs
-  );
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: `Too many requests. Please wait ${rate.retryAfterSeconds}s.` },
-      { status: 429 }
-    );
-  }
-
   const session = await getParticipantSession();
   if (!session) {
     return NextResponse.json(
       { error: "Authentication required. Please verify your team code first." },
       { status: 401 }
+    );
+  }
+
+  // Smooth Rate Limiting per authenticated team (prevents venue Wi-Fi NAT collisions)
+  const rateLimitKey = `vote-submit-${session.teamId || ip}`;
+  const rate = checkRateLimit(
+    rateLimitKey,
+    HACKATHON_CONSTANTS.RATE_LIMITS.VOTE_SUBMIT.limit,
+    HACKATHON_CONSTANTS.RATE_LIMITS.VOTE_SUBMIT.windowMs
+  );
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: `Voting is busy. Please wait ${rate.retryAfterSeconds}s before trying again.` },
+      { status: 429 }
     );
   }
 

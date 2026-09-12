@@ -29,12 +29,13 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Sliding Window IP Rate Limiting (5 per IP per 10 mins)
-    const rateCheck = checkRateLimit(ip, 5, 600000);
+    // 2. Smooth Sliding Window Rate Limiting (20 per applicant per minute, prevents campus Wi-Fi collisions)
+    const rateKey = email ? `recruit-${email.trim().toLowerCase()}` : `recruit-${ip}`;
+    const rateCheck = checkRateLimit(rateKey, 20, 60000);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         {
-          error: `Rate limit exceeded: Too many applications from your network. Please retry in ${rateCheck.retryAfterSeconds} seconds.`,
+          error: `Too many submissions. Please wait ${rateCheck.retryAfterSeconds}s before retrying.`,
         },
         { status: 429 }
       );
