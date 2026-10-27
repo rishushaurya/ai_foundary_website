@@ -43,6 +43,9 @@ export default function PublicLeaderboardPage() {
   // Verified Team State (Participant Session)
   const [myTeamData, setMyTeamData] = useState<any>(null);
   const [teamScorecardOpen, setTeamScorecardOpen] = useState(false);
+  // Projector / big-screen mode (?display=screen): read-only live board, no team login needed.
+  // It shows only what the public status API already serves (published rounds only).
+  const [displayMode, setDisplayMode] = useState(false);
 
   // Gate & Verification Form
   const [teamCodeInput, setTeamCodeInput] = useState("");
@@ -116,7 +119,9 @@ export default function PublicLeaderboardPage() {
 
   // Initial load (honours ?eventId= deep links from the admin panel)
   useEffect(() => {
-    const linkedEventId = new URLSearchParams(window.location.search).get("eventId") || "";
+    const query = new URLSearchParams(window.location.search);
+    const linkedEventId = query.get("eventId") || "";
+    setDisplayMode(query.get("display") === "screen");
     if (linkedEventId) setSelectedEventId(linkedEventId);
     selectionRef.current.eventId = linkedEventId;
     fetchStatus(linkedEventId);
@@ -389,7 +394,7 @@ export default function PublicLeaderboardPage() {
         {/* ---------------------------------------------------- */}
         {/* GATE CARD: IF PARTICIPANT IS NOT LOGGED IN          */}
         {/* ---------------------------------------------------- */}
-        {!myTeamData?.authenticated ? (
+        {!myTeamData?.authenticated && !displayMode ? (
           <div className="rounded-3xl border border-[#2D2E2A]/15 bg-white p-6 sm:p-10 shadow-xl space-y-6 max-w-xl mx-auto text-center">
             <div className="size-12 rounded-2xl bg-[#ECFF17]/30 border border-[#2D2E2A]/15 flex items-center justify-center mx-auto text-[#2D2E2A]">
               <Lock className="size-6" />
@@ -468,6 +473,7 @@ export default function PublicLeaderboardPage() {
           /* ---------------------------------------------------- */
           <div className="space-y-10">
             {/* MY TEAM SUMMARY BANNER */}
+            {myTeamData?.authenticated && (
             <div className="rounded-3xl border border-[#2D2E2A]/15 bg-[#232521] text-[#FFFFE9] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 shadow-xl">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -508,6 +514,7 @@ export default function PublicLeaderboardPage() {
                 </button>
               </div>
             </div>
+            )}
 
             {/* UNPUBLISHED ROUND NOTICE */}
             {!isPublished && (

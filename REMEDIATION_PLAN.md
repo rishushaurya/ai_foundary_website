@@ -125,6 +125,7 @@ New admin feature: **Live Standings**. `GET /api/admin/hackathon/standings` comp
 | A12 | P1 | Local mode (no Redis) gave each API route its own stale copy of the data. | One process-wide store. |
 | A13 | P2 | After a page reload, the admin dashboard opened the first event, not the running one. | Opens the Live event, else the most recently changed one. |
 | A14 | P2 | The ballot said each team's vote "carries 30%". | Correct wording: all audience votes together are 30%. |
+| A15 | P1 | The leaderboard showed only the team login gate to anyone not logged in as a team, so there was no way to show live standings or winners on a projector. | `/leaderboard?display=screen` is a read-only big-screen view (published rounds only, the same data the public API already serves). A "Projector Screen" button was added to the admin Overview. |
 
 `scripts/verify-hackathon-integrity.mjs` now covers the whole lifecycle in **47 checks**, from a draft prepared before the day through winners and downloads. All pass against both the dev server and the production build.
 

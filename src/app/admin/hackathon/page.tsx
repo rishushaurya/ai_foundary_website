@@ -957,6 +957,15 @@ export default function AdminHackathonPage() {
                       <span>Open Live Portal</span>
                       <ChevronRight className="size-3.5" />
                     </a>
+                    <a
+                      href={`/leaderboard?eventId=${currentEvent.id}&display=screen`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all"
+                    >
+                      <span>Projector Screen</span>
+                      <ChevronRight className="size-3.5" />
+                    </a>
                   </div>
                 </div>
               </div>
