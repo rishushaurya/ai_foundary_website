@@ -6,14 +6,15 @@ import {
   getHackathonRounds,
   saveHackathonRound,
   getHackathonTeams,
-  saveHackathonTeam,
+  saveHackathonTeams,
   getHackathonScores,
   getHackathonVotes,
   getHackathonCriteria,
   getHackathonTiebreakers,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
-import { computeRoundLeaderboard } from "@/lib/hackathon/scoring";
+import { computeStandings, getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
+import { HackathonTeam } from "@/lib/hackathon/constants";
 
 export async function POST(request: Request) {
   try {
@@ -35,84 +36,70 @@ export async function POST(request: Request) {
     if (!currentRound) {
       return NextResponse.json({ error: "Current round not found." }, { status: 404 });
     }
-
-    // Determine target next round
-    let nextRound = nextRoundId ? rounds.find((r) => r.id === nextRoundId) : null;
-    if (!nextRound) {
-      nextRound = rounds.find((r) => r.roundNumber === currentRound.roundNumber + 1) || null;
+    // Guards double-clicks and replays: a completed round has already decided its advancement.
+    if (currentRound.status === "completed") {
+      return NextResponse.json(
+        { error: `'${currentRound.name}' is already completed. Select the round that is in progress.` },
+        { status: 409 }
+      );
     }
 
+    const nextRound =
+      (nextRoundId && rounds.find((r) => r.id === nextRoundId)) ||
+      rounds.find((r) => r.roundNumber === currentRound.roundNumber + 1) ||
+      null;
+
     const teams = await getHackathonTeams(eventId);
-    const scores = await getHackathonScores(eventId, currentRoundId);
-    const votes = await getHackathonVotes(eventId, currentRoundId);
-    const criteria = await getHackathonCriteria(eventId, currentRoundId);
-    const tiebreakers = await getHackathonTiebreakers(eventId, currentRoundId);
+    const competing = getCompetingTeamsForRound(teams, currentRound, rounds);
+    const competingIds = new Set(competing.map((t) => t.id));
 
-    // Compute leaderboard to determine rank if advancingTeamIds not provided explicitly
-    let winnersSet = new Set<string>();
-
+    // Decide winners among the teams that actually competed in this round. Teams eliminated in
+    // earlier rounds are never re-ranked here, so they can never be "advanced" back in.
+    let winners: Set<string>;
+    let effectiveCutoff: number | undefined;
     if (Array.isArray(advancingTeamIds) && advancingTeamIds.length > 0) {
-      winnersSet = new Set(advancingTeamIds);
+      winners = new Set(advancingTeamIds.filter((id: string) => competingIds.has(id)));
     } else {
-      const effectiveCutoff = cutoffRank || currentRound.cutoffRank || 5;
-      const leaderboard = computeRoundLeaderboard(
-        currentRoundId,
-        currentRound.type === "final",
-        teams,
-        scores,
-        votes,
-        criteria,
-        tiebreakers,
-        effectiveCutoff
-      );
-
-      for (const item of leaderboard) {
-        if (!item.disqualified && item.rank <= effectiveCutoff) {
-          winnersSet.add(item.teamId);
-        }
+      effectiveCutoff = Number(cutoffRank) || currentRound.cutoffRank;
+      if (nextRound && (!effectiveCutoff || !Number.isInteger(effectiveCutoff) || effectiveCutoff < 1)) {
+        return NextResponse.json({ error: "A cutoff rank (whole number of 1 or more) is required." }, { status: 400 });
       }
+      const [scores, votes, criteria, tiebreakers] = await Promise.all([
+        getHackathonScores(eventId, currentRoundId),
+        getHackathonVotes(eventId, currentRoundId),
+        getHackathonCriteria(eventId, currentRoundId),
+        getHackathonTiebreakers(eventId, currentRoundId),
+      ]);
+      const standings = computeStandings(currentRound, rounds, teams, scores, votes, criteria, tiebreakers, effectiveCutoff);
+      winners = new Set(standings.filter((s) => s.advanced).map((s) => s.teamId));
     }
 
     const isNextFinal = nextRound?.type === "final";
+    const changedTeams: HackathonTeam[] = [];
+    let advanced = 0;
+    let eliminated = 0;
 
-    // Update teams
-    const updatedCount = { advanced: 0, eliminated: 0 };
-    for (const t of teams) {
-      if (t.disqualified) continue;
-
-      if (winnersSet.has(t.id)) {
-        updatedCount.advanced++;
-        t.isEliminated = false;
-        if (isNextFinal) {
-          t.finalist = true;
-        }
-      } else {
-        // If not already eliminated, eliminate now
-        if (!t.isEliminated) {
-          t.isEliminated = true;
-          t.eliminatedInRoundId = currentRoundId;
-          updatedCount.eliminated++;
+    // Finishing the last round finalizes the event; team states stay as the final ranking shows them.
+    if (nextRound) {
+      for (const team of competing) {
+        if (winners.has(team.id)) {
+          advanced++;
+          changedTeams.push({ ...team, isEliminated: false, finalist: isNextFinal || team.finalist });
+        } else {
+          eliminated++;
+          changedTeams.push({ ...team, isEliminated: true, eliminatedInRoundId: currentRound.id });
         }
       }
-      await saveHackathonTeam(t);
+      if (changedTeams.length > 0) await saveHackathonTeams(changedTeams);
     }
 
-    // Complete current round
-    currentRound.status = "completed";
-    await saveHackathonRound(currentRound);
+    await saveHackathonRound({ ...currentRound, status: "completed" });
 
-    // Activate next round if available
     if (nextRound) {
-      nextRound.status = "active";
-      await saveHackathonRound(nextRound);
-
-      event.currentRoundNumber = nextRound.roundNumber;
-      event.activeRoundId = nextRound.id;
-      await saveHackathonEvent(event);
+      await saveHackathonRound({ ...nextRound, status: "active" });
+      await saveHackathonEvent({ ...event, currentRoundNumber: nextRound.roundNumber, activeRoundId: nextRound.id });
     } else {
-      // Event completed
-      event.status = "completed";
-      await saveHackathonEvent(event);
+      await saveHackathonEvent({ ...event, status: "completed", isVotingOpen: false });
     }
 
     await logHackathonActivity({
@@ -123,15 +110,18 @@ export async function POST(request: Request) {
       details: {
         completedRound: currentRound.name,
         nextRound: nextRound?.name || "Finalized",
-        advancedCount: updatedCount.advanced,
-        eliminatedCount: updatedCount.eliminated,
+        cutoffRank: effectiveCutoff,
+        advancedCount: advanced,
+        eliminatedCount: eliminated,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: `Stage advanced. ${updatedCount.advanced} teams advanced, ${updatedCount.eliminated} teams eliminated.`,
-      nextRound: nextRound ? { id: nextRound.id, name: nextRound.name, status: nextRound.status } : null,
+      message: nextRound
+        ? `Stage advanced. ${advanced} teams advanced, ${eliminated} teams eliminated.`
+        : `Final round completed. ${event.title} is now finalized.`,
+      nextRound: nextRound ? { id: nextRound.id, name: nextRound.name, status: "active" } : null,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Stage advancement failed." }, { status: 500 });

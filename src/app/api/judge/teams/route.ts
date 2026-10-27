@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getJudgeSession } from "@/lib/hackathon/sessions";
+import { getActiveJudge, isJudgeAssignedToRound } from "@/lib/hackathon/sessions";
 import {
   getHackathonEventById,
   getHackathonRounds,
@@ -11,10 +11,11 @@ import {
 import { getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
 
 export async function GET(request: Request) {
-  const session = await getJudgeSession();
-  if (!session) {
+  const active = await getActiveJudge();
+  if (!active) {
     return NextResponse.json({ error: "Unauthorized judge session" }, { status: 401 });
   }
+  const { session, judge } = active;
 
   const { searchParams } = new URL(request.url);
   const requestedRoundId = searchParams.get("roundId");
@@ -128,6 +129,7 @@ export async function GET(request: Request) {
       type: activeRound.type,
       status: activeRound.status,
       allowRevisions: activeRound.allowRevisions === true,
+      isAssignedToMe: isJudgeAssignedToRound(judge, activeRound.id),
     },
     criteria: roundCriteria.map((c) => ({
       id: c.id,

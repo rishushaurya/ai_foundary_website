@@ -17,6 +17,11 @@
 .env*.local
 .env
 
+# Runtime data created by the app (attendee PII, device sessions, per-event activity logs)
+/data/event-registrations.json
+/data/hackathon-team-sessions.json
+/data/hackathon-logs-*.json
+
 # Diagnostic / debug logs
 npm-debug.log*
 yarn-debug.log*
@@ -28,3 +33,6 @@ yarn-error.log*
 .DS_Store
 *.pem
 Thumbs.db
+
+# Guide videos (large binaries; share them separately)
+/guide-videos/

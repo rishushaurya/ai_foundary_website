@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   getContent,
-  getEvents,
+  getPublicEvents,
   getTeamMembers,
   getSettings,
   getGallerySections,
@@ -11,13 +11,13 @@ export async function GET() {
   try {
     const [content, events, team, settings, gallery] = await Promise.all([
       getContent(),
-      getEvents(),
+      getPublicEvents(),
       getTeamMembers(),
       getSettings(),
       getGallerySections(),
     ]);
 
-    const { adminEmails, ...safeSettings } = settings;
+    const { adminEmails: _admins, rootAdminEmails: _roots, ...safeSettings } = settings;
 
     return NextResponse.json({
       content,

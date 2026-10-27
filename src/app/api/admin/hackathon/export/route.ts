@@ -9,6 +9,7 @@ import {
   getHackathonJudges,
   getHackathonVotes,
   getHackathonTiebreakers,
+  getLiveSessionsByTeam,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
 import {
@@ -41,8 +42,8 @@ export async function GET(request: Request) {
 
     // 1. Export Teams
     if (type === "teams") {
-      const teams = await getHackathonTeams(eventId);
-      const buffer = generateTeamsWorkbook(teams, mode);
+      const [teams, sessions] = await Promise.all([getHackathonTeams(eventId), getLiveSessionsByTeam(eventId)]);
+      const buffer = generateTeamsWorkbook(teams, mode, sessions);
 
       let filename = `${safeTitle}-teams-complete-${timestamp}.xlsx`;
       if (mode === "public_only") {
@@ -92,22 +93,26 @@ export async function GET(request: Request) {
     // 3. Export Round Marks / Scores
     if (type === "marks") {
       const rounds = await getHackathonRounds(eventId);
-      const targetRound = rounds.find((r) => r.id === roundId) || rounds[0];
-
-      if (!targetRound) {
+      // A roundId exports that round; without one, every round plus the Results & Winners sheet.
+      const roundsToExport = roundId ? rounds.filter((r) => r.id === roundId) : rounds;
+      if (roundsToExport.length === 0) {
         return NextResponse.json({ error: "No round found for marks export." }, { status: 404 });
       }
+      const targetRound = roundsToExport[0];
 
-      const criteria = await getHackathonCriteria(eventId);
-      const scores = await getHackathonScores(eventId, targetRound.id);
-      const teams = await getHackathonTeams(eventId);
-      const votes = await getHackathonVotes(eventId, targetRound.id);
-      const tiebreakers = await getHackathonTiebreakers(eventId);
-      const judges = await getHackathonJudges(eventId);
+      const [criteria, scores, teams, votes, tiebreakers, judges] = await Promise.all([
+        getHackathonCriteria(eventId),
+        getHackathonScores(eventId),
+        getHackathonTeams(eventId),
+        getHackathonVotes(eventId),
+        getHackathonTiebreakers(eventId),
+        getHackathonJudges(eventId),
+      ]);
 
       const buffer = generateMarksWorkbook(
         event,
-        targetRound,
+        roundsToExport,
+        rounds,
         criteria,
         scores,
         teams,
@@ -116,7 +121,7 @@ export async function GET(request: Request) {
         judges
       );
 
-      const roundSlug = `round-${targetRound.roundNumber}`;
+      const roundSlug = roundId ? `round-${targetRound.roundNumber}` : "all-rounds-results";
       const filename = `${safeTitle}-${roundSlug}-marks-${timestamp}.xlsx`;
 
       await logHackathonActivity({

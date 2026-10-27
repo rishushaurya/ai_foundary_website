@@ -2,13 +2,21 @@ import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { getSettings } from "@/lib/data";
 import { logAdminAction } from "@/lib/audit-logger";
+import { clientIp, getJwtSecret } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "ai-foundry-dev-jwt-secret-key-2026"
-);
+const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const ip = clientIp(request);
+
+  const rate = checkRateLimit(`google-login-${ip}`, 20, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: `Too many sign-in attempts. Try again in ${rate.retryAfterSeconds}s.` },
+      { status: 429 }
+    );
+  }
 
   let body: any;
   try {
@@ -49,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     const googlePayload = await googleVerifyRes.json();
-    const { email, email_verified, name, sub: googleId, aud } = googlePayload;
+    const { email, email_verified, name, sub: googleId, aud, iss } = googlePayload;
 
     // 2. Ensure the email is verified by Google
     if (!email || (email_verified !== "true" && email_verified !== true)) {
@@ -59,31 +67,35 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Optional: verify audience (Client ID) if configured in environment
+    // 3. The token must have been issued by Google FOR THIS APP. Without this check, an ID token
+    //    the admin handed to any other Google-login site could be replayed here.
     const expectedClientId = (
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
       process.env.GOOGLE_CLIENT_ID ||
       ""
     ).trim();
 
-    if (expectedClientId && aud && aud.trim() !== expectedClientId) {
-      console.warn(`[auth/google] Token audience mismatch: received '${aud}', expected '${expectedClientId}'`);
-      // Only reject if expectedClientId is not a placeholder
-      if (!expectedClientId.includes("exampleclientid")) {
-        return NextResponse.json(
-          { error: "Google Token Audience mismatch. Please verify NEXT_PUBLIC_GOOGLE_CLIENT_ID configuration." },
-          { status: 403 }
-        );
-      }
+    if (!expectedClientId) {
+      return NextResponse.json(
+        { error: "Google sign-in is not configured on the server (NEXT_PUBLIC_GOOGLE_CLIENT_ID)." },
+        { status: 503 }
+      );
+    }
+    if (typeof aud !== "string" || aud.trim() !== expectedClientId || !GOOGLE_ISSUERS.has(iss)) {
+      console.warn(`[auth/google] Rejected token: aud='${aud}', iss='${iss}'`);
+      return NextResponse.json(
+        { error: "Google token was not issued for this application." },
+        { status: 403 }
+      );
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const settings = await getSettings();
-    const allowedEmails = (settings.adminEmails || []).map((e) => e.trim().toLowerCase());
+    const allowedEmails = [...(settings.adminEmails || []), ...(settings.rootAdminEmails || [])].map((e) =>
+      e.trim().toLowerCase()
+    );
 
-    const isWhitelisted =
-      cleanEmail === "priyanshushaurya9431@gmail.com" ||
-      allowedEmails.includes(cleanEmail);
+    const isWhitelisted = allowedEmails.includes(cleanEmail);
 
     if (!isWhitelisted) {
       await logAdminAction({
@@ -113,7 +125,7 @@ export async function POST(request: Request) {
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
-      .sign(JWT_SECRET);
+      .sign(getJwtSecret());
 
     await logAdminAction({
       adminEmail: cleanEmail,

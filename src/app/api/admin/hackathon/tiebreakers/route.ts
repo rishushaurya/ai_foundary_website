@@ -6,6 +6,7 @@ import {
 } from "@/lib/hackathon/data";
 import { sanitizeString } from "@/lib/hackathon/validators";
 import { HackathonTiebreaker } from "@/lib/hackathon/constants";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const { id, eventId, roundId, teamId, rankAdjustment, reason } = body;
 
@@ -28,14 +30,19 @@ export async function POST(request: Request) {
       );
     }
 
+    const adjustment = Number(rankAdjustment);
+    if (!Number.isInteger(adjustment) || Math.abs(adjustment) > 100) {
+      return NextResponse.json({ error: "rankAdjustment must be a whole number (e.g. -1 or 1)." }, { status: 400 });
+    }
+
     const tiebreaker: HackathonTiebreaker = {
       id: id || `tie-${roundId}-${teamId}`,
       eventId,
       roundId,
       teamId,
-      rankAdjustment: Number(rankAdjustment),
+      rankAdjustment: adjustment,
       reason: sanitizeString(reason),
-      appliedBy: "admin",
+      appliedBy: adminEmail,
       appliedAt: new Date().toISOString(),
     };
 
@@ -48,7 +55,7 @@ export async function POST(request: Request) {
       eventId,
       action: "Tiebreaker Adjusted",
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: { roundId, teamId, rankAdjustment, reason: tiebreaker.reason },
     });
 

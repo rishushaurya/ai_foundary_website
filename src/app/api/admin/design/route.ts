@@ -1,25 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { getSettings, saveSettings } from "@/lib/data";
 import { getAllDesigns, getDesign, isDesignAvailable } from "@/designs/registry";
 import { logAdminAction } from "@/lib/audit-logger";
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dsu-ai-foundry-secure-jwt-key-2026"
-);
+import { getAdminSessionFromToken } from "@/lib/auth";
 
 async function verifyAdminAuth() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("admin-token")?.value;
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as { email: string; role: string };
-  } catch {
-    return null;
-  }
+  return getAdminSessionFromToken(cookieStore.get("admin-token")?.value);
 }
 
 // GET /api/admin/design - List all available designs and active design status

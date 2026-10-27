@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Trophy,
@@ -22,7 +22,7 @@ import {
   Layers,
   Calendar,
 } from "lucide-react";
-import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
+import { useLiveVersion } from "@/hooks/use-live-version";
 
 export default function PublicLeaderboardPage() {
   // Available Events & Current Selection
@@ -54,17 +54,26 @@ export default function PublicLeaderboardPage() {
   const [castingVote, setCastingVote] = useState(false);
   const [voteNotice, setVoteNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Latest selection, readable from async callbacks without stale closures.
+  const selectionRef = useRef({ eventId: "", roundId: "" });
+  selectionRef.current = { eventId: selectedEventId, roundId: selectedRoundId };
+  // Responses can arrive out of order (slow poll vs. a fresh tab switch): only the newest request may render.
+  const statusRequestSeq = useRef(0);
+
   // 1. Fetch Leaderboard Status
-  const fetchStatus = useCallback(async (eventId?: string, roundId?: string) => {
+  const fetchStatus = async (eventId?: string, roundId?: string, version?: number) => {
+    const seq = ++statusRequestSeq.current;
     try {
       const params = new URLSearchParams();
       if (eventId) params.set("eventId", eventId);
       if (roundId) params.set("roundId", roundId);
+      if (version) params.set("v", String(version)); // version-stamped URL: CDN never serves an older board
 
       const url = `/api/leaderboard/status${params.toString() ? `?${params.toString()}` : ""}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to load status");
       const data = await res.json();
+      if (seq !== statusRequestSeq.current) return; // a newer request superseded this one
 
       setAvailableEvents(data.availableEvents || []);
       setEventData(data.event);
@@ -74,54 +83,59 @@ export default function PublicLeaderboardPage() {
       setIsPublished(data.isPublished || false);
       setLastUpdated(new Date().toLocaleTimeString());
 
-      if (data.event && !selectedEventId) {
+      if (data.event && !selectionRef.current.eventId) {
         setSelectedEventId(data.event.id);
       }
-      if (data.activeRound && (!selectedRoundId || selectedRoundId === "")) {
+      if (data.activeRound && !selectionRef.current.roundId) {
         setSelectedRoundId(data.activeRound.id);
       }
     } catch (err) {
       console.error("[leaderboard] Poll error:", err);
     } finally {
-      setLoading(false);
+      if (seq === statusRequestSeq.current) setLoading(false);
     }
-  }, [selectedEventId, selectedRoundId]);
+  };
 
   // 2. Fetch Logged-in Team Details
   const fetchMyTeamStatus = async () => {
     try {
-      const res = await fetch("/api/leaderboard/team-status");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.authenticated) {
-          setMyTeamData(data);
-        } else {
-          setMyTeamData(null);
-        }
-      } else {
-        setMyTeamData(null);
+      const res = await fetch("/api/leaderboard/team-status", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.authenticated) {
+        setMyTeamData(data);
+        return;
       }
-    } catch {
+      if (data.sessionRevoked) {
+        setVerifyError(data.error || "Your session ended. Please verify your team again.");
+      }
       setMyTeamData(null);
+    } catch {
+      // Network blip: keep showing the last known team state; the next live tick retries.
     }
   };
 
-  // Initial Load & Polling Interval
+  // Initial load (honours ?eventId= deep links from the admin panel)
   useEffect(() => {
-    fetchStatus(selectedEventId, selectedRoundId);
+    const linkedEventId = new URLSearchParams(window.location.search).get("eventId") || "";
+    if (linkedEventId) setSelectedEventId(linkedEventId);
+    selectionRef.current.eventId = linkedEventId;
+    fetchStatus(linkedEventId);
     fetchMyTeamStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const interval = setInterval(() => {
-      fetchStatus(selectedEventId, selectedRoundId);
-    }, HACKATHON_CONSTANTS.POLL_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [fetchStatus, selectedEventId, selectedRoundId]);
+  // Live: refetch only when the server reports a change (scores, publish, voting, votes...)
+  const { live } = useLiveVersion((version) => {
+    const { eventId, roundId } = selectionRef.current;
+    fetchStatus(eventId, roundId, version);
+    fetchMyTeamStatus();
+  });
 
   // Handle Event Switching
   const handleSelectEvent = (eventId: string) => {
     setSelectedEventId(eventId);
     setSelectedRoundId("");
+    selectionRef.current = { eventId, roundId: "" };
     setLoading(true);
     fetchStatus(eventId);
   };
@@ -129,7 +143,8 @@ export default function PublicLeaderboardPage() {
   // Handle Round Tab Switching
   const handleSelectRound = (roundId: string) => {
     setSelectedRoundId(roundId);
-    fetchStatus(selectedEventId, roundId);
+    selectionRef.current = { ...selectionRef.current, roundId };
+    fetchStatus(selectionRef.current.eventId, roundId);
   };
 
   // Team Verification Submission
@@ -329,9 +344,18 @@ export default function PublicLeaderboardPage() {
                     </div>
                   )}
 
-                  <div className="inline-flex items-center gap-2 text-[11px] font-mono text-[#5E6059] px-3 py-1.5 rounded-full bg-[#C6CCBD]/20 border border-[#2D2E2A]/10">
-                    <RefreshCw className="size-3 text-[#2D2E2A] animate-spin" />
-                    <span>Sync • {lastUpdated || "live"}</span>
+                  <div
+                    role="status"
+                    aria-atomic="true"
+                    className="inline-flex items-center gap-2 text-[11px] font-mono text-[#5E6059] px-3 py-1.5 rounded-full bg-[#C6CCBD]/20 border border-[#2D2E2A]/10"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`size-2 rounded-full ${live ? "bg-emerald-500 motion-safe:animate-pulse" : "bg-amber-500"}`}
+                    />
+                    <span>
+                      {live ? "Live" : "Reconnecting"} • updated {lastUpdated || "now"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1051,7 +1075,7 @@ export default function PublicLeaderboardPage() {
               ) : myTeamData.voting?.canVote ? (
                 <div className="space-y-3">
                   <p className="text-xs text-[#5E6059] leading-relaxed">
-                    As an eliminated team, your vote carries 30% of the stage evaluation weight. Cast your ballot for your top finalist:
+                    As an eliminated team you get one vote. All audience votes together count for 30% of each finalist's final score (judges count 70%). Choose carefully: votes are final.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

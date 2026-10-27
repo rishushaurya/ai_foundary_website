@@ -1,7 +1,7 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { getEvents, getSettings } from "@/lib/data";
+import { getPublicEvents, getSettings } from "@/lib/data";
 import { getDesign, isDesignAvailable } from "@/designs/registry";
 import { AdminPreviewBar } from "@/components/ui/admin-preview-bar";
 
@@ -27,7 +27,7 @@ export default async function EventsPage({
   const cookieStore = await cookies();
   const isAdmin = !!cookieStore.get("admin-token")?.value;
 
-  const [events, settings] = await Promise.all([getEvents(), getSettings()]);
+  const [events, settings] = await Promise.all([getPublicEvents(), getSettings()]);
 
   if (settings.visiblePages?.events === false) {
     notFound();

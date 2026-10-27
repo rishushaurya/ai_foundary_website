@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Trophy,
   Plus,
@@ -42,6 +42,8 @@ import {
   HackathonTiebreaker,
   HackathonActivityLog,
 } from "@/lib/hackathon/constants";
+import { useLiveVersion } from "@/hooks/use-live-version";
+import { LiveStandings } from "@/components/admin/live-standings";
 
 export default function AdminHackathonPage() {
   const [events, setEvents] = useState<HackathonEvent[]>([]);
@@ -298,22 +300,36 @@ export default function AdminHackathonPage() {
     }
   }, [selectedEventId]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await fetch("/api/admin/hackathon/events");
       const data = await res.json();
-      const list = data.events || [];
+      const list: HackathonEvent[] = data.events || [];
       setEvents(list);
-      if (list.length > 0 && !selectedEventId) {
-        setSelectedEventId(list[0].id);
+      if (list.length > 0 && !selectedEventRef.current) {
+        // After a reload, land on the event being run (live), else the most recently changed one.
+        const preferred =
+          list.find((e) => e.status === "live") ||
+          [...list].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""))[0];
+        setSelectedEventId(preferred.id);
       }
     } catch {
-      setNotice({ type: "error", text: "Failed to load hackathon events." });
+      if (!silent) setNotice({ type: "error", text: "Failed to load hackathon events." });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Live dashboard: incoming scores, votes, logins and other admins' changes appear without a reload.
+  const selectedEventRef = useRef(selectedEventId);
+  selectedEventRef.current = selectedEventId;
+  const [liveVersion, setLiveVersion] = useState(0);
+  const { live, lastSync } = useLiveVersion((version) => {
+    setLiveVersion(version);
+    fetchEvents(true);
+    if (selectedEventRef.current) fetchEventData(selectedEventRef.current);
+  });
 
   const fetchEventData = async (eventId: string) => {
     try {
@@ -618,7 +634,12 @@ export default function AdminHackathonPage() {
 
   // ---- Stage Advancement ----
   const handleAdvanceStage = async () => {
-    if (!currentEvent || !currentEvent.activeRoundId) return;
+    if (!currentEvent) return;
+    if (!currentEvent.activeRoundId) {
+      setNotice({ type: "error", text: "Choose the Active Tournament Round on the Overview tab before advancing." });
+      setAdvanceModalOpen(false);
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch("/api/admin/hackathon/advance", {
@@ -701,21 +722,28 @@ export default function AdminHackathonPage() {
   // ---- Audit Trail Deletion ----
   const handleDeleteLog = async (logId: string) => {
     try {
-      await fetch(`/api/admin/hackathon/logs?id=${logId}`, { method: "DELETE" });
+      const res = await fetch(
+        `/api/admin/hackathon/logs?id=${encodeURIComponent(logId)}&eventId=${encodeURIComponent(selectedEventId)}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error((await res.json()).error || "Failed to delete log entry.");
       await fetchEventData(selectedEventId);
-    } catch {
-      setNotice({ type: "error", text: "Failed to delete log entry." });
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message || "Failed to delete log entry." });
     }
   };
 
   const handleClearAllLogs = async () => {
     if (!confirm("Clear all activity logs for this event?")) return;
     try {
-      await fetch(`/api/admin/hackathon/logs?all=true&eventId=${selectedEventId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/hackathon/logs?all=true&eventId=${encodeURIComponent(selectedEventId)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed to clear logs.");
       setNotice({ type: "success", text: "All event audit logs cleared." });
       await fetchEventData(selectedEventId);
-    } catch {
-      setNotice({ type: "error", text: "Failed to clear logs." });
+    } catch (err: any) {
+      setNotice({ type: "error", text: err.message || "Failed to clear logs." });
     }
   };
 
@@ -741,6 +769,15 @@ export default function AdminHackathonPage() {
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-1">
             Configure tournament stages, evaluation criteria, teams, judges &amp; live publishing.
+          </p>
+          <p role="status" aria-atomic="true" className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+            <span
+              aria-hidden="true"
+              className={`size-2 rounded-full ${live ? "bg-emerald-500 motion-safe:animate-pulse" : "bg-amber-500"}`}
+            />
+            {live
+              ? `Live sync on${lastSync ? ` · checked ${lastSync.toLocaleTimeString()}` : ""}`
+              : "Connection lost, retrying…"}
           </p>
         </div>
 
@@ -936,7 +973,7 @@ export default function AdminHackathonPage() {
                 <div className="flex flex-wrap items-center gap-2.5">
                   <button
                     onClick={() => {
-                      setAdvanceCutoff(5);
+                      setAdvanceCutoff(rounds.find((r) => r.id === currentEvent.activeRoundId)?.cutoffRank || 5);
                       setAdvanceModalOpen(true);
                     }}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer"
@@ -1210,7 +1247,7 @@ export default function AdminHackathonPage() {
                     leaderEmail: "",
                     leaderPhone: "",
                     members: "",
-                    passkey: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                    passkey: "", // empty = the server generates a strong 8-character passkey
                   });
                   setTeamModalOpen(true);
                 }}
@@ -1418,7 +1455,7 @@ export default function AdminHackathonPage() {
                   setEditingJudge({
                     name: "",
                     email: "",
-                    accessCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                    accessCode: "", // empty = the server generates a strong 8-character code
                   });
                   setJudgeModalOpen(true);
                 }}
@@ -1618,6 +1655,18 @@ export default function AdminHackathonPage() {
             </div>
           </div>
 
+          {selectedEventId && scoreFilterRoundId !== "all" && (
+            <section aria-labelledby="live-standings-title" className="glass-card rounded-3xl p-5 border border-white/80 shadow-xs space-y-3">
+              <div>
+                <h3 id="live-standings-title" className="text-sm font-black text-slate-900">Live Standings</h3>
+                <p className="text-xs text-slate-500">
+                  Real ranking with ties and the cutoff line, updated as judges submit. Visible to admins only until published.
+                </p>
+              </div>
+              <LiveStandings eventId={selectedEventId} roundId={scoreFilterRoundId} refreshKey={liveVersion} />
+            </section>
+          )}
+
           {/* Scores table grouped by filtered round */}
           <div className="glass-card rounded-3xl border border-white/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
@@ -1730,7 +1779,7 @@ export default function AdminHackathonPage() {
               <div key={idx} className="glass-card rounded-3xl p-5 border border-white/80 shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs font-black text-slate-400">{item.teamCode}</span>
-                  <span className="text-xl font-black text-cyan-600">{item.count} votes</span>
+                  <span className="text-xl font-black text-cyan-600">{item.count} {item.count === 1 ? "vote" : "votes"}</span>
                 </div>
                 <h3 className="font-black text-slate-900 text-sm">{item.teamName}</h3>
                 <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
@@ -2126,6 +2175,23 @@ export default function AdminHackathonPage() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="criterion-weight" className="font-bold text-slate-700 block mb-1">Weight</label>
+                <input
+                  id="criterion-weight"
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  required
+                  value={editingCriteria.weight ?? 1}
+                  onChange={(e) => setEditingCriteria({ ...editingCriteria, weight: Number(e.target.value) })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  1 = counts by its marks. 2 = counts double. Criteria lock once judges score the round.
+                </p>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
@@ -2262,7 +2328,10 @@ export default function AdminHackathonPage() {
             </div>
 
             <div className="text-xs text-slate-500 space-y-2">
-              <p>Paste CSV content below. Minimum required columns: team_code, team_name</p>
+              <p>
+                Paste CSV with a header row. Required: team_code, team_name. Leave the passkey column out (or empty) to
+                auto-generate strong 8-character passkeys; typed passkeys need 6+ characters.
+              </p>
               <pre className="p-2.5 rounded-xl bg-slate-100 text-slate-800 font-mono text-[10px] overflow-x-auto">
                 team_code,team_name,leader_name,leader_email,leader_phone,members,passkey
               </pre>
@@ -2272,7 +2341,7 @@ export default function AdminHackathonPage() {
               rows={8}
               value={csvText}
               onChange={(e) => setCsvText(e.target.value)}
-              placeholder="T-101,Neural Nexus,Alex Chen,alex@uni.edu,9876543210,David;Sarah,AI2026"
+              placeholder={`team_code,team_name,leader_name,leader_email,leader_phone,members,passkey\nT-101,Neural Nexus,Alex Chen,alex@uni.edu,9876543210,David;Sarah,`}
               className="w-full p-3 rounded-2xl border border-slate-200 text-slate-900 font-mono text-xs"
             />
 
@@ -2386,7 +2455,7 @@ export default function AdminHackathonPage() {
       {/* Advance Stage Modal */}
       {advanceModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="glass-card rounded-3xl p-5 sm:p-8 border border-white/80 bg-white max-w-md w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="glass-card rounded-3xl p-5 sm:p-8 border border-white/80 bg-white max-w-2xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-black text-slate-900">Execute Stage Advancement</h3>
               <button onClick={() => setAdvanceModalOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -2409,6 +2478,22 @@ export default function AdminHackathonPage() {
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-black text-slate-900"
               />
             </div>
+
+            {currentEvent?.activeRoundId ? (
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-slate-700">Preview: exactly who advances with this cutoff</p>
+                <LiveStandings
+                  eventId={selectedEventId}
+                  roundId={currentEvent.activeRoundId}
+                  cutoff={advanceCutoff}
+                  refreshKey={liveVersion}
+                />
+              </div>
+            ) : (
+              <p className="text-xs font-semibold text-red-700">
+                No active round selected. Choose the Active Tournament Round on the Overview tab first.
+              </p>
+            )}
 
             <div className="flex justify-end gap-2 pt-2 text-xs">
               <button

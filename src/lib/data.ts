@@ -1,4 +1,13 @@
-import { readData, writeData } from "@/lib/local-db";
+import {
+  readData,
+  writeData,
+  listRecords,
+  getRecord,
+  putRecords,
+  insertRecordIfAbsent,
+  deleteRecords,
+  type CollectionSpec,
+} from "@/lib/local-db";
 
 // ---- Team Interfaces ----
 export interface TeamSocialLinks {
@@ -106,17 +115,57 @@ export interface EventData {
   registrations?: EventRegistration[];
 }
 
+// Registrations live in their own collection, one record per (event, email). Public submissions
+// therefore never rewrite the events blob, can't be lost to concurrent writes, and an admin saving
+// an event from a stale page can't wipe registrations that arrived meanwhile.
+type StoredRegistration = EventRegistration & { eventId: string };
+const REGISTRATIONS: CollectionSpec<StoredRegistration> = {
+  name: "event-registrations.json",
+  keyOf: (r) => `${r.eventId}:${r.email.trim().toLowerCase()}`,
+  seed: async () =>
+    (await readData<EventData[]>("events.json", [])).flatMap((e) =>
+      (e.registrations || []).map((r) => ({ ...r, eventId: e.id }))
+    ),
+};
+
+/** Events with their registrations (admin use only: contains attendee PII). */
 export async function getEvents(): Promise<EventData[]> {
-  return readData<EventData[]>("events.json", []);
+  const [events, regs] = await Promise.all([readData<EventData[]>("events.json", []), listRecords(REGISTRATIONS)]);
+  const byEvent = new Map<string, EventRegistration[]>();
+  for (const { eventId, ...reg } of regs.sort((a, b) => a.timestamp.localeCompare(b.timestamp))) {
+    byEvent.set(eventId, [...(byEvent.get(eventId) || []), reg]);
+  }
+  return events.map((e) => ({ ...e, registrations: byEvent.get(e.id) || [] }));
+}
+
+/** Events safe to render or serve publicly: registrant PII never leaves the server. */
+export async function getPublicEvents(): Promise<EventData[]> {
+  const events = await readData<EventData[]>("events.json", []);
+  return events.map(({ registrations: _pii, ...publicFields }) => publicFields);
+}
+
+/** Atomic: returns false if this email already registered for the event. */
+export async function addEventRegistration(eventId: string, registration: EventRegistration): Promise<boolean> {
+  return insertRecordIfAbsent(REGISTRATIONS, { ...registration, eventId });
+}
+
+export async function deleteEventRegistrations(eventId: string): Promise<void> {
+  const regs = await listRecords(REGISTRATIONS);
+  await deleteRecords(REGISTRATIONS, regs.filter((r) => r.eventId === eventId).map(REGISTRATIONS.keyOf));
 }
 
 export async function getHomeEvents(): Promise<EventData[]> {
-  const events = await getEvents();
+  const events = await getPublicEvents();
   return events.filter((e) => e.showOnHome);
 }
 
 export async function saveEvents(events: EventData[]): Promise<boolean> {
-  return writeData("events.json", events);
+  // Migrate any legacy embedded registrations into their collection BEFORE dropping them here.
+  await listRecords(REGISTRATIONS);
+  return writeData(
+    "events.json",
+    events.map(({ registrations: _stored, ...event }) => event)
+  );
 }
 
 // ---- Content & About ----
@@ -180,12 +229,33 @@ export interface RecruitmentEntry {
   status: "pending" | "reviewed" | "accepted" | "rejected";
 }
 
+const RECRUITMENT: CollectionSpec<RecruitmentEntry> = { name: "recruitment.json", keyOf: (e) => e.id };
+export const RECRUITMENT_STATUSES: RecruitmentEntry["status"][] = ["pending", "reviewed", "accepted", "rejected"];
+
 export async function getRecruitmentEntries(): Promise<RecruitmentEntry[]> {
-  return readData<RecruitmentEntry[]>("recruitment.json", []);
+  const entries = await listRecords(RECRUITMENT);
+  return entries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 }
 
-export async function saveRecruitmentEntries(entries: RecruitmentEntry[]): Promise<boolean> {
-  return writeData("recruitment.json", entries);
+export async function addRecruitmentEntry(entry: RecruitmentEntry): Promise<boolean> {
+  return insertRecordIfAbsent(RECRUITMENT, entry);
+}
+
+export async function updateRecruitmentStatus(
+  id: string,
+  status: RecruitmentEntry["status"]
+): Promise<RecruitmentEntry | null> {
+  const entry = await getRecord(RECRUITMENT, id);
+  if (!entry) return null;
+  const updated = { ...entry, status };
+  await putRecords(RECRUITMENT, [updated]);
+  return updated;
+}
+
+export async function deleteRecruitmentEntry(id: string): Promise<RecruitmentEntry | null> {
+  const entry = await getRecord(RECRUITMENT, id);
+  await deleteRecords(RECRUITMENT, [id]);
+  return entry;
 }
 
 // ---- Settings & Landing Visual Customization ----
@@ -482,6 +552,12 @@ export async function getSettings(): Promise<SiteSettings> {
   }
 
   return settings;
+}
+
+/** Settings safe to hand to client components: the admin whitelist stays on the server. */
+export async function getPublicSettings(): Promise<SiteSettings> {
+  const { rootAdminEmails: _roots, ...settings } = await getSettings();
+  return { ...settings, adminEmails: [] };
 }
 
 export async function saveSettings(settings: SiteSettings): Promise<boolean> {

@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
 import {
-  getHackathonTeamByCode,
   getHackathonTeams,
-  saveHackathonTeam,
-  getHackathonVotes,
+  getHackathonEventById,
+  getTeamVote,
+  startTeamSession,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
 import { compareSecret } from "@/lib/hackathon/validators";
 import { createParticipantToken } from "@/lib/hackathon/sessions";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { clientIp } from "@/lib/auth";
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const ip = clientIp(request);
 
   try {
     const body = await request.json();
     const { teamCode, passkey, eventId } = body;
 
-    if (!teamCode || !passkey) {
+    if (typeof teamCode !== "string" || typeof passkey !== "string" || !teamCode.trim() || !passkey.trim()) {
       return NextResponse.json(
         { error: "Team Code and Secret Passkey are required." },
         { status: 400 }
@@ -40,67 +41,43 @@ export async function POST(request: Request) {
       );
     }
 
-    const allTeams = await getHackathonTeams(eventId);
-    const candidates = allTeams.filter(
-      (t) => t.teamCode.trim().toUpperCase() === normalized
-    );
+    const allTeams = await getHackathonTeams(typeof eventId === "string" ? eventId : undefined);
+    const candidates = allTeams.filter((t) => t.teamCode.trim().toUpperCase() === normalized);
 
-    if (candidates.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid Team Code or Passkey." },
-        { status: 401 }
-      );
-    }
-
-    let matchingTeam: typeof candidates[0] | null = null;
+    let team: (typeof candidates)[number] | null = null;
     for (const cand of candidates) {
-      const valid = await compareSecret(passkey.trim(), cand.verificationCodeHash);
-      if (valid) {
-        matchingTeam = cand;
+      if (await compareSecret(passkey.trim(), cand.verificationCodeHash)) {
+        team = cand;
         break;
       }
     }
 
-    if (!matchingTeam) {
-      return NextResponse.json(
-        { error: "Invalid Team Code or Passkey." },
-        { status: 401 }
-      );
+    if (!team) {
+      return NextResponse.json({ error: "Invalid Team Code or Passkey." }, { status: 401 });
     }
 
-    const team = matchingTeam;
-
-    // Check if team already has an active session on another device
-    const cookieStore = await request.headers.get("cookie") || "";
-    const existingParticipantCookie = cookieStore.includes(HACKATHON_CONSTANTS.COOKIE_PARTICIPANT);
-
-    if (team.activeSessionId && !team.allowMultipleLogins) {
-      // Check if this is the same active session
-      // If team.lastLoginAt is within session TTL and activeSessionId is set, block 2nd device
+    const event = await getHackathonEventById(team.eventId);
+    if (!event || (event.status !== "live" && event.status !== "completed")) {
       return NextResponse.json(
-        {
-          error: "Account already logged in on another device. Simultaneous logins are disabled. Please log out from the other device or ask an event administrator to reset your session.",
-        },
+        { error: "This hackathon hasn't started yet. Team login opens when the organisers go live." },
         { status: 403 }
       );
     }
 
-    // Generate unique device session ID
-    const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    team.activeSessionId = newSessionId;
-    team.lastLoginAt = new Date().toISOString();
-    await saveHackathonTeam(team);
+    // Atomic device claim: two phones logging in at the same instant cannot both win.
+    const claim = await startTeamSession(team);
+    if (!claim.ok) {
+      return NextResponse.json({ error: claim.error }, { status: 403 });
+    }
 
-    // Check if team has already cast a vote in the event
-    const votes = await getHackathonVotes(team.eventId);
-    const hasVoted = votes.some((v) => v.voterTeamId === team.id);
+    const hasVoted = !!(await getTeamVote(team.eventId, team.id));
 
     const token = await createParticipantToken({
       teamId: team.id,
       eventId: team.eventId,
       teamCode: team.teamCode,
       teamName: team.teamName,
-      sessionId: newSessionId,
+      sessionId: claim.sessionId,
       isEliminated: team.isEliminated,
       finalist: team.finalist,
     });

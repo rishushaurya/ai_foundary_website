@@ -1,7 +1,7 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { getFaculty, getExecutives, getTeamWings, getSettings } from "@/lib/data";
+import { getFaculty, getExecutives, getTeamWings, getPublicSettings } from "@/lib/data";
 import { getDesign, isDesignAvailable } from "@/designs/registry";
 import { AdminPreviewBar } from "@/components/ui/admin-preview-bar";
 
@@ -28,7 +28,7 @@ export default async function TeamPage({
   const isAdmin = !!cookieStore.get("admin-token")?.value;
 
   const [settings, faculty, executives, wings] = await Promise.all([
-    getSettings(),
+    getPublicSettings(),
     getFaculty(),
     getExecutives(),
     getTeamWings(),

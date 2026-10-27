@@ -3,6 +3,7 @@ import {
   HackathonVote,
   HackathonTeam,
   HackathonCriteria,
+  HackathonRound,
   HackathonTiebreaker,
   HACKATHON_CONSTANTS,
 } from "./constants";
@@ -76,7 +77,54 @@ export function getCompetingTeamsForRound(
 }
 
 /**
+ * A round may go live (active/scoring) only when no other round of the event is live and every
+ * earlier round is completed. Returns the reason it can't, or null.
+ */
+export function roundStartBlocker(round: HackathonRound, eventRounds: HackathonRound[]): string | null {
+  const live = eventRounds.find((r) => r.id !== round.id && (r.status === "active" || r.status === "scoring"));
+  if (live) return `Round '${live.name}' is still running. Complete it (or advance the stage) first.`;
+  const unfinished = eventRounds.find((r) => r.id !== round.id && r.roundNumber < round.roundNumber && r.status !== "completed");
+  if (unfinished) return `Round '${unfinished.name}' must be completed before '${round.name}' can start.`;
+  return null;
+}
+
+/**
+ * Standings for one round, ranking only the teams competing in it. Every view (public board,
+ * team scorecard, admin preview, advancement, exports) goes through here so they always agree.
+ */
+export function computeStandings(
+  round: HackathonRound,
+  allRounds: HackathonRound[],
+  teams: HackathonTeam[],
+  scores: HackathonScore[],
+  votes: HackathonVote[],
+  criteria: HackathonCriteria[],
+  tiebreakers: HackathonTiebreaker[],
+  cutoffRank: number | undefined = round.cutoffRank
+): TeamScoreSummary[] {
+  const competing = getCompetingTeamsForRound(teams, round, allRounds);
+  // Only votes from non-disqualified voters for eligible, non-disqualified finalists count, so a
+  // later disqualification can't skew everyone else's vote share.
+  const eligibleCandidates = new Set(competing.filter((t) => !t.disqualified).map((t) => t.id));
+  const disqualifiedVoters = new Set(teams.filter((t) => t.disqualified).map((t) => t.id));
+  const countedVotes = votes.filter(
+    (v) => eligibleCandidates.has(v.candidateTeamId) && !disqualifiedVoters.has(v.voterTeamId)
+  );
+  return computeRoundLeaderboard(
+    round.id,
+    round.type === "final",
+    competing,
+    scores,
+    countedVotes,
+    criteria.filter((c) => c.roundId === round.id || !c.roundId),
+    tiebreakers,
+    cutoffRank
+  );
+}
+
+/**
  * Calculates a single judge's score for a team normalized to a 100 scale.
+ * Each criterion counts in proportion to maxMarks x weight (weight 1 everywhere = plain marks total).
  */
 export function calculateJudgeNormalizedScore(
   criterionScores: Record<string, number>,
@@ -84,17 +132,22 @@ export function calculateJudgeNormalizedScore(
 ): { totalAwarded: number; totalMax: number; normalized: number } {
   let totalAwarded = 0;
   let totalMax = 0;
+  let weightedAwarded = 0;
+  let weightedMax = 0;
 
   for (const crit of criteriaList) {
     const awarded = Math.max(0, Math.min(crit.maxMarks, criterionScores[crit.id] ?? 0));
+    const weight = crit.weight > 0 ? crit.weight : 1;
     totalAwarded += awarded;
     totalMax += crit.maxMarks;
+    weightedAwarded += awarded * weight;
+    weightedMax += crit.maxMarks * weight;
   }
 
-  if (totalMax === 0) return { totalAwarded: 0, totalMax: 0, normalized: 0 };
+  if (weightedMax === 0) return { totalAwarded: 0, totalMax: 0, normalized: 0 };
 
-  const normalized = roundToPrecision((totalAwarded / totalMax) * HACKATHON_CONSTANTS.MAX_SCORE_SCALE);
-  return { totalAwarded, totalMax, normalized };
+  const normalized = roundToPrecision((weightedAwarded / weightedMax) * HACKATHON_CONSTANTS.MAX_SCORE_SCALE);
+  return { totalAwarded: roundToPrecision(totalAwarded), totalMax, normalized };
 }
 
 /**

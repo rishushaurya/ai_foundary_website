@@ -1,10 +1,7 @@
-import { readData, writeData } from "@/lib/local-db";
-import { jwtVerify } from "jose";
+import { pushLog, readLog, clearLog, removeFromLog, type LogSpec } from "@/lib/local-db";
+import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "ai-foundry-dev-jwt-secret-key-2026"
-);
+import { verifyRoleToken } from "@/lib/auth";
 
 export interface AuditLogEntry {
   id: string;
@@ -18,77 +15,54 @@ export interface AuditLogEntry {
 }
 
 /**
- * Extracts authenticated admin email from request session cookie
+ * Extracts the authenticated admin email from the admin-token cookie.
+ * Never falls back to a privileged identity: unverifiable callers are "unknown".
  */
-export async function getAdminEmailFromRequest(request?: Request): Promise<string> {
-  try {
-    // 1. Try Next.js App Router cookies()
-    try {
-      const cookieStore = await cookies();
-      const token = cookieStore.get("admin-token")?.value;
-      if (token) {
-        const { payload } = await jwtVerify(token, JWT_SECRET);
-        if (payload.email && typeof payload.email === "string") {
-          return payload.email;
-        }
-      }
-    } catch {}
-
-    // 2. Try Request Headers cookie
-    if (request) {
-      const cookieHeader = request.headers.get("cookie") || "";
-      const match = cookieHeader.match(/(?:^|;\s*)admin-token=([^;]+)/);
-      if (match && match[1]) {
-        const { payload } = await jwtVerify(match[1].trim(), JWT_SECRET);
-        if (payload.email && typeof payload.email === "string") {
-          return payload.email;
-        }
-      }
-    }
-  } catch {}
-  return "priyanshushaurya9431@gmail.com";
+export async function getAdminEmailFromRequest(_request?: Request): Promise<string> {
+  const cookieStore = await cookies();
+  const payload = await verifyRoleToken(cookieStore.get("admin-token")?.value, "admin");
+  return typeof payload?.email === "string" ? payload.email.toLowerCase() : "unknown";
 }
+
+// Append-only capped list: concurrent writers can't drop each other's entries.
+const AUDIT_LOG: LogSpec<AuditLogEntry> = { name: "audit-logs.json", max: 500 };
 
 /**
  * Appends an entry to the persistent Audit Log trail
  */
 export async function logAdminAction(entry: Omit<AuditLogEntry, "id" | "timestamp">): Promise<void> {
   try {
-    const existingLogs = await readData<AuditLogEntry[]>("audit-logs.json", []);
-    const newLog: AuditLogEntry = {
-      id: `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    await pushLog(AUDIT_LOG, {
+      id: `log-${randomUUID()}`,
       timestamp: new Date().toISOString(),
       ...entry,
-    };
-
-    // Keep last 500 audit log entries to manage storage efficiently
-    const updated = [newLog, ...existingLogs].slice(0, 500);
-    await writeData("audit-logs.json", updated);
+    });
   } catch (error) {
     console.error("[AuditLogger] Failed to write audit log entry:", error);
   }
 }
 
 /**
- * Retrieves all audit log entries
+ * Retrieves all audit log entries (newest first)
  */
 export async function getAuditLogs(): Promise<AuditLogEntry[]> {
-  return readData<AuditLogEntry[]>("audit-logs.json", []);
+  return readLog(AUDIT_LOG);
 }
 
 /**
  * Purges all historical audit logs and writes an initial reset entry
  */
-export async function clearAuditLogs(adminEmail: string = "priyanshushaurya9431@gmail.com"): Promise<boolean> {
-  const initialLog: AuditLogEntry = {
-    id: `log-${Date.now()}-init`,
+export async function clearAuditLogs(adminEmail: string): Promise<boolean> {
+  await clearLog(AUDIT_LOG);
+  await pushLog(AUDIT_LOG, {
+    id: `log-${randomUUID()}`,
     timestamp: new Date().toISOString(),
     adminEmail,
     action: "Audit Trail Cleared & Initialized",
     details: "Historical logs purged by administrator. Fresh audit logging active.",
     status: "success",
-  };
-  return writeData("audit-logs.json", [initialLog]);
+  });
+  return true;
 }
 
 /**
@@ -96,9 +70,8 @@ export async function clearAuditLogs(adminEmail: string = "priyanshushaurya9431@
  */
 export async function deleteAuditLog(id: string): Promise<boolean> {
   try {
-    const existingLogs = await readData<AuditLogEntry[]>("audit-logs.json", []);
-    const updated = existingLogs.filter((log) => log.id !== id);
-    return writeData("audit-logs.json", updated);
+    await removeFromLog(AUDIT_LOG, (log) => log.id === id);
+    return true;
   } catch (error) {
     console.error("[AuditLogger] Failed to delete audit log entry:", error);
     return false;

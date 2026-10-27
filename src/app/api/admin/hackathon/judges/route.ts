@@ -7,7 +7,8 @@ import {
   deleteHackathonJudge,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
-import { sanitizeString, hashSecret, isValidEmail } from "@/lib/hackathon/validators";
+import { sanitizeString, hashSecret, isValidEmail, generateSecretCode } from "@/lib/hackathon/validators";
+import { randomUUID } from "crypto";
 import { HackathonJudge } from "@/lib/hackathon/constants";
 
 export async function GET(request: Request) {
@@ -39,12 +40,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "eventId, name, and email are required." }, { status: 400 });
     }
 
+    if (typeof accessCode === "string" && accessCode.trim() && accessCode.trim().length < 6) {
+      return NextResponse.json({ error: "Access codes must be at least 6 characters (leave blank to auto-generate)." }, { status: 400 });
+    }
+
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: "Invalid email format." }, { status: 400 });
     }
 
-    const judgeId = id || `judge-${eventId}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-    const existing = await getHackathonJudgeById(judgeId);
+    // Client-supplied ids are only accepted for editing an existing judge of this event.
+    const existing = id ? await getHackathonJudgeById(id) : null;
+    if (id && (!existing || existing.eventId !== eventId)) {
+      return NextResponse.json({ error: "Judge not found in this event." }, { status: 404 });
+    }
+    const judgeId = existing?.id || `judge-${randomUUID()}`;
 
     let accessCodeHash = existing?.accessCodeHash || "";
     let effectiveCode: string | undefined = existing?.accessCode;
@@ -54,7 +63,7 @@ export async function POST(request: Request) {
       accessCodeHash = await hashSecret(effectiveCode);
     } else if (!existing) {
       // Generate a 6-character clean code if none provided
-      effectiveCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      effectiveCode = generateSecretCode();
       accessCodeHash = await hashSecret(effectiveCode);
     }
 
@@ -65,8 +74,8 @@ export async function POST(request: Request) {
       email: sanitizeString(email).toLowerCase(),
       accessCodeHash,
       accessCode: effectiveCode,
-      active: typeof active === "boolean" ? active : true,
-      assignedRoundIds: Array.isArray(assignedRoundIds) ? assignedRoundIds : undefined,
+      active: typeof active === "boolean" ? active : existing?.active ?? true,
+      assignedRoundIds: Array.isArray(assignedRoundIds) ? assignedRoundIds : existing?.assignedRoundIds,
       createdAt: existing?.createdAt || new Date().toISOString(),
     };
 

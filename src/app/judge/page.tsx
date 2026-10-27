@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useLiveVersion } from "@/hooks/use-live-version";
 
 export default function JudgeDashboardPage() {
   const router = useRouter();
@@ -27,10 +28,14 @@ export default function JudgeDashboardPage() {
     loadSessionAndMetadata();
   }, []);
 
-  const loadSessionAndMetadata = async () => {
+  // The team being evaluated, readable from the live-refresh callback without a stale closure.
+  const activeTeamRef = useRef<any | null>(null);
+  activeTeamRef.current = activeTeam;
+
+  const loadSessionAndMetadata = async (silent = false) => {
     try {
-      setLoading(true);
-      const sessionRes = await fetch("/api/judge/session");
+      if (!silent) setLoading(true);
+      const sessionRes = await fetch("/api/judge/session", { cache: "no-store" });
       if (!sessionRes.ok) {
         window.location.href = "/judge/login";
         return;
@@ -38,7 +43,7 @@ export default function JudgeDashboardPage() {
       const sessionData = await sessionRes.json();
       setJudgeInfo(sessionData.judge);
 
-      const teamsRes = await fetch("/api/judge/teams");
+      const teamsRes = await fetch("/api/judge/teams", { cache: "no-store" });
       if (!teamsRes.ok) throw new Error("Failed to load evaluation roster.");
       const data = await teamsRes.json();
 
@@ -47,12 +52,41 @@ export default function JudgeDashboardPage() {
       setActiveRound(data.activeRound || null);
       setCriteria(data.criteria || []);
       setRosterSummary(data.teams || []);
+
+      // Live reconciliation of the open team: update its lock state, never the marks being typed.
+      const open = activeTeamRef.current;
+      if (silent && open) {
+        const fresh = (data.teams || []).find((t: any) => t.id === open.id);
+        if (!fresh) {
+          setActiveTeam(null);
+          setStatusMessage({
+            type: "error",
+            text: `${open.teamCode} is no longer in the active round (the administrator changed rounds).`,
+          });
+        } else if (fresh.isScored && !fresh.isScoredByMe && !open.isScored) {
+          setActiveTeam(fresh);
+          setStatusMessage({
+            type: "error",
+            text: `${fresh.teamCode} was just evaluated by ${fresh.scoredByJudgeName || "another evaluator"}. This team is now locked.`,
+          });
+        } else if (fresh.canEdit && !open.canEdit && fresh.isScoredByMe) {
+          setActiveTeam(fresh);
+          setIsEditing(true);
+          setStatusMessage({ type: "success", text: `Revision unlocked for ${fresh.teamCode}. You can update and resubmit.` });
+        } else if (!fresh.canEdit && open.canEdit && open.isScored) {
+          setActiveTeam(fresh);
+          setIsEditing(false);
+        }
+      }
     } catch (err: any) {
-      setStatusMessage({ type: "error", text: err.message || "Failed to load data." });
+      if (!silent) setStatusMessage({ type: "error", text: err.message || "Failed to load data." });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Live roster: other judges' submissions, revision unlocks and round switches appear without a reload.
+  const { live } = useLiveVersion(() => loadSessionAndMetadata(true));
 
   const handleSearchTeam = async (codeToSearch?: string) => {
     const code = (codeToSearch || searchCode).trim().toUpperCase();
@@ -103,13 +137,19 @@ export default function JudgeDashboardPage() {
   // Compute live totals
   let totalAwarded = 0;
   let totalMax = 0;
+  let weightedAwarded = 0;
+  let weightedMax = 0;
   for (const c of criteria) {
     const marks = criterionScores[c.id] ?? 0;
+    const weight = c.weight > 0 ? c.weight : 1;
     totalAwarded += marks;
     totalMax += c.maxMarks;
+    weightedAwarded += marks * weight;
+    weightedMax += c.maxMarks * weight;
   }
+  // Same formula as the server (criterion weights included), so the preview matches the recorded score.
   const normalizedScore =
-    totalMax > 0 ? Math.round(((totalAwarded / totalMax) * 100 + Number.EPSILON) * 100) / 100 : 0;
+    weightedMax > 0 ? Math.round(((weightedAwarded / weightedMax) * 100 + Number.EPSILON) * 100) / 100 : 0;
 
   const handleSubmitScore = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,7 +194,7 @@ export default function JudgeDashboardPage() {
       });
 
       // Refresh data
-      await loadSessionAndMetadata();
+      await loadSessionAndMetadata(true);
       // Re-fetch this team to show locked status
       await handleSearchTeam(activeTeam.teamCode);
     } catch (err: any) {
@@ -228,6 +268,9 @@ export default function JudgeDashboardPage() {
             <span style={{ fontWeight: "700" }}>{judgeInfo?.name}</span>
             <span style={{ color: "#6b7280", display: "block" }}>
               Progress: {scoredCount} / {rosterSummary.length} Scored
+            </span>
+            <span role="status" aria-atomic="true" style={{ color: live ? "#047857" : "#b45309", display: "block", fontSize: "11px" }}>
+              {live ? "● Live sync on" : "● Reconnecting…"}
             </span>
           </div>
           <button

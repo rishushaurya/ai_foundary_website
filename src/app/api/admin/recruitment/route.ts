@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getRecruitmentEntries, saveRecruitmentEntries } from "@/lib/data";
+import {
+  getRecruitmentEntries,
+  updateRecruitmentStatus,
+  deleteRecruitmentEntry,
+  RECRUITMENT_STATUSES,
+} from "@/lib/data";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
@@ -14,15 +19,14 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "ID and status are required" }, { status: 400 });
     }
 
-    const entries = await getRecruitmentEntries();
-    const index = entries.findIndex((e) => e.id === id);
-    if (index === -1) {
-      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    if (!RECRUITMENT_STATUSES.includes(status)) {
+      return NextResponse.json({ error: `status must be one of: ${RECRUITMENT_STATUSES.join(", ")}` }, { status: 400 });
     }
 
-    const applicant = entries[index];
-    entries[index].status = status;
-    await saveRecruitmentEntries(entries);
+    const applicant = await updateRecruitmentStatus(id, status);
+    if (!applicant) {
+      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    }
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
     const adminEmail = await getAdminEmailFromRequest(request);
@@ -35,7 +39,7 @@ export async function PUT(request: Request) {
       status: "success",
     });
 
-    return NextResponse.json({ success: true, entry: entries[index] });
+    return NextResponse.json({ success: true, entry: applicant });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -50,10 +54,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "ID query parameter required" }, { status: 400 });
     }
 
-    const entries = await getRecruitmentEntries();
-    const target = entries.find((e) => e.id === id);
-    const filtered = entries.filter((e) => e.id !== id);
-    await saveRecruitmentEntries(filtered);
+    const target = await deleteRecruitmentEntry(id);
 
     const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
     const adminEmail = await getAdminEmailFromRequest(request);

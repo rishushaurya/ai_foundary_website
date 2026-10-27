@@ -8,6 +8,8 @@ import {
   logHackathonActivity,
 } from "@/lib/hackathon/data";
 import { calculateJudgeNormalizedScore } from "@/lib/hackathon/scoring";
+import { validateCriterionScores } from "@/lib/hackathon/validators";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import { HackathonScore } from "@/lib/hackathon/constants";
 
 export async function GET(request: Request) {
@@ -34,30 +36,33 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const { eventId, roundId, judgeId, teamId, criterionScores, feedback, reason } = body;
 
-    if (!eventId || !roundId || !judgeId || !teamId || !criterionScores) {
+    if (!eventId || !roundId || !judgeId || !teamId || !criterionScores || typeof criterionScores !== "object") {
       return NextResponse.json({ error: "Missing required score fields." }, { status: 400 });
     }
 
     const allCriteria = await getHackathonCriteria(eventId, roundId);
-    const { totalAwarded, totalMax, normalized } = calculateJudgeNormalizedScore(
-      criterionScores,
-      allCriteria
-    );
+    const parsed = validateCriterionScores(criterionScores, allCriteria);
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
+    const { totalAwarded, totalMax, normalized } = calculateJudgeNormalizedScore(parsed.scores, allCriteria);
 
     const scoreRecord: HackathonScore = {
-      id: `score-${judgeId}-${teamId}-${roundId}`,
+      id: `score-${roundId}-${teamId}`,
       eventId,
       roundId,
       judgeId,
       teamId,
-      criterionScores,
+      criterionScores: parsed.scores,
       totalMarksAwarded: totalAwarded,
       totalMaxPossible: totalMax,
       normalizedScore: normalized,
-      feedback,
+      feedback: typeof feedback === "string" ? feedback.trim().slice(0, 500) : undefined,
       submittedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -71,13 +76,13 @@ export async function POST(request: Request) {
       eventId,
       action: "Admin Score Override",
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: {
         teamId,
         roundId,
         judgeId,
         normalizedScore: normalized,
-        reason: reason || "Admin correction",
+        reason: typeof reason === "string" && reason.trim() ? reason.trim().slice(0, 300) : "Admin correction",
       },
     });
 

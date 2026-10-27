@@ -1,6 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { getSettings } from "@/lib/data";
+import { getPublicSettings } from "@/lib/data";
 import { RecruitPageClient } from "@/components/ui/recruit-page-client";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export const metadata = {
 };
 
 export default async function RecruitPage() {
-  const settings = await getSettings();
+  const settings = await getPublicSettings();
 
   if (settings.visiblePages?.recruit === false) {
     notFound();

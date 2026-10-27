@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getParticipantSession } from "@/lib/hackathon/sessions";
+import { getParticipantSession, getVerifiedParticipant } from "@/lib/hackathon/sessions";
 import {
-  getHackathonTeamById,
   getHackathonEventById,
   getHackathonRounds,
   getHackathonCriteria,
@@ -9,43 +8,47 @@ import {
   getHackathonVotes,
   getHackathonTeams,
   getHackathonTiebreakers,
-  saveHackathonTeam,
+  getActiveTeamSession,
+  endTeamSession,
 } from "@/lib/hackathon/data";
-import { computeRoundLeaderboard } from "@/lib/hackathon/scoring";
+import { computeStandings } from "@/lib/hackathon/scoring";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
 
+function clearParticipantCookie(response: NextResponse): NextResponse {
+  response.cookies.set({
+    name: HACKATHON_CONSTANTS.COOKIE_PARTICIPANT,
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return response;
+}
+
 export async function GET() {
-  const session = await getParticipantSession();
-  if (!session) {
+  const participant = await getVerifiedParticipant();
+  if (participant.status === "anonymous") {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
-
-  const team = await getHackathonTeamById(session.teamId);
-  if (!team) {
-    return NextResponse.json({ error: "Team record not found." }, { status: 404 });
-  }
-
-  // Enforce single-device session integrity
-  if (!team.allowMultipleLogins && team.activeSessionId && session.sessionId && team.activeSessionId !== session.sessionId) {
-    const response = NextResponse.json(
-      {
-        authenticated: false,
-        sessionRevoked: true,
-        error: "Session ended: This team account was accessed from another device.",
-      },
-      { status: 401 }
+  if (participant.status !== "ok") {
+    // Enforce single-device session integrity (replaced by another device or reset by an admin)
+    return clearParticipantCookie(
+      NextResponse.json(
+        {
+          authenticated: false,
+          sessionRevoked: participant.status === "revoked",
+          error:
+            participant.status === "revoked"
+              ? "Session ended: This team account was accessed from another device or reset by an administrator."
+              : "Team record not found.",
+        },
+        { status: 401 }
+      )
     );
-    response.cookies.set({
-      name: HACKATHON_CONSTANTS.COOKIE_PARTICIPANT,
-      value: "",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
-    });
-    return response;
   }
+  const { team } = participant;
 
   const event = await getHackathonEventById(team.eventId);
   if (!event) {
@@ -151,16 +154,15 @@ export async function GET() {
         roundFinalScore = null;
         statusBadge = "Eliminated in Prior Round";
       } else {
-        // Normal competing team
-        const roundLeaderboard = computeRoundLeaderboard(
-          round.id,
-          isFinalRound,
+        // Normal competing team: same standings as the public board and the admin preview
+        const roundLeaderboard = computeStandings(
+          round,
+          rounds,
           allTeams,
           allScores,
           allVotes,
           allCriteria,
-          allTiebreakers,
-          round.cutoffRank
+          allTiebreakers
         );
         mySummary = roundLeaderboard.find((r) => r.teamId === team.id);
         if (mySummary) {
@@ -245,29 +247,16 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  // Logout participant session and clear activeSessionId
+  // Only the device holding the active session can free it; a replaced device just drops its cookie.
   try {
     const session = await getParticipantSession();
     if (session?.teamId) {
-      const team = await getHackathonTeamById(session.teamId);
-      if (team) {
-        team.activeSessionId = undefined;
-        await saveHackathonTeam(team);
-      }
+      const active = await getActiveTeamSession(session.teamId);
+      if (active && active.sessionId === session.sessionId) await endTeamSession(session.teamId);
     }
-  } catch (err) {
+  } catch {
     // Ignore error on logout cleanup
   }
 
-  const response = NextResponse.json({ success: true, message: "Logged out" });
-  response.cookies.set({
-    name: HACKATHON_CONSTANTS.COOKIE_PARTICIPANT,
-    value: "",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-  return response;
+  return clearParticipantCookie(NextResponse.json({ success: true, message: "Logged out" }));
 }

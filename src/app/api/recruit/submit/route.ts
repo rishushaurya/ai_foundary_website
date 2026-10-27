@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { getRecruitmentEntries, saveRecruitmentEntries, getSettings, RecruitmentEntry } from "@/lib/data";
+import { addRecruitmentEntry, RecruitmentEntry } from "@/lib/data";
+import { clientIp } from "@/lib/auth";
+import { isValidEmail } from "@/lib/hackathon/validators";
+import { randomUUID } from "crypto";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { logAdminAction } from "@/lib/audit-logger";
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const ip = clientIp(request);
 
   try {
     const body = await request.json();
@@ -50,31 +53,33 @@ export async function POST(request: Request) {
     }
 
     // 4. Basic Email Format Check
-    if (!email.includes("@") || !email.includes(".")) {
+    if (
+      [name, email, phone, preferredTeam, whyJoin].some((v) => typeof v !== "string") ||
+      !isValidEmail(email.trim()) ||
+      whyJoin.length > 5000
+    ) {
       return NextResponse.json(
         { error: "Please enter a valid email address." },
         { status: 400 }
       );
     }
 
-    const entries = await getRecruitmentEntries();
     const newEntry: RecruitmentEntry = {
-      id: `rec-${Date.now()}`,
+      id: `rec-${randomUUID()}`,
       name: name.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
-      year: year || "1st Year",
-      branch: branch || "CSE",
+      year: String(year || "1st Year").slice(0, 50),
+      branch: String(branch || "CSE").slice(0, 100),
       preferredTeam: preferredTeam.trim(),
-      skills: (skills || "").trim(),
-      portfolioUrl: (portfolioUrl || "").trim(),
+      skills: String(skills || "").trim().slice(0, 2000),
+      portfolioUrl: String(portfolioUrl || "").trim().slice(0, 500),
       whyJoin: whyJoin.trim(),
       timestamp: new Date().toISOString(),
       status: "pending",
     };
 
-    entries.push(newEntry);
-    await saveRecruitmentEntries(entries);
+    await addRecruitmentEntry(newEntry);
 
     return NextResponse.json({
       success: true,

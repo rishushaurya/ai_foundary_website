@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonScores,
-  saveHackathonScore,
+  setScoreRevisionRequest,
   getHackathonRoundById,
   saveHackathonRound,
   getHackathonTeamById,
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
-    const { scoreId, eventId, roundId, judgeId, teamId, reason, universal, allowRevisions } = body;
+    const { scoreId, eventId, roundId, teamId, reason, universal, allowRevisions } = body;
 
     // 1. Universal Round Revisions Toggle
     if (universal) {
@@ -54,12 +54,10 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Individual Team Score Revision
+    // 2. Individual Team Score Revision: match exactly one score (by id, or by round + team).
     const allScores = await getHackathonScores(eventId, roundId);
-    const targetScore = allScores.find(
-      (s) =>
-        (scoreId && s.id === scoreId) ||
-        (s.roundId === roundId && (s.teamId === teamId || (judgeId && s.judgeId === judgeId)))
+    const targetScore = allScores.find((s) =>
+      scoreId ? s.id === scoreId : s.roundId === roundId && s.teamId === teamId
     );
 
     if (!targetScore) {
@@ -73,15 +71,16 @@ export async function POST(request: Request) {
     const newChangeRequested =
       body.changeRequested !== undefined ? Boolean(body.changeRequested) : !targetScore.changeRequested;
 
-    targetScore.changeRequested = newChangeRequested;
-    targetScore.changeReason = newChangeRequested
-      ? reason || "Administrator authorized score revision"
-      : undefined;
-
-    const res = await saveHackathonScore(targetScore, true);
-    if (!res.ok) {
-      return NextResponse.json({ error: res.error || "Failed to update score revision status." }, { status: 500 });
+    const updated = await setScoreRevisionRequest(
+      targetScore.roundId,
+      targetScore.teamId,
+      newChangeRequested,
+      typeof reason === "string" ? reason.trim().slice(0, 300) : undefined
+    );
+    if (!updated) {
+      return NextResponse.json({ error: "Failed to update score revision status." }, { status: 500 });
     }
+    targetScore.changeReason = updated.changeReason;
 
     await logHackathonActivity({
       eventId: targetScore.eventId,
@@ -106,7 +105,7 @@ export async function POST(request: Request) {
       message: newChangeRequested
         ? `Score revision successfully unlocked for ${teamLabel}. Judge can now edit and resubmit score.`
         : `Score revision locked for ${teamLabel}.`,
-      score: targetScore,
+      score: updated,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to process change request." }, { status: 500 });

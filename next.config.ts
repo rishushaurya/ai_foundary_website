@@ -45,6 +45,11 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
+        // Admin-uploaded files (incl. SVG) must never run script on the site origin.
+        source: "/uploads/:path*",
+        headers: [{ key: "Content-Security-Policy", value: "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox" }],
+      },
+      {
         source: "/images/:path*",
         headers: [
           {

@@ -1,22 +1,24 @@
 import { NextResponse } from "next/server";
-import { getJudgeSession } from "@/lib/hackathon/sessions";
+import { getActiveJudge, isJudgeAssignedToRound } from "@/lib/hackathon/sessions";
 import {
-  getHackathonRoundById,
+  getHackathonRounds,
   getHackathonCriteria,
-  getHackathonTeamById,
-  getHackathonScores,
+  getHackathonTeams,
+  getHackathonScore,
   saveHackathonScore,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
-import { calculateJudgeNormalizedScore } from "@/lib/hackathon/scoring";
+import { calculateJudgeNormalizedScore, getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
+import { validateCriterionScores } from "@/lib/hackathon/validators";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { HACKATHON_CONSTANTS, HackathonScore } from "@/lib/hackathon/constants";
 
 export async function POST(request: Request) {
-  const session = await getJudgeSession();
-  if (!session) {
+  const active = await getActiveJudge();
+  if (!active) {
     return NextResponse.json({ error: "Unauthorized judge session." }, { status: 401 });
   }
+  const { session, judge } = active;
 
   // Rate Limiting
   const rate = checkRateLimit(
@@ -40,8 +42,9 @@ export async function POST(request: Request) {
     }
 
     // 1. Verify round
-    const round = await getHackathonRoundById(roundId);
-    if (!round || round.eventId !== session.eventId) {
+    const rounds = await getHackathonRounds(session.eventId);
+    const round = rounds.find((r) => r.id === roundId);
+    if (!round) {
       return NextResponse.json({ error: "Round not found in this hackathon." }, { status: 404 });
     }
 
@@ -52,20 +55,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Verify team
-    const team = await getHackathonTeamById(teamId);
-    if (!team || team.eventId !== session.eventId) {
-      return NextResponse.json({ error: "Team not found in this hackathon." }, { status: 404 });
+    if (!isJudgeAssignedToRound(judge, round.id)) {
+      return NextResponse.json({ error: "You are not assigned to evaluate this round." }, { status: 403 });
     }
 
+    // 2. Verify the team is actually competing in this round (not eliminated earlier, not disqualified)
+    const teams = await getHackathonTeams(session.eventId);
+    const team = teams.find((t) => t.id === teamId);
+    if (!team) {
+      return NextResponse.json({ error: "Team not found in this hackathon." }, { status: 404 });
+    }
     if (team.disqualified) {
       return NextResponse.json({ error: "Team has been disqualified and cannot be scored." }, { status: 400 });
     }
+    if (!getCompetingTeamsForRound(teams, round, rounds).some((t) => t.id === teamId)) {
+      return NextResponse.json({ error: "This team is not competing in this round." }, { status: 400 });
+    }
 
-    // 3. Strict single evaluation constraint: check if team was already evaluated in this round
-    const allScores = await getHackathonScores(session.eventId, roundId);
-    const existingScore = allScores.find((s) => s.roundId === roundId && s.teamId === teamId);
-
+    // 3. Strict single evaluation: a revision is only possible for the original evaluator, when unlocked
+    const existingScore = await getHackathonScore(roundId, teamId);
     let isRevision = false;
     if (existingScore) {
       const isRevisionAllowed = existingScore.changeRequested === true || round.allowRevisions === true;
@@ -88,37 +96,22 @@ export async function POST(request: Request) {
       isRevision = true;
     }
 
-    // 3. Verify criteria and compute scores
+    // 4. Validate criteria and compute scores
     const allCriteria = await getHackathonCriteria(session.eventId, roundId);
-    if (allCriteria.length === 0) {
-      return NextResponse.json({ error: "No scoring criteria configured for this round." }, { status: 400 });
+    const parsed = validateCriterionScores(criterionScores, allCriteria);
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
 
-    const validatedCriterionScores: Record<string, number> = {};
-    for (const crit of allCriteria) {
-      const raw = criterionScores[crit.id];
-      const val = typeof raw === "number" ? raw : parseFloat(raw);
-      if (isNaN(val) || val < 0 || val > crit.maxMarks) {
-        return NextResponse.json(
-          { error: `Invalid score for '${crit.name}'. Must be between 0 and ${crit.maxMarks}.` },
-          { status: 400 }
-        );
-      }
-      validatedCriterionScores[crit.id] = val;
-    }
-
-    const { totalAwarded, totalMax, normalized } = calculateJudgeNormalizedScore(
-      validatedCriterionScores,
-      allCriteria
-    );
+    const { totalAwarded, totalMax, normalized } = calculateJudgeNormalizedScore(parsed.scores, allCriteria);
 
     const scoreRecord: HackathonScore = {
-      id: `score-${session.judgeId}-${teamId}-${roundId}`,
+      id: `score-${roundId}-${teamId}`,
       eventId: session.eventId,
       roundId,
       judgeId: session.judgeId,
       teamId,
-      criterionScores: validatedCriterionScores,
+      criterionScores: parsed.scores,
       totalMarksAwarded: totalAwarded,
       totalMaxPossible: totalMax,
       normalizedScore: normalized,
@@ -126,6 +119,7 @@ export async function POST(request: Request) {
       submittedAt: new Date().toISOString(),
     };
 
+    // A first submission is inserted atomically: if another judge got there first, this fails.
     const res = await saveHackathonScore(scoreRecord, isRevision);
     if (!res.ok) {
       return NextResponse.json({ error: res.error || "Failed to record score." }, { status: 409 });
@@ -142,7 +136,7 @@ export async function POST(request: Request) {
         roundId,
         normalizedScore: normalized,
         isRevision,
-        judgeName: session.name,
+        judgeName: judge.name,
       },
     });
 

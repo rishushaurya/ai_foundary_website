@@ -4,15 +4,16 @@ import { compareSecret } from "@/lib/hackathon/validators";
 import { createJudgeToken } from "@/lib/hackathon/sessions";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { clientIp } from "@/lib/auth";
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const ip = clientIp(request);
 
   try {
     const body = await request.json();
     const { email, accessCode, eventId } = body;
 
-    if (!email || !accessCode) {
+    if (typeof email !== "string" || typeof accessCode !== "string" || !email || !accessCode) {
       return NextResponse.json(
         { error: "Email and Judge Access Code are required." },
         { status: 400 }
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
 
     if (candidates.length === 0) {
       return NextResponse.json(
-        { error: "Invalid credentials or judge account is inactive." },
+        { error: "Invalid email or access code." },
         { status: 401 }
       );
     }
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
 
     if (!authenticatedJudge) {
       return NextResponse.json(
-        { error: "Invalid credentials. Please verify your Judge Access Code." },
+        { error: "Invalid email or access code." },
         { status: 401 }
       );
     }

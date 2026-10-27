@@ -7,16 +7,21 @@ import {
   getHackathonScores,
   getHackathonVotes,
   getHackathonTiebreakers,
+  syncHackathonVersion,
 } from "@/lib/hackathon/data";
-import { computeRoundLeaderboard, getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
+import { computeStandings, getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const requestedEventId = searchParams.get("eventId");
   const requestedRoundId = searchParams.get("roundId");
+  // Clients pass the version they were told about (?v=); never answer with older data than that,
+  // because the CDN caches this response under that URL.
+  const version = await syncHackathonVersion(Number(searchParams.get("v")) || 0);
 
   const events = await getHackathonEvents();
-  const publicEvents = events.filter((e) => e.status !== "archived");
+  // Draft events are prepared before the hackathon and must not be visible until set Live.
+  const publicEvents = events.filter((e) => e.status === "live" || e.status === "completed");
 
   // If no events exist
   if (publicEvents.length === 0) {
@@ -60,16 +65,7 @@ export async function GET(request: Request) {
       const tiebreakers = await getHackathonTiebreakers(event.id, activeRound.id);
 
       const isFinalRound = activeRound.type === "final";
-      const computed = computeRoundLeaderboard(
-        activeRound.id,
-        isFinalRound,
-        competingTeams,
-        scores,
-        votes,
-        criteria,
-        tiebreakers,
-        activeRound.cutoffRank
-      );
+      const computed = computeStandings(activeRound, rounds, allTeams, scores, votes, criteria, tiebreakers);
 
       // Filter public view: Clean display, hiding internal details
       leaderboard = computed.map((c) => ({
@@ -148,11 +144,15 @@ export async function GET(request: Request) {
       leaderboard,
       isVotingOpen: event.isVotingOpen,
       isPublished,
+      version,
       timestamp: new Date().toISOString(),
     },
     {
       headers: {
-        "Cache-Control": "public, s-maxage=3, stale-while-revalidate=10",
+        // Version-stamped URLs (?v=) are immutable snapshots; un-stamped ones stay short-lived.
+        "Cache-Control": searchParams.get("v")
+          ? "public, s-maxage=300"
+          : "public, s-maxage=2, stale-while-revalidate=2",
       },
     }
   );

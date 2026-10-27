@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
-import { getEvents, saveEvents, EventRegistration } from "@/lib/data";
+import { getPublicEvents, addEventRegistration, EventRegistration } from "@/lib/data";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { clientIp } from "@/lib/auth";
+import { isValidEmail } from "@/lib/hackathon/validators";
+import { randomUUID } from "crypto";
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const ip = clientIp(request);
 
   try {
     const body = await request.json();
     const { eventId, name, email, phone, college, branch, customAnswers } = body;
+
+    if ([name, email, phone].some((v) => typeof v !== "string") || (customAnswers && typeof customAnswers !== "object")) {
+      return NextResponse.json({ error: "Invalid registration payload." }, { status: 400 });
+    }
 
     // Smooth Rate limit per participant email (20 per minute, prevents venue Wi-Fi collisions)
     const rateKey = email ? `event-reg:${email.trim().toLowerCase()}` : `event-reg:${ip}`;
@@ -29,21 +36,17 @@ export async function POST(request: Request) {
     }
 
     // Basic email format check
-    if (!email.includes("@") || !email.includes(".")) {
+    if (!isValidEmail(email.trim()) || email.length > 200 || name.length > 200 || phone.length > 40) {
       return NextResponse.json(
         { error: "Please enter a valid email address." },
         { status: 400 }
       );
     }
 
-    const events = await getEvents();
-    const eventIndex = events.findIndex((e) => e.id === eventId);
-
-    if (eventIndex === -1) {
+    const targetEvent = (await getPublicEvents()).find((e) => e.id === eventId);
+    if (!targetEvent) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-
-    const targetEvent = events[eventIndex];
 
     // Check if event registration is disabled or ended
     if (targetEvent.status === "ended" || targetEvent.isRegistrationOpen === false) {
@@ -69,35 +72,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const existingRegistrations = targetEvent.registrations || [];
+    const newRegistration: EventRegistration = {
+      id: `reg-${randomUUID()}`,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone.trim(),
+      college: String(college || "Dayananda Sagar University").trim().slice(0, 200),
+      branch: String(branch || "CSE").trim().slice(0, 100),
+      timestamp: new Date().toISOString(),
+      customAnswers: Object.fromEntries(
+        Object.entries(customAnswers || {}).map(([k, v]) => [k.slice(0, 100), String(v).slice(0, 2000)])
+      ),
+    };
 
-    // Duplicate registration check
-    const isDuplicate = existingRegistrations.some(
-      (r) => r.email.toLowerCase() === email.trim().toLowerCase()
-    );
-
-    if (isDuplicate) {
+    // Atomic duplicate check: one registration per email per event, even under simultaneous submits.
+    if (!(await addEventRegistration(targetEvent.id, newRegistration))) {
       return NextResponse.json(
         { error: "This email address is already registered for this event." },
         { status: 409 }
       );
     }
-
-    const newRegistration: EventRegistration = {
-      id: `reg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
-      college: (college || "Dayananda Sagar University").trim(),
-      branch: (branch || "CSE").trim(),
-      timestamp: new Date().toISOString(),
-      customAnswers: customAnswers || {},
-    };
-
-    existingRegistrations.push(newRegistration);
-    events[eventIndex].registrations = existingRegistrations;
-
-    await saveEvents(events);
 
     return NextResponse.json({
       success: true,

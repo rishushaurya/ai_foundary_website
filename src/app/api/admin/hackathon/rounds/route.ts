@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
+import { roundStartBlocker } from "@/lib/hackathon/scoring";
 import {
+  getHackathonScores,
   getHackathonRounds,
   getHackathonRoundById,
   saveHackathonRound,
@@ -8,7 +10,11 @@ import {
   logHackathonActivity,
 } from "@/lib/hackathon/data";
 import { sanitizeString } from "@/lib/hackathon/validators";
-import { HackathonRound } from "@/lib/hackathon/constants";
+import { HackathonRound, RoundStatus, RoundType } from "@/lib/hackathon/constants";
+import { randomUUID } from "crypto";
+
+const ROUND_TYPES: RoundType[] = ["qualifier", "semi-final", "final"];
+const ROUND_STATUSES: RoundStatus[] = ["pending", "active", "scoring", "completed"];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,32 +32,52 @@ export async function POST(request: Request) {
     if (!eventId || !name || roundNumber === undefined) {
       return NextResponse.json({ error: "eventId, name, and roundNumber are required." }, { status: 400 });
     }
+    if (!Number.isInteger(Number(roundNumber)) || Number(roundNumber) < 1) {
+      return NextResponse.json({ error: "roundNumber must be a whole number of 1 or more." }, { status: 400 });
+    }
+    if (type !== undefined && !ROUND_TYPES.includes(type)) {
+      return NextResponse.json({ error: `type must be one of: ${ROUND_TYPES.join(", ")}.` }, { status: 400 });
+    }
+    if (status !== undefined && !ROUND_STATUSES.includes(status)) {
+      return NextResponse.json({ error: `status must be one of: ${ROUND_STATUSES.join(", ")}.` }, { status: 400 });
+    }
+    if (cutoffRank && (!Number.isInteger(Number(cutoffRank)) || Number(cutoffRank) < 1)) {
+      return NextResponse.json({ error: "cutoffRank must be a whole number of 1 or more." }, { status: 400 });
+    }
 
-    const roundId = id || `round-${eventId}-${roundNumber}-${Date.now()}`;
-    const existing = await getHackathonRoundById(roundId);
+    // Client-supplied ids are only accepted for editing an existing round of this event.
+    const existing = id ? await getHackathonRoundById(id) : null;
+    if (id && (!existing || existing.eventId !== eventId)) {
+      return NextResponse.json({ error: "Round not found in this event." }, { status: 404 });
+    }
+    const roundId = existing?.id || `round-${randomUUID()}`;
 
-    // Strict Sequential Lifecycle: Only one round can be active, and earlier rounds must be completed
-    if (status === "active" && (!existing || existing.status !== "active")) {
-      const allRounds = await getHackathonRounds(eventId);
-      const otherActive = allRounds.filter((r) => r.id !== roundId && r.status === "active");
-      if (otherActive.length > 0) {
-        return NextResponse.json(
-          {
-            error: `Cannot start '${name}'. Round '${otherActive[0].name}' is currently active. Please complete it first.`,
-          },
-          { status: 400 }
-        );
-      }
+    // Advancement walks round numbers in order and voting targets THE final round: both must be unambiguous.
+    const siblings = (await getHackathonRounds(eventId)).filter((r) => r.id !== roundId);
+    if (siblings.some((r) => r.roundNumber === Number(roundNumber))) {
+      return NextResponse.json({ error: `Round number ${roundNumber} already exists in this event.` }, { status: 400 });
+    }
+    if ((type || existing?.type) === "final" && siblings.some((r) => r.type === "final")) {
+      return NextResponse.json({ error: "This event already has a Final round." }, { status: 400 });
+    }
 
-      const uncompletedPrior = allRounds.filter(
-        (r) => r.id !== roundId && r.roundNumber < Number(roundNumber) && r.status !== "completed"
+    // Strict Sequential Lifecycle: one live round at a time, earlier rounds completed first
+    const goingLive = status === "active" || status === "scoring";
+    const wasLive = existing?.status === "active" || existing?.status === "scoring";
+    if (goingLive && !wasLive) {
+      const blocker = roundStartBlocker(
+        { ...(existing as HackathonRound), id: roundId, name: sanitizeString(name), roundNumber: Number(roundNumber) },
+        await getHackathonRounds(eventId)
       );
-      if (uncompletedPrior.length > 0) {
+      if (blocker) return NextResponse.json({ error: blocker }, { status: 400 });
+    }
+
+    // Once a round has scores, its number and type define past results: keep them fixed.
+    if (existing && (await getHackathonScores(eventId, existing.id)).length > 0) {
+      if (Number(roundNumber) !== existing.roundNumber || (type && type !== existing.type)) {
         return NextResponse.json(
-          {
-            error: `Round ${roundNumber} cannot begin until previous round '${uncompletedPrior[0].name}' has ended and completed.`,
-          },
-          { status: 400 }
+          { error: "This round already has scores. Its number and type can no longer change." },
+          { status: 409 }
         );
       }
     }
@@ -61,10 +87,10 @@ export async function POST(request: Request) {
       eventId,
       roundNumber: Number(roundNumber),
       name: sanitizeString(name),
-      type: type || "qualifier",
+      type: type || existing?.type || "qualifier",
       status: status || existing?.status || "pending",
       cutoffRank: cutoffRank ? Number(cutoffRank) : undefined,
-      isElimination: typeof isElimination === "boolean" ? isElimination : true,
+      isElimination: typeof isElimination === "boolean" ? isElimination : existing?.isElimination ?? true,
       isPublished: typeof isPublished === "boolean" ? isPublished : (existing?.isPublished || false),
       allowRevisions: typeof body.allowRevisions === "boolean" ? body.allowRevisions : (existing?.allowRevisions || false),
       description: description ? sanitizeString(description) : undefined,
@@ -99,6 +125,12 @@ export async function DELETE(request: Request) {
   }
 
   const existing = await getHackathonRoundById(id);
+  if (existing && (await getHackathonScores(existing.eventId, id)).length > 0) {
+    return NextResponse.json(
+      { error: "This round already has judge scores and cannot be deleted." },
+      { status: 409 }
+    );
+  }
   const ok = await deleteHackathonRound(id);
   if (!ok) {
     return NextResponse.json({ error: "Failed to delete round." }, { status: 500 });

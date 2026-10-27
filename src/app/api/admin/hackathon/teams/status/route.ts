@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
-import { getHackathonTeamById, saveHackathonTeam, logHackathonActivity } from "@/lib/hackathon/data";
+import {
+  getHackathonTeamById,
+  getHackathonEventById,
+  saveHackathonTeam,
+  logHackathonActivity,
+} from "@/lib/hackathon/data";
 import { sanitizeString } from "@/lib/hackathon/validators";
+import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function PATCH(request: Request) {
   try {
+    const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
     const { teamId, disqualified, disqualificationReason, isEliminated, finalist } = body;
 
@@ -23,6 +30,9 @@ export async function PATCH(request: Request) {
 
     if (typeof isEliminated === "boolean") {
       team.isEliminated = isEliminated;
+      // Record the round so the team still shows in earlier rounds' standings.
+      const event = isEliminated ? await getHackathonEventById(team.eventId) : null;
+      team.eliminatedInRoundId = isEliminated ? event?.activeRoundId || team.eliminatedInRoundId : undefined;
     }
 
     if (typeof finalist === "boolean") {
@@ -38,7 +48,7 @@ export async function PATCH(request: Request) {
       eventId: team.eventId,
       action: "Team Status Modified",
       actorType: "admin",
-      actorId: "admin",
+      actorId: adminEmail,
       details: {
         teamCode: team.teamCode,
         disqualified: team.disqualified,
@@ -47,7 +57,8 @@ export async function PATCH(request: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, team });
+    const { verificationCodeHash: _hash, passkey: _passkey, ...safeTeam } = team;
+    return NextResponse.json({ success: true, team: safeTeam });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to update team status." }, { status: 500 });
   }

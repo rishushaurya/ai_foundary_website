@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { getJudgeSession } from "@/lib/hackathon/sessions";
+import { getActiveJudge } from "@/lib/hackathon/sessions";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
 import { getHackathonEventById } from "@/lib/hackathon/data";
 
 export async function GET() {
-  const session = await getJudgeSession();
-  if (!session) {
+  const active = await getActiveJudge();
+  if (!active) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
+  const { session } = active;
 
   const event = await getHackathonEventById(session.eventId);
 

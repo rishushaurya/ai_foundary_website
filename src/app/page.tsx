@@ -1,7 +1,7 @@
 import React from "react";
 import { cookies } from "next/headers";
 import {
-  getEvents,
+  getPublicEvents,
   getTeamMembers,
   getGallerySections,
   getContent,
@@ -34,7 +34,7 @@ export default async function HomePage({
   const isAdmin = !!cookieStore.get("admin-token")?.value;
 
   const [events, team, gallerySections, contentList, settings] = await Promise.all([
-    getEvents(),
+    getPublicEvents(),
     getTeamMembers(),
     getGallerySections(),
     getContent(),

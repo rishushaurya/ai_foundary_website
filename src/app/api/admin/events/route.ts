@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getEvents, saveEvents, EventData } from "@/lib/data";
+import { getEvents, saveEvents, deleteEventRegistrations, EventData } from "@/lib/data";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
@@ -125,6 +125,7 @@ export async function DELETE(request: Request) {
     const target = events.find((e) => e.id === id);
     const filtered = events.filter((e) => e.id !== id);
     await saveEvents(filtered);
+    await deleteEventRegistrations(id);
 
     try {
       revalidatePath("/events");

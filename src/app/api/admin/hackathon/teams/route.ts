@@ -5,15 +5,20 @@ import {
   getHackathonTeamById,
   saveHackathonTeam,
   deleteHackathonTeam,
+  endTeamSession,
+  getHackathonScores,
+  getHackathonVotes,
+  getLiveSessionsByTeam,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
-import { sanitizeString, hashSecret, isValidEmail } from "@/lib/hackathon/validators";
+import { sanitizeString, hashSecret, isValidEmail, generateSecretCode } from "@/lib/hackathon/validators";
+import { randomUUID } from "crypto";
 import { HackathonTeam } from "@/lib/hackathon/constants";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId") || undefined;
-  const teams = await getHackathonTeams(eventId);
+  const [teams, sessions] = await Promise.all([getHackathonTeams(eventId), getLiveSessionsByTeam(eventId)]);
 
   // Return teams without exposing hash
   // Return teams with passkey and session state for administrators
@@ -27,7 +32,7 @@ export async function GET(request: Request) {
     leaderPhone: t.leaderPhone,
     members: t.members,
     passkey: t.passkey, // Revealed to admin with eye toggle
-    hasActiveSession: !!t.activeSessionId,
+    hasActiveSession: sessions.has(t.id),
     allowMultipleLogins: t.allowMultipleLogins === true,
     isEliminated: t.isEliminated,
     eliminatedInRoundId: t.eliminatedInRoundId,
@@ -66,21 +71,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "eventId, teamCode, and teamName are required." }, { status: 400 });
     }
 
+    if (typeof passkey === "string" && passkey.trim() && passkey.trim().length < 6) {
+      return NextResponse.json({ error: "Passkeys must be at least 6 characters (leave blank to auto-generate)." }, { status: 400 });
+    }
+
     if (leaderEmail && !isValidEmail(leaderEmail)) {
       return NextResponse.json({ error: "Invalid leader email address." }, { status: 400 });
     }
 
-    const teamId = id || `team-${eventId}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-    const existing = await getHackathonTeamById(teamId);
+    // Client-supplied ids are only accepted for editing an existing team of this event.
+    const existing = id ? await getHackathonTeamById(id) : null;
+    if (id && (!existing || existing.eventId !== eventId)) {
+      return NextResponse.json({ error: "Team not found in this event." }, { status: 404 });
+    }
+    const teamId = existing?.id || `team-${randomUUID()}`;
 
     let verificationCodeHash = existing?.verificationCodeHash || "";
     let effectivePasskey: string | undefined = existing?.passkey;
-    if (passkey && typeof passkey === "string" && passkey.trim().length > 0) {
+    if (passkey && typeof passkey === "string" && passkey.trim().length > 0 && passkey.trim() !== existing?.passkey) {
       effectivePasskey = passkey.trim();
       verificationCodeHash = await hashSecret(effectivePasskey);
     } else if (!existing) {
       // Auto-generate random secure 6-character passkey if not provided for new team
-      effectivePasskey = `PASS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      effectivePasskey = generateSecretCode();
       verificationCodeHash = await hashSecret(effectivePasskey);
     }
 
@@ -101,7 +114,6 @@ export async function POST(request: Request) {
       members: memberList,
       verificationCodeHash,
       passkey: effectivePasskey,
-      activeSessionId: resetSession ? undefined : existing?.activeSessionId,
       allowMultipleLogins: typeof allowMultipleLogins === "boolean" ? allowMultipleLogins : existing?.allowMultipleLogins,
       isEliminated: typeof isEliminated === "boolean" ? isEliminated : (existing?.isEliminated || false),
       eliminatedInRoundId: existing?.eliminatedInRoundId,
@@ -115,6 +127,7 @@ export async function POST(request: Request) {
     if (!res.ok) {
       return NextResponse.json({ error: res.error || "Failed to save team." }, { status: 400 });
     }
+    if (resetSession) await endTeamSession(team.id);
 
     await logHackathonActivity({
       eventId,
@@ -147,6 +160,20 @@ export async function DELETE(request: Request) {
   }
 
   const existing = await getHackathonTeamById(id);
+  if (existing) {
+    const [scores, votes] = await Promise.all([
+      getHackathonScores(existing.eventId),
+      getHackathonVotes(existing.eventId),
+    ]);
+    const hasResults =
+      scores.some((s) => s.teamId === id) || votes.some((v) => v.voterTeamId === id || v.candidateTeamId === id);
+    if (hasResults) {
+      return NextResponse.json(
+        { error: "This team already has scores or votes. Disqualify it instead of deleting, so results stay auditable." },
+        { status: 409 }
+      );
+    }
+  }
   const ok = await deleteHackathonTeam(id);
   if (!ok) {
     return NextResponse.json({ error: "Failed to delete team." }, { status: 500 });

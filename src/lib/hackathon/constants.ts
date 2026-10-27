@@ -25,8 +25,9 @@ export const HACKATHON_CONSTANTS = {
 
   // Rate Limiting (calls allowed per window - calibrated for smooth hackathon live operation)
   RATE_LIMITS: {
-    JUDGE_LOGIN: { limit: 30, windowMs: 60 * 1000 }, // 30 per min (smooth, prevents 15-min lockout)
-    PARTICIPANT_VERIFY: { limit: 60, windowMs: 60 * 1000 }, // 60 per min (allows 100+ teams on venue Wi-Fi)
+    // Keyed per judge email / team code (not IP), so venue Wi-Fi sharing is unaffected; low enough to stop guessing.
+    JUDGE_LOGIN: { limit: 10, windowMs: 60 * 1000 },
+    PARTICIPANT_VERIFY: { limit: 10, windowMs: 60 * 1000 },
     JUDGE_SCORE: { limit: 120, windowMs: 60 * 1000 }, // 120 per min (zero friction for evaluators)
     VOTE_SUBMIT: { limit: 20, windowMs: 30 * 1000 }, // 20 per 30s (smooth, immediate vote casting without delays)
     PUBLIC_POLL: { limit: 300, windowMs: 60 * 1000 }, // 300 per min (supports fast live updates)

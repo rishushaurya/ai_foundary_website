@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getParticipantSession } from "@/lib/hackathon/sessions";
+import { getVerifiedParticipant } from "@/lib/hackathon/sessions";
 import {
   getHackathonTeamById,
   getHackathonEventById,
@@ -8,23 +8,30 @@ import {
   logHackathonActivity,
 } from "@/lib/hackathon/data";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { clientIp } from "@/lib/auth";
 import { HACKATHON_CONSTANTS, HackathonVote } from "@/lib/hackathon/constants";
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+  const ip = clientIp(request);
 
-  const session = await getParticipantSession();
-  if (!session) {
+  const participant = await getVerifiedParticipant();
+  if (participant.status !== "ok") {
     return NextResponse.json(
-      { error: "Authentication required. Please verify your team code first." },
+      {
+        error:
+          participant.status === "revoked"
+            ? "This device's session has ended. Please verify your team again."
+            : "Authentication required. Please verify your team code first.",
+        sessionRevoked: participant.status === "revoked",
+      },
       { status: 401 }
     );
   }
+  const voterTeam = participant.team;
 
   // Smooth Rate Limiting per authenticated team (prevents venue Wi-Fi NAT collisions)
-  const rateLimitKey = `vote-submit-${session.teamId || ip}`;
   const rate = checkRateLimit(
-    rateLimitKey,
+    `vote-submit-${voterTeam.id}`,
     HACKATHON_CONSTANTS.RATE_LIMITS.VOTE_SUBMIT.limit,
     HACKATHON_CONSTANTS.RATE_LIMITS.VOTE_SUBMIT.windowMs
   );
@@ -39,17 +46,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { candidateTeamId } = body;
 
-    if (!candidateTeamId) {
+    if (!candidateTeamId || typeof candidateTeamId !== "string") {
       return NextResponse.json({ error: "Candidate team selection is required." }, { status: 400 });
     }
 
-    // 1. Fetch voter team
-    const voterTeam = await getHackathonTeamById(session.teamId);
-    if (!voterTeam) {
-      return NextResponse.json({ error: "Voter team record not found." }, { status: 404 });
+    // Rule: Only eliminated, non-disqualified teams vote
+    if (voterTeam.disqualified) {
+      return NextResponse.json({ error: "Disqualified teams cannot vote." }, { status: 403 });
     }
-
-    // Rule: Only eliminated teams vote
     if (!voterTeam.isEliminated) {
       return NextResponse.json(
         { error: "Voting is reserved for eliminated teams supporting final contenders." },
@@ -57,7 +61,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Fetch event
     const event = await getHackathonEventById(voterTeam.eventId);
     if (!event) {
       return NextResponse.json({ error: "Event not found." }, { status: 404 });
@@ -70,20 +73,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Find the final round
     const rounds = await getHackathonRounds(event.id);
     const finalRound = rounds.find((r) => r.type === "final");
     if (!finalRound) {
       return NextResponse.json({ error: "Final round is not configured for voting." }, { status: 400 });
     }
+    if (finalRound.status === "completed" || event.status === "completed") {
+      return NextResponse.json({ error: "Voting has ended. The final results are locked." }, { status: 403 });
+    }
 
-    // 4. Validate candidate team
     const candidateTeam = await getHackathonTeamById(candidateTeamId);
     if (!candidateTeam || candidateTeam.eventId !== event.id) {
       return NextResponse.json({ error: "Candidate team not found in this hackathon." }, { status: 404 });
     }
 
-    if (!candidateTeam.finalist) {
+    if (!candidateTeam.finalist || candidateTeam.isEliminated) {
       return NextResponse.json({ error: "Votes can only be cast for official finalists." }, { status: 400 });
     }
 
@@ -95,7 +99,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Cannot vote for your own team." }, { status: 400 });
     }
 
-    // 5. Cast vote with atomic uniqueness constraint
+    // One vote per team per event, enforced atomically by the storage key (not a read-then-write check).
     const voteRecord: HackathonVote = {
       id: `vote-${event.id}-${voterTeam.id}`,
       eventId: event.id,
