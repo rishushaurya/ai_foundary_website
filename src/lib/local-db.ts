@@ -5,7 +5,8 @@ import { Redis } from "@upstash/redis";
 const DATA_DIR = path.join(process.cwd(), "data");
 
 // Key prefix to namespace this project's data in Upstash Redis
-const REDIS_KEY_PREFIX = "aifoundry:";
+// Overridable so end-to-end tests can run against a real Redis in an isolated keyspace.
+const REDIS_KEY_PREFIX = process.env.REDIS_KEY_PREFIX || "aifoundry:";
 
 // ---- In-memory cache fallback for serverless instances ----
 // On globalThis: each route is its own bundle, and a module-level Map would give every route a

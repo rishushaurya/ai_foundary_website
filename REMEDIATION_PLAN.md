@@ -153,7 +153,8 @@ Run with `scripts/verify-hackathon-integrity.mjs` against a local dev server in 
 - [x] 5 simultaneous votes from one team record 1. Simultaneous votes from 5 teams record 5. A finalist cannot vote. A second device is refused. An admin session reset revokes the device.
 - [x] 3 simultaneous duplicate registrations record 1. Registrant email is absent from `/`, `/events` and `/api/content`. An admin saving a stale event copy keeps registrations.
 - [x] Every write advances `/api/hackathon/version`.
-- [ ] **Not exercised: the Upstash (Redis) code path.** The test server ran without Redis so it couldn't touch production data. The Redis path relies on `HSETNX`/`HSET`/`LPUSH`; run the same script against a *separate* Upstash database before the event.
+- [x] **Upstash (Redis) code path**: the full 47-check suite passed against the real Upstash database in an isolated key prefix (`REDIS_KEY_PREFIX=aifoundry-e2e-...`; test keys deleted afterwards). Burst test: 33 simultaneous scores were all stored, and 30 teams voting at once plus one team tapping 10 extra times recorded exactly 30 votes. The legacy event data migrated automatically.
+- [x] **Live Vercel site** (read-only checks): tokens forged with the old public secrets get 401, admin and judge pages redirect to login, cross-site POST gets 403, no PII or admin emails in public responses, drafts are hidden, the projector page loads, and security headers are present.
 - [ ] Manual: open `/leaderboard` as an eliminated team, toggle voting in admin, and watch the ballot appear without reloading.
 
 ## 4. Deliberately not changed (decide later)
