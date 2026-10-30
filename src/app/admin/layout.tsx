@@ -94,6 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Hackathons", href: "/admin/hackathon", icon: Trophy },
     { label: "Design Switcher", href: "/admin/designs", icon: Palette },
     { label: "Landing Page", href: "/admin/landing", icon: Sparkles },
+    { label: "Site Copy & About", href: "/admin/content", icon: Layers },
     { label: "Events & Sprints", href: "/admin/events", icon: Calendar },
     { label: "Team & Mentors", href: "/admin/team", icon: Users },
     { label: "Gallery & Links", href: "/admin/gallery", icon: ImageIcon },

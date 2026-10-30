@@ -27,13 +27,12 @@ export default function AdminAuditLogsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [currentEmail, setCurrentEmail] = useState<string>("");
+  const [isRootAdmin, setIsRootAdmin] = useState(false);
 
   // Modals for safe in-app confirmations
   const [logToDelete, setLogToDelete] = useState<AuditLogEntry | null>(null);
   const [showPurgeModal, setShowPurgeModal] = useState(false);
 
-  const ROOT_ADMIN = "priyanshushaurya9431@gmail.com";
-  const isRootAdmin = currentEmail.toLowerCase() === ROOT_ADMIN.toLowerCase();
 
   const fetchSession = async () => {
     try {
@@ -43,6 +42,7 @@ export default function AdminAuditLogsPage() {
         if (data.user?.email) {
           setCurrentEmail(data.user.email);
         }
+        setIsRootAdmin(data.user?.isRoot === true);
       }
     } catch {}
   };
@@ -217,7 +217,7 @@ export default function AdminAuditLogsPage() {
             title={
               isRootAdmin
                 ? "Purge entire audit trail (Root Admin)"
-                : "Restricted to Root Administrator (priyanshushaurya9431@gmail.com)"
+                : "Restricted to Root Administrators"
             }
           >
             <Trash2 className="size-3.5" />
@@ -453,8 +453,8 @@ export default function AdminAuditLogsPage() {
                 Are you sure you want to PURGE ALL historical audit records?
               </p>
               <p className="text-slate-500">
-                This action is irreversible and can only be performed by the root administrator (
-                <span className="font-mono font-bold text-slate-800">{ROOT_ADMIN}</span>).
+                This action is irreversible and can only be performed by a Root Administrator
+                {currentEmail && <> (signed in as <span className="font-mono font-bold text-slate-800">{currentEmail}</span>)</>}.
               </p>
             </div>
 

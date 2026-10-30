@@ -3,12 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 
 const MAX_BACKOFF_MS = 30000;
+// Hundreds of screens see the same change at the same poll; spreading their refetches over ~1s
+// keeps the origin from taking them all in one instant.
+const REFETCH_JITTER_MS = 1200;
 
 /**
  * Live updates without reloads. Polls the tiny hackathon change counter and calls `onChange`
  * (with the new version) only when something actually changed on the server.
  * - Pauses while the tab is hidden; re-checks immediately on focus and when the network returns.
  * - Backs off exponentially on errors so a flaky venue Wi-Fi can't hammer the server.
+ * - Waits a random 0-1.2s before calling `onChange`, so every open screen doesn't refetch at once.
  * Returns whether the connection is healthy and when it last synced, for a "Live" indicator.
  */
 export function useLiveVersion(onChange: (version: number) => void, intervalMs = 2500) {
@@ -21,6 +25,7 @@ export function useLiveVersion(onChange: (version: number) => void, intervalMs =
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let refetchTimer: ReturnType<typeof setTimeout> | undefined;
     let failures = 0;
     let inFlight = false;
     let stopped = false;
@@ -41,7 +46,12 @@ export function useLiveVersion(onChange: (version: number) => void, intervalMs =
         failures = 0;
         setLive(true);
         setLastSync(new Date());
-        if (lastVersion !== null && version !== lastVersion) onChangeRef.current(version);
+        if (lastVersion !== null && version !== lastVersion) {
+          clearTimeout(refetchTimer);
+          refetchTimer = setTimeout(() => {
+            if (!stopped) onChangeRef.current(version);
+          }, Math.random() * REFETCH_JITTER_MS);
+        }
         lastVersion = version;
       } catch {
         failures++;
@@ -65,6 +75,7 @@ export function useLiveVersion(onChange: (version: number) => void, intervalMs =
     return () => {
       stopped = true;
       clearTimeout(timer);
+      clearTimeout(refetchTimer);
       document.removeEventListener("visibilitychange", wake);
       window.removeEventListener("online", wake);
     };

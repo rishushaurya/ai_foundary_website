@@ -10,16 +10,20 @@ import {
 import { sanitizeString } from "@/lib/hackathon/validators";
 import { EventStatus, HackathonEvent } from "@/lib/hackathon/constants";
 import { getAdminEmailFromRequest, logAdminAction } from "@/lib/audit-logger";
-import { clientIp, requireRootAdmin } from "@/lib/auth";
+import { clientIp, requireRootAdmin, requireAdmin } from "@/lib/auth";
 
 const EVENT_STATUSES: EventStatus[] = ["draft", "live", "completed", "archived"];
 
 export async function GET() {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const events = await getHackathonEvents();
   return NextResponse.json({ events });
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();

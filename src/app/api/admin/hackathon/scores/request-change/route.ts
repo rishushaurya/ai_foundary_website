@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonScores,
@@ -10,6 +11,8 @@ import {
 } from "@/lib/hackathon/data";
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();

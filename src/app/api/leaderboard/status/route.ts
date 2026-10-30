@@ -9,7 +9,7 @@ import {
   getHackathonTiebreakers,
   syncHackathonVersion,
 } from "@/lib/hackathon/data";
-import { computeStandings, getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
+import { computeStandings, getCompetingTeamsForRound, judgeSharePct } from "@/lib/hackathon/scoring";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -129,6 +129,7 @@ export async function GET(request: Request) {
         cutoffRank: r.cutoffRank,
         isElimination: r.isElimination,
         isPublished: r.isPublished === true,
+        judgeWeight: r.type === "final" ? judgeSharePct(r) : undefined,
       })),
       activeRound: activeRound
         ? {
@@ -139,6 +140,7 @@ export async function GET(request: Request) {
             status: activeRound.status,
             cutoffRank: activeRound.cutoffRank,
             isPublished,
+            judgeWeight: activeRound.type === "final" ? judgeSharePct(activeRound) : undefined,
           }
         : null,
       leaderboard,

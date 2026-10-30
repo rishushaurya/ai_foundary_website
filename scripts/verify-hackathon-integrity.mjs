@@ -85,6 +85,19 @@ await check("cross-site POST is blocked", async () => {
   assert.equal(r.status, 403);
 });
 
+await check("a non-root admin can save settings, can't self-promote, and loses access when removed", async () => {
+  const settings = (await api("/api/admin/settings", { cookie: admin })).json;
+  const helper = "e2e-helper@example.com";
+  await api("/api/admin/settings", { method: "PUT", cookie: admin, body: { ...settings, adminEmails: [...settings.adminEmails, helper] } });
+  const helperCookie = `admin-token=${await sign({ email: helper, role: "admin" })}`;
+  const seen = (await api("/api/admin/settings", { cookie: helperCookie })).json;
+  assert.equal((await api("/api/admin/settings", { method: "PUT", cookie: helperCookie, body: seen })).status, 200);
+  const promote = { ...seen, rootAdminEmails: [...seen.rootAdminEmails, helper] };
+  assert.equal((await api("/api/admin/settings", { method: "PUT", cookie: helperCookie, body: promote })).status, 403);
+  await api("/api/admin/settings", { method: "PUT", cookie: admin, body: { ...seen, adminEmails: seen.adminEmails.filter((e) => e !== helper) } });
+  assert.equal((await api("/api/admin/settings", { cookie: helperCookie })).status, 401);
+});
+
 console.log("Preparation (draft, before the hackathon)");
 const v0 = (await api("/api/hackathon/version")).json.version;
 const event = (await post("/api/admin/hackathon/events", { title: "Integrity Check", status: "draft" })).json.event;
@@ -125,6 +138,35 @@ try {
     const gen = teams.find((t) => t.teamCode === "IC-GEN");
     assert.match(gen.passkey, /^[A-Z2-9]{8}$/);
     assert.equal((await api(`/api/admin/hackathon/teams?id=${gen.id}`, { method: "DELETE", cookie: admin })).status, 200);
+  });
+  const sheet = [
+    ["Team Name", "Team Code", "Email ID", "Member 1", "Member 2", "Password"],
+    ["Alpha Squad", "", "alpha@example.com", "Ann", "Bob", ""], // valid: code and passkey generated
+    ["", "IC-X1", "", "", "", ""], // missing team name
+    ["Gamma", "IC-1", "", "", "", ""], // code already registered
+    ["Delta", "IC-D", "not-an-email", "", "", ""], // bad email
+    ["Epsilon", "IC-E", "", "", "", "123"], // passkey too short
+  ];
+  await check("sheet import dry run analyses every row and saves nothing", async () => {
+    const before = (await api(`/api/admin/hackathon/teams?eventId=${eventId}`, { cookie: admin })).json.teams.length;
+    const r = await post("/api/admin/hackathon/teams/bulk", { eventId, rows: sheet, dryRun: true });
+    assert.equal(r.status, 200);
+    const { summary, columns, rows } = r.json.analysis;
+    assert.deepEqual([summary.valid, summary.invalid, summary.generatedCodes, summary.generatedPasskeys], [1, 4, 1, 1]);
+    assert.equal(columns.passkey, "Password");
+    assert.deepEqual(rows[0].members, ["Ann", "Bob"]);
+    assert.ok(rows.every((row) => !("passkey" in row)), "typed passkeys are never echoed back");
+    assert.equal((await api(`/api/admin/hackathon/teams?eventId=${eventId}`, { cookie: admin })).json.teams.length, before);
+  });
+  await check("sheet import is all-or-nothing unless told to skip invalid rows", async () => {
+    assert.equal((await post("/api/admin/hackathon/teams/bulk", { eventId, rows: sheet })).status, 400);
+    const r = await post("/api/admin/hackathon/teams/bulk", { eventId, rows: sheet, skipInvalid: true });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.count, 1);
+    const alpha = (await api(`/api/admin/hackathon/teams?eventId=${eventId}`, { cookie: admin })).json.teams.find((t) => t.teamName === "Alpha Squad");
+    assert.equal(alpha.teamCode, "TEAM-001");
+    assert.match(alpha.passkey, /^[A-Z2-9]{8}$/);
+    assert.equal((await api(`/api/admin/hackathon/teams?id=${alpha.id}`, { method: "DELETE", cookie: admin })).status, 200);
   });
   await check("weak admin-typed passkey is refused", async () => {
     assert.equal((await post("/api/admin/hackathon/teams", { eventId, teamCode: "IC-WEAK", teamName: "Weak", passkey: "123" })).status, 400);
@@ -301,7 +343,23 @@ try {
 
   console.log("Final, winners and downloads");
   for (const [i, f] of finalists.entries()) await score(j1, r3.id, f.teamCode, 10 - i);
+  const finalRoundEdit = { id: r3.id, eventId, roundNumber: 3, name: "R3", type: "final" };
+  await check("admin-set split (50/50) is what ranks the final, and bad splits are refused", async () => {
+    assert.equal((await post("/api/admin/hackathon/rounds", { ...finalRoundEdit, judgeWeight: 101 })).status, 400);
+    assert.equal((await post("/api/admin/hackathon/rounds", { ...finalRoundEdit, judgeWeight: 50 })).status, 200);
+    const st = (await api(`/api/admin/hackathon/standings?eventId=${eventId}&roundId=${r3.id}`, { cookie: admin })).json;
+    const active = st.standings.filter((x) => !x.disqualified);
+    assert.ok(active.length > 0 && active.some((x) => x.voteScore > 0));
+    for (const x of active) {
+      assert.equal(x.finalScore, Math.round((x.avgJudgeScore * 0.5 + x.voteScore * 0.5 + Number.EPSILON) * 100) / 100);
+    }
+    const pub = (await api(`/api/leaderboard/status?eventId=${eventId}&roundId=${r3.id}`)).json;
+    assert.equal(pub.rounds.find((r) => r.id === r3.id).judgeWeight, 50);
+  });
   await post("/api/admin/hackathon/advance", { eventId, currentRoundId: r3.id });
+  await check("the split is locked once the final is completed", async () => {
+    assert.equal((await post("/api/admin/hackathon/rounds", { ...finalRoundEdit, judgeWeight: 60 })).status, 409);
+  });
   await check("finishing the final completes the event and closes voting", async () => {
     const ev = (await api("/api/admin/hackathon/events", { cookie: admin })).json.events.find((e) => e.id === eventId);
     assert.equal(ev.status, "completed");
@@ -316,7 +374,7 @@ try {
     assert.equal(hidden.leaderboard[0].finalScore, null);
   });
   await post("/api/admin/hackathon/state", { eventId, roundId: r3.id, isPublished: true });
-  await check("published final shows the winner (70% judges + 30% votes) publicly", async () => {
+  await check("published final shows the winner (admin-set split) publicly", async () => {
     const board = (await api(`/api/leaderboard/status?eventId=${eventId}&roundId=${r3.id}`)).json.leaderboard;
     assert.equal(board[0].teamId, leader.id);
     assert.equal(board[0].rank, 1);
@@ -338,6 +396,34 @@ try {
       assert.ok(XLSX.read(r.buf, { type: "buffer" }).SheetNames.length > 0, type);
     }
   });
+
+  console.log("Two hackathons at once");
+  const twin = (await post("/api/admin/hackathon/events", { title: "Integrity Twin", status: "live" })).json.event;
+  try {
+    // Same sheet in both events: identical team code and passkey, same judge email and code.
+    await post("/api/admin/hackathon/teams/bulk", { eventId: twin.id, csvContent: "team_code,team_name,passkey\nIC-1,Twin Team,PK-SECRET-1" });
+    await post("/api/admin/hackathon/judges", { eventId: twin.id, name: "Judge 1", email: "judge1@example.com", accessCode: "JCODE-1" });
+    await check("identical team code and passkey in two hackathons never cross over", async () => {
+      const ambiguous = await api("/api/leaderboard/verify-team", { method: "POST", body: { teamCode: "IC-1", passkey: "PK-SECRET-1" } });
+      assert.equal(ambiguous.status, 409, "both events are open, so the login must ask which one");
+      const r = await api("/api/leaderboard/verify-team", { method: "POST", body: { teamCode: "IC-1", passkey: "PK-SECRET-1", eventId: twin.id } });
+      assert.equal(r.status, 200);
+      assert.equal(r.json.team.eventId, twin.id);
+      assert.equal(r.json.team.teamName, "Twin Team");
+      const st = (await api("/api/leaderboard/team-status", { cookie: cookieFrom(r.setCookie, "participant-session") })).json;
+      assert.equal(st.event.id, twin.id);
+      assert.equal((await api(`/api/admin/hackathon/votes?eventId=${twin.id}`, { cookie: admin })).json.totalVotes, 0);
+      assert.equal((await api(`/api/admin/hackathon/votes?eventId=${eventId}`, { cookie: admin })).json.totalVotes, 6);
+      assert.equal((await api(`/api/admin/hackathon/teams?eventId=${twin.id}`, { cookie: admin })).json.teams.length, 1);
+    });
+    await check("a judge on two hackathons with the same code lands in the live one", async () => {
+      const r = await api("/api/judge/login", { method: "POST", body: { email: "judge1@example.com", accessCode: "JCODE-1" } });
+      assert.equal(r.status, 200);
+      assert.equal(r.json.judge.eventId, twin.id);
+    });
+  } finally {
+    await api(`/api/admin/hackathon/events?id=${twin.id}`, { method: "DELETE", cookie: admin });
+  }
 
   console.log("Event registrations (PII)");
   const cmsEvent = (await post("/api/admin/events", { title: "PII Check", date: "2030-01-01", isRegistrationOpen: true })).json.event;

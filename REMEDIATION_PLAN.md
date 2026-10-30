@@ -167,3 +167,79 @@ Run with `scripts/verify-hackathon-integrity.mjs` against a local dev server in 
 - **`xlsx@0.18.5`** has known advisories in its *parser*. This app only *writes* workbooks, so it isn't exposed. Upgrade when convenient.
 - **`data/*.json` is committed** and includes test passkeys and audit logs with admin emails and IPs. Untrack the runtime files and keep sanitised seeds.
 - **Polling vs WebSockets**: version polling at 2.5 s is the right fit for Vercel plus Upstash REST. Sub-second push would need a dedicated realtime service (Ably, Pusher, or Upstash's SSE subscribe on a long-lived runtime).
+
+---
+
+# Phase 2 (2026-10-30): adjustable final split, smart team import, 600+ team scale
+
+Goal: run a hackathon with 600+ teams logging in and voting at the same moment, with the final round's judge/vote split set by the admin instead of hard-coded 70/30, and a team import that analyses the sheet before anything is saved.
+
+## P2.1 Adjustable final-round split
+| Where | Change |
+|---|---|
+| `constants.ts` | `HackathonRound.judgeWeight?` (percent, 0-100, final round only). Votes get `100 - judgeWeight`. `DEFAULT_JUDGE_WEIGHT_PCT = 70` keeps every existing event unchanged. |
+| `scoring.ts` | `finalSplit(round)` is the only place the split is read. `computeStandings` passes it to the ranking, so the public board, team scorecards, admin preview, advancement and Excel all use the admin's split. |
+| `rounds` API | Validates 0-100. Refused once the final is completed (results are locked). |
+| Admin UI | Final round form gets a "Judges % / Votes %" control with a live preview; the round card, voting toggle and votes tab show the real split. |
+| Public UI / Excel | Ballot text, final board and the marks sheet header read the split from the round. |
+
+Changing the split bumps the live version, so every screen recomputes within ~3 s.
+
+## P2.2 Team import with analysis
+- One shared parser (`team-import.ts`) used by the server and the admin preview: auto-detects comma, semicolon or tab (paste straight from Excel or Google Sheets), handles quoted cells, quoted line breaks and `""` escapes.
+- Header aliases (`Team Code`, `team_id`, `Leader`, `Email ID`, `Mobile`, `Member 1..N`, `Password`/`Passkey`/`PIN`...), matched exactly after normalising, so `passcode` can never be mistaken for the team code.
+- `.xlsx`/`.xls` read in the admin's browser (xlsx upgraded to 0.20.3 from the SheetJS CDN, which fixes CVE-2023-30533 and CVE-2024-22363); the server only receives plain rows.
+- Dry run first: per-row errors (missing name, bad code, bad email, short passkey, duplicate in file, already in event) and warnings (generated code/passkey, duplicate name or leader email, odd phone). Admin then imports all, or only the valid rows.
+- Missing team codes are generated (`TEAM-001`, continuing the highest existing number); missing passkeys get 8-character random codes. Credentials download straight after import.
+
+## P2.3 Scale (600+ simultaneous logins and votes)
+| Problem | Fix |
+|---|---|
+| `bcryptjs` runs on the main thread: 50 parallel logins took 2.7 s and froze every other request on that server. | New hashes use Node's native `scrypt` (thread pool, non-blocking). Old bcrypt hashes still verify. |
+| Every scorecard and vote read the team and its session from Redis (2 commands each). With 600 teams refreshing after each change, that is ~1,200 commands per change and the Upstash free tier is 500K/month. | Team and session checks are served from the version-invalidated cache; a session miss falls back to one read. Every revocation already bumps the version. |
+| Ranking was O(teams x scores) per round per request. | Scores, votes and tiebreakers grouped by team once (O(n)). |
+| All clients refetch at the same instant after a change. | Random 0-1.2 s jitter in `useLiveVersion`. |
+| Login rate limits were per server instance, so they multiplied with scale-out. | Login limits (team, judge, Google) are counted in Redis. |
+| Event activity log capped at 500: 600 logins pushed out the admin actions. | Cap 5,000; the admin page reads the newest 300. |
+
+## P2.4 Correctness and security fixes
+1. Non-root admins got 403 saving Settings, Landing and Content (the pages echo `rootAdminEmails`). Only *new* root emails now count as a promotion.
+2. Admin score override modal had no button. Wired up; overrides now require an existing score and an open round.
+3. Root checks: audit-log deletion uses `isRoot` (not one hard-coded email); deleting a site event is root-only.
+4. Audit IPs use `clientIp()` everywhere (first `x-forwarded-for` hop).
+5. Ballot shown only to teams that can vote (not disqualified, final not completed); candidates and counted votes come from the same competing-finalist rule as the ranking.
+6. Disqualified teams' round-1 rank uses the standard ranking instead of a separate copy of it.
+7. `/admin/content` added to the admin navigation.
+8. Dead code removed: 12 unused components, unused deps (gsap, three, matter-js, two Radix packages, class-variance-authority), ~35 MB of unreferenced files in `public/` (checked against the live database and pages).
+9. Runtime data with passkeys, PII or IPs untracked from git (`hackathon-*.json`, `audit-logs.json`, `recruitment.json`).
+
+## P2.5 Extra findings during the work
+- **Next.js 16.2.1 had 12 advisories, including two proxy (middleware) bypasses.** Every `/api/admin/*` route relied on the proxy alone. Upgraded to 16.4.3 (`npm audit`: 0 vulnerabilities) and added a route-level `requireAdmin()` to all 50 admin handlers, so a future proxy bypass can't reach the admin API. The admin whitelist is cached 5 s per instance (cleared on save) so the extra check costs no extra Redis reads.
+- `public/sw.js` was an old caching service worker that precached `/`. It is now a kill switch: browsers that still run it clear its caches, unregister and reload.
+- Admin score override now edits only an existing score in a round that isn't completed, and logs the previous score.
+- Team import checks that the event exists.
+
+## P2.6 Verification (2026-10-30)
+- `tsc --noEmit`: 0 errors. `next build` (16.4.3): passes.
+- `scripts/verify-hackathon-integrity.mjs`: **52/52 pass** (47 existing + non-root settings save, sheet-import dry run, import-valid-only, 50/50 split applied and validated, split locked after the final).
+- `scripts/load-test-hackathon.mjs` against the production build (`next start`, local-JSON mode, one process, 250 requests in flight):
+
+| Phase | Result | p50 | p95 |
+|---|---|---|---|
+| Import 650 teams (hash every passkey) | 650 imported | 1.7 s (one request) | |
+| 640 team logins | 640 x 200 | 1.9 s | 3.3 s |
+| 640 scorecards | 640 x 200, all see the ballot | 1.1 s | 1.3 s |
+| 840 vote taps (200 duplicates racing) | exactly 640 votes, 200 x 409, 0 x 5xx | 2.4 s | 3.2 s |
+
+  Local-JSON mode rewrites whole files on every write; on Vercel each of those writes is one Redis command, and the load spreads across instances.
+- Browser check of the admin console: split control (slider, exact value, presets, live formula), round badge, sheet import analysis with messy headers, import-valid-only and the credentials download.
+- **Real Upstash** (production build, isolated `REDIS_KEY_PREFIX=aifoundry-load-20261030:`, all 50 test keys deleted afterwards, production keys untouched):
+  - `verify-hackathon-integrity.mjs`: **54/54 pass** (includes the two multi-hackathon checks below).
+  - `load-test-hackathon.mjs`, 650 teams: import 2.5 s; 640 logins all 200 (p50 2.1 s, p95 4.1 s); 640 scorecards all 200 (p95 1.3 s); 840 vote taps -> **exactly 640 votes**, 200 x 409, 0 x 5xx (p95 1.9 s). Server log: no errors, no rate-limiter fallbacks.
+
+## P2.7 Several hackathons at once
+Everything is keyed by event: rounds, criteria, teams, judges, scores (per round), votes (per event), tiebreakers, sessions (per team id), logs, exports, deletion and standings. Team codes are unique per event, and team names may repeat freely.
+
+One collision existed in sign-in: the same sheet imported into two events (same code and passkey), or one judge with the same email and code in two events, signed in to whichever record came first, sometimes the wrong or a draft event. Now every match is collected and the event is chosen deliberately: the hackathon picked on the leaderboard (sent with the login), else the only running one; if still ambiguous the API answers 409 and asks which hackathon instead of guessing. After sign-in the board switches to the team's own hackathon.
+
+Known ceilings (not collisions): the live-update counter and the per-instance cache are global, so a change in one hackathon also makes the other hackathon's screens refetch (twice the refreshes with two big events at once); login attempt limits are counted per team code, so identical codes in two events share one 10-per-minute counter.

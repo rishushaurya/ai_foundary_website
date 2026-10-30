@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientIp, requireAdmin } from "@/lib/auth";
 import { getEvents, getRecruitmentEntries } from "@/lib/data";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
@@ -14,12 +15,14 @@ function sanitizeCSV(field: any): string {
 }
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "events";
     const eventId = searchParams.get("eventId");
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
 
     if (type === "recruitment") {

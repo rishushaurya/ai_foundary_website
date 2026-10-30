@@ -17,10 +17,12 @@
 .env*.local
 .env
 
-# Runtime data created by the app (attendee PII, device sessions, per-event activity logs)
+# Runtime data created by the app: attendee/applicant PII, team passkeys, judge codes, votes with IPs,
+# device sessions and audit logs. Production keeps all of this in Redis; only content seeds are tracked.
 /data/event-registrations.json
-/data/hackathon-team-sessions.json
-/data/hackathon-logs-*.json
+/data/recruitment.json
+/data/audit-logs.json
+/data/hackathon-*.json
 
 # Diagnostic / debug logs
 npm-debug.log*

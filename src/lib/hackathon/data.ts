@@ -79,7 +79,8 @@ const SESSIONS: CollectionSpec<TeamSession> = {
 
 const logSpec = (eventId: string): LogSpec<HackathonActivityLog> => ({
   name: `hackathon-logs-${eventId.replace(/[^a-zA-Z0-9_-]/g, "_")}.json`,
-  max: 500,
+  // 600 logins plus 600 votes must not push the admin's own actions out of the trail.
+  max: 5000,
   seed: async () =>
     (await readData<HackathonActivityLog[]>("hackathon-logs.json", [])).filter((l) => l.eventId === eventId),
 });
@@ -121,7 +122,8 @@ export async function syncHackathonVersion(atLeast = 0): Promise<number> {
   return hot.pending;
 }
 
-async function cachedList<T>(spec: CollectionSpec<T>): Promise<T[]> {
+/** The shared cached rows. Read-only: callers that might mutate use cachedList. */
+async function cachedRows<T>(spec: CollectionSpec<T>): Promise<readonly T[]> {
   await syncHackathonVersion();
   let entry = hot.cache.get(spec.name);
   if (!entry || Date.now() - entry.timestamp > CACHE_SAFETY_TTL_MS) {
@@ -130,8 +132,12 @@ async function cachedList<T>(spec: CollectionSpec<T>): Promise<T[]> {
     hot.cache.set(spec.name, entry);
     entry.data.catch(() => hot.cache.delete(spec.name));
   }
+  return (await entry.data) as T[];
+}
+
+async function cachedList<T>(spec: CollectionSpec<T>): Promise<T[]> {
   // Callers mutate what they get back; never hand out the shared cached objects.
-  return structuredClone(await entry.data) as T[];
+  return structuredClone(await cachedRows(spec)) as T[];
 }
 
 async function changed(): Promise<void> {
@@ -268,10 +274,14 @@ export async function getHackathonTeamById(id: string): Promise<HackathonTeam | 
   return getRecord(TEAMS, id); // uncached: auth and voting decisions need the current record
 }
 
-export async function getHackathonTeamByCode(teamCode: string, eventId?: string): Promise<HackathonTeam | null> {
-  const normalized = teamCode.trim().toUpperCase();
-  const teams = await getHackathonTeams(eventId);
-  return teams.find((t) => t.teamCode.trim().toUpperCase() === normalized) || null;
+/**
+ * Team lookup for participant requests (scorecards, votes). Served from the version-invalidated
+ * cache: with 600 teams refreshing at once this saves a Redis read per request. Admin
+ * read-modify-write paths use getHackathonTeamById instead.
+ */
+export async function getCachedTeam(id: string): Promise<HackathonTeam | null> {
+  const team = (await cachedRows(TEAMS)).find((t) => t.id === id);
+  return team ? structuredClone(team) : null;
 }
 
 const sameCode = (a: HackathonTeam, b: HackathonTeam) =>
@@ -369,6 +379,19 @@ export async function startTeamSession(
   }
   await putRecords(SESSIONS, [session]);
   return { ok: true, sessionId: session.sessionId };
+}
+
+/**
+ * Whether this device holds the team's live session. A cache hit can be trusted because every
+ * revocation (reset, logout, team deletion) bumps the version and clears the cache; a miss is
+ * re-read from storage, because a brand-new login doesn't bump the version.
+ */
+export async function isTeamSessionActive(teamId: string, sessionId: string | undefined): Promise<boolean> {
+  if (!sessionId) return false;
+  const hit = (await cachedRows(SESSIONS)).find((s) => s.teamId === teamId);
+  if (hit && hit.sessionId === sessionId && isLive(hit)) return true;
+  const fresh = await getRecord(SESSIONS, teamId);
+  return isLive(fresh) && fresh.sessionId === sessionId;
 }
 
 export async function endTeamSession(teamId: string): Promise<void> {
@@ -555,8 +578,9 @@ export async function logHackathonActivity(activity: Omit<HackathonActivityLog, 
   }
 }
 
-export async function getHackathonLogs(eventId: string): Promise<HackathonActivityLog[]> {
-  return readLog(logSpec(eventId));
+/** Newest entries first; the admin page shows the latest 300. */
+export async function getHackathonLogs(eventId: string, limit = 300): Promise<HackathonActivityLog[]> {
+  return readLog(logSpec(eventId), limit);
 }
 
 export async function deleteHackathonLog(eventId: string, id: string): Promise<boolean> {

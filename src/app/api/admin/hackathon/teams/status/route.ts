@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import {
   getHackathonTeamById,
   getHackathonEventById,
@@ -9,6 +10,8 @@ import { sanitizeString } from "@/lib/hackathon/validators";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function PATCH(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();

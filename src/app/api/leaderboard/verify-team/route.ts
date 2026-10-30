@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   getHackathonTeams,
-  getHackathonEventById,
+  getHackathonEvents,
   getTeamVote,
   startTeamSession,
   logHackathonActivity,
@@ -9,7 +9,7 @@ import {
 import { compareSecret } from "@/lib/hackathon/validators";
 import { createParticipantToken } from "@/lib/hackathon/sessions";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
-import { checkRateLimit } from "@/lib/rate-limiter";
+import { checkSharedRateLimit } from "@/lib/rate-limiter";
 import { clientIp } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const normalized = teamCode.trim().toUpperCase();
 
     // Smooth Rate Limiting per Team Code (prevents venue Wi-Fi NAT collisions)
-    const rate = checkRateLimit(
+    const rate = await checkSharedRateLimit(
       `team-verify-${normalized}`,
       HACKATHON_CONSTANTS.RATE_LIMITS.PARTICIPANT_VERIFY.limit,
       HACKATHON_CONSTANTS.RATE_LIMITS.PARTICIPANT_VERIFY.windowMs
@@ -41,27 +41,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const allTeams = await getHackathonTeams(typeof eventId === "string" ? eventId : undefined);
-    const candidates = allTeams.filter((t) => t.teamCode.trim().toUpperCase() === normalized);
-
-    let team: (typeof candidates)[number] | null = null;
+    // The same code and passkey can exist in several hackathons (one sheet imported twice), so every
+    // match is collected and the event is chosen deliberately: the one picked on the page, else the
+    // only one that's running. Never "whichever came first".
+    const candidates = (await getHackathonTeams()).filter((t) => t.teamCode.trim().toUpperCase() === normalized);
+    const matches: typeof candidates = [];
     for (const cand of candidates) {
-      if (await compareSecret(passkey.trim(), cand.verificationCodeHash)) {
-        team = cand;
-        break;
-      }
+      if (await compareSecret(passkey.trim(), cand.verificationCodeHash)) matches.push(cand);
     }
-
-    if (!team) {
+    if (matches.length === 0) {
       return NextResponse.json({ error: "Invalid Team Code or Passkey." }, { status: 401 });
     }
 
-    const event = await getHackathonEventById(team.eventId);
-    if (!event || (event.status !== "live" && event.status !== "completed")) {
-      return NextResponse.json(
-        { error: "This hackathon hasn't started yet. Team login opens when the organisers go live." },
-        { status: 403 }
-      );
+    const events = await getHackathonEvents();
+    const isOpen = (t: (typeof matches)[number]) => {
+      const ev = events.find((e) => e.id === t.eventId);
+      return !!ev && (ev.status === "live" || ev.status === "completed");
+    };
+    const open = matches.filter(isOpen);
+    const team = open.find((t) => t.eventId === eventId) ?? (open.length === 1 ? open[0] : null);
+    if (!team) {
+      return open.length > 1
+        ? NextResponse.json(
+            {
+              error: "This team code and passkey work in more than one running hackathon. Choose your hackathon from the list and sign in again.",
+              ambiguousEvents: open.map((t) => t.eventId),
+            },
+            { status: 409 }
+          )
+        : NextResponse.json(
+            { error: "This hackathon hasn't started yet. Team login opens when the organisers go live." },
+            { status: 403 }
+          );
     }
 
     // Atomic device claim: two phones logging in at the same instant cannot both win.
@@ -94,6 +105,7 @@ export async function POST(request: Request) {
       success: true,
       team: {
         id: team.id,
+        eventId: team.eventId,
         teamCode: team.teamCode,
         teamName: team.teamName,
         leaderName: team.leaderName,

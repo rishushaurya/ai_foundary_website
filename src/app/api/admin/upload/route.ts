@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { clientIp, requireAdmin } from "@/lib/auth";
 import { saveUploadedFile } from "@/lib/local-db";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -31,7 +34,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,

@@ -11,7 +11,7 @@ import {
   getActiveTeamSession,
   endTeamSession,
 } from "@/lib/hackathon/data";
-import { computeStandings } from "@/lib/hackathon/scoring";
+import { canTeamVote, computeStandings, getCompetingTeamsForRound, judgeSharePct } from "@/lib/hackathon/scoring";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
 
 function clearParticipantCookie(response: NextResponse): NextResponse {
@@ -62,12 +62,15 @@ export async function GET() {
   const allTeams = await getHackathonTeams(team.eventId);
   const allTiebreakers = await getHackathonTiebreakers(team.eventId);
 
-  // Check if team has cast a vote
   const myVote = allVotes.find((v) => v.voterTeamId === team.id);
   const hasVoted = !!myVote;
+  const finalRound = rounds.find((r) => r.type === "final");
 
-  // Calculate total audience votes received across the event
-  const totalVotesReceived = allVotes.filter((v) => v.candidateTeamId === team.id).length;
+  // Votes this team received in the final, counted by the same rule as the ranking (eligible voters only)
+  const eligibleVoters = new Set(allTeams.filter(canTeamVote).map((t) => t.id));
+  const totalVotesReceived = allVotes.filter(
+    (v) => v.candidateTeamId === team.id && v.roundId === finalRound?.id && eligibleVoters.has(v.voterTeamId)
+  ).length;
 
   // Build round performance breakdown: strictly gated by round.isPublished
   const roundBreakdown = rounds.map((round) => {
@@ -93,54 +96,15 @@ export async function GET() {
     if (isPublished) {
       if (team.disqualified) {
         if (isRound1) {
-          // Exception: Disqualified teams can see their Round 1 rank based on Round 1 performance
-          const r1Scores = allScores.filter((s) => s.roundId === round.id);
-          const r1Rankings = allTeams
-            .map((t) => {
-              const tScores = r1Scores.filter((s) => s.teamId === t.id);
-              const avg =
-                tScores.length > 0
-                  ? Math.round(
-                      ((tScores.reduce((sum, s) => sum + s.normalizedScore, 0) / tScores.length) +
-                        Number.EPSILON) *
-                        100
-                    ) / 100
-                  : 0;
-              return { teamId: t.id, score: avg };
-            })
-            .sort((a, b) => b.score - a.score);
-
-          let currentRank = 1;
-          for (let i = 0; i < r1Rankings.length; i++) {
-            if (i > 0 && r1Rankings[i].score < r1Rankings[i - 1].score) {
-              currentRank = i + 1;
-            }
-            if (r1Rankings[i].teamId === team.id && r1Rankings[i].score > 0) {
-              roundRank = currentRank;
-              break;
-            }
-          }
-
-          const myR1Scores = r1Scores.filter((s) => s.teamId === team.id);
-          if (myR1Scores.length > 0) {
-            roundFinalScore =
-              Math.round(
-                ((myR1Scores.reduce((sum, s) => sum + s.normalizedScore, 0) / myR1Scores.length) +
-                  Number.EPSILON) *
-                  100
-              ) / 100;
-
-            const critMap = new Map(allCriteria.map((c) => [c.id, c]));
-            for (const score of myR1Scores) {
-              for (const [critId, marks] of Object.entries(score.criterionScores)) {
-                const crit = critMap.get(critId);
-                criteriaBreakdown[critId] = {
-                  name: crit?.name || "Criterion",
-                  marksAwarded: marks,
-                  maxMarks: crit?.maxMarks || 10,
-                };
-              }
-            }
+          // Exception: a disqualified team still sees the Round 1 rank its evaluations earned
+          const asCompeting = allTeams.map((t) => (t.id === team.id ? { ...t, disqualified: false } : t));
+          const mine = computeStandings(round, rounds, asCompeting, allScores, allVotes, allCriteria, allTiebreakers).find(
+            (r) => r.teamId === team.id
+          );
+          if (mine && mine.judgeScoresCount > 0) {
+            roundRank = mine.rank;
+            roundFinalScore = mine.finalScore;
+            criteriaBreakdown = mine.criteriaBreakdown;
           }
           statusBadge = roundRank ? `Rank #${roundRank}` : "Unranked";
         } else {
@@ -201,21 +165,23 @@ export async function GET() {
     };
   });
 
-  // Finalist candidates available for voting if eligible
-  // Eligibility: team.isEliminated === true, event.isVotingOpen === true, !hasVoted
-  const canVote = event.isVotingOpen && team.isEliminated && !hasVoted;
+  // Same eligibility the vote endpoint enforces, so the ballot never shows a vote that would be refused
+  const votingLive =
+    event.isVotingOpen && event.status !== "completed" && !!finalRound && finalRound.status !== "completed";
+  const canVote = votingLive && canTeamVote(team) && !hasVoted;
 
-  const finalistCandidates = canVote
-    ? allTeams
-        .filter((t) => t.finalist && !t.disqualified && t.id !== team.id)
-        .map((t) => ({
-          id: t.id,
-          teamCode: t.teamCode,
-          teamName: t.teamName,
-          leaderName: t.leaderName,
-          members: t.members,
-        }))
-    : [];
+  const finalistCandidates =
+    canVote && finalRound
+      ? getCompetingTeamsForRound(allTeams, finalRound, rounds)
+          .filter((t) => t.id !== team.id)
+          .map((t) => ({
+            id: t.id,
+            teamCode: t.teamCode,
+            teamName: t.teamName,
+            leaderName: t.leaderName,
+            members: t.members,
+          }))
+      : [];
 
   return NextResponse.json({
     authenticated: true,
@@ -242,6 +208,7 @@ export async function GET() {
       hasVoted,
       votedCandidateId: myVote?.candidateTeamId,
       candidates: finalistCandidates,
+      judgeWeight: finalRound ? judgeSharePct(finalRound) : undefined,
     },
   });
 }

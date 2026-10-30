@@ -71,17 +71,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: "/models/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: isProd
-              ? "public, max-age=31536000, immutable"
-              : "no-cache, no-store, must-revalidate",
-          },
-        ],
-      },
     ];
   },
 };

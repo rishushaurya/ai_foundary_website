@@ -4,7 +4,6 @@ import { clientIp } from "@/lib/auth";
 import { isValidEmail } from "@/lib/hackathon/validators";
 import { randomUUID } from "crypto";
 import { checkRateLimit } from "@/lib/rate-limiter";
-import { logAdminAction } from "@/lib/audit-logger";
 
 export async function POST(request: Request) {
   const ip = clientIp(request);

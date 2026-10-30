@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getHackathonLogs, deleteHackathonLog, clearHackathonLogs } from "@/lib/hackathon/data";
-import { requireRootAdmin } from "@/lib/auth";
+import { requireRootAdmin, requireAdmin } from "@/lib/auth";
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId");
   if (!eventId) {

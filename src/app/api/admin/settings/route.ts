@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
+import { clientIp, invalidateAdminWhitelist, requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getSettings, saveSettings, SiteSettings } from "@/lib/data";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const settings = await getSettings();
   return NextResponse.json(settings);
 }
@@ -16,22 +19,25 @@ async function handleSaveSettings(request: Request) {
     const rootAdmins = (current.rootAdminEmails || ["priyanshushaurya9431@gmail.com"]).map((e) => e.trim().toLowerCase());
     const isCallerRoot = rootAdmins.some((e) => e === adminEmail.toLowerCase());
 
-    let normalizedRoots = [...rootAdmins];
-    if (updated.rootAdminEmails && Array.isArray(updated.rootAdminEmails)) {
-      if (!isCallerRoot) {
-        return NextResponse.json(
-          { error: "Unauthorized: Only an existing Root Administrator can promote administrators to Root Admin." },
-          { status: 403 }
-        );
-      }
-      // Irreversible: Can only add to rootAdminEmails, never remove existing roots
-      const requestedRoots = updated.rootAdminEmails.map((e) => e.trim().toLowerCase());
-      normalizedRoots = Array.from(new Set([...rootAdmins, ...requestedRoots]));
+    // Every settings page sends the roots back unchanged; only an email that isn't root yet is a promotion.
+    const requestedRoots = Array.isArray(updated.rootAdminEmails)
+      ? updated.rootAdminEmails.filter((e): e is string => typeof e === "string").map((e) => e.trim().toLowerCase())
+      : [];
+    const promotions = requestedRoots.filter((e) => e && !rootAdmins.includes(e));
+    if (promotions.length > 0 && !isCallerRoot) {
+      return NextResponse.json(
+        { error: "Unauthorized: Only an existing Root Administrator can promote administrators to Root Admin." },
+        { status: 403 }
+      );
     }
+    // Irreversible: Can only add to rootAdminEmails, never remove existing roots
+    const normalizedRoots = Array.from(new Set([...rootAdmins, ...promotions]));
 
     // Ensure permanent root admin is always present in admin whitelist
     const rootAdmin = "priyanshushaurya9431@gmail.com";
-    const rawEmails = updated.adminEmails || current.adminEmails || [];
+    const rawEmails = (Array.isArray(updated.adminEmails) ? updated.adminEmails : current.adminEmails || []).filter(
+      (e): e is string => typeof e === "string" && e.includes("@")
+    );
     const normalizedEmails = Array.from(
       new Set([rootAdmin, ...normalizedRoots, ...rawEmails.map((e) => e.trim().toLowerCase())])
     );
@@ -52,6 +58,7 @@ async function handleSaveSettings(request: Request) {
     };
 
     await saveSettings(merged);
+    invalidateAdminWhitelist();
 
     // Live on-demand cache revalidation
     try {
@@ -63,7 +70,7 @@ async function handleSaveSettings(request: Request) {
       revalidatePath("/recruit");
     } catch {}
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
 
     // Detect Root Admin Promotions
     const currentRoots = (current.rootAdminEmails || []).map((e) => e.trim().toLowerCase());
@@ -124,9 +131,13 @@ async function handleSaveSettings(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   return handleSaveSettings(request);
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   return handleSaveSettings(request);
 }

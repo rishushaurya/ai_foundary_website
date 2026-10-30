@@ -9,7 +9,7 @@ import {
   HackathonVote,
   HackathonTiebreaker,
 } from "./constants";
-import { computeStandings, TeamScoreSummary } from "./scoring";
+import { computeStandings, judgeSharePct, TeamScoreSummary } from "./scoring";
 
 /**
  * Creates an Excel workbook Buffer for Teams.
@@ -147,7 +147,8 @@ function marksRows(
     if (isFinal) {
       row["Audience Votes"] = summary.votesCount ?? 0;
       row["Vote Share (%)"] = summary.voteScore ?? 0;
-      row["Final Score (70% Judges + 30% Votes)"] = summary.finalScore;
+      const judgePct = judgeSharePct(round);
+      row[`Final Score (${judgePct}% Judges + ${100 - judgePct}% Votes)`] = summary.finalScore;
     } else {
       row["Round Score (/100)"] = summary.finalScore;
     }

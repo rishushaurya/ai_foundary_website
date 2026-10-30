@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
+import { clientIp, requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getGallerySections, saveGallerySections, GallerySection } from "@/lib/data";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const sections = await getGallerySections();
   return NextResponse.json(sections);
 }
@@ -21,7 +24,7 @@ async function handleSaveGallery(request: Request) {
       revalidatePath("/");
     } catch {}
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,
@@ -38,9 +41,13 @@ async function handleSaveGallery(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   return handleSaveGallery(request);
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   return handleSaveGallery(request);
 }

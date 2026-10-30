@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientIp, getAdminSession, requireAdmin } from "@/lib/auth";
 import {
   getAuditLogs,
   clearAuditLogs,
@@ -18,6 +19,8 @@ function sanitizeCSV(field: any): string {
 }
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const { searchParams } = new URL(request.url);
     const exportFormat = searchParams.get("export");
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
     // Export to Excel / CSV format (Accessible by any authorized admin)
     if (exportFormat === "excel" || exportFormat === "csv") {
       const adminEmail = await getAdminEmailFromRequest(request);
-      const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+      const ip = clientIp(request);
 
       const headers = [
         "Log ID",
@@ -80,13 +83,15 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
-    const adminEmail = await getAdminEmailFromRequest(request);
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
-    const ROOT_ADMIN = "priyanshushaurya9431@gmail.com";
+    const ip = clientIp(request);
+    const root = await getAdminSession();
 
     // Strictly enforce Root Administrator authority for deleting audit records
-    if (adminEmail.toLowerCase() !== ROOT_ADMIN.toLowerCase()) {
+    if (!root?.isRoot) {
+      const adminEmail = root?.email || (await getAdminEmailFromRequest(request));
       await logAdminAction({
         adminEmail,
         ip,
@@ -96,12 +101,11 @@ export async function DELETE(request: Request) {
       });
 
       return NextResponse.json(
-        {
-          error: `Access Denied: Only the root administrator (${ROOT_ADMIN}) is authorized to delete or purge audit records.`,
-        },
+        { error: "Access Denied: Only a Root Administrator can delete or purge audit records." },
         { status: 403 }
       );
     }
+    const adminEmail = root.email;
 
     const { searchParams } = new URL(request.url);
     const logId = searchParams.get("id");

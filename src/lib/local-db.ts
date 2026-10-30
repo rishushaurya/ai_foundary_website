@@ -218,7 +218,10 @@ export async function putRecords<T>(spec: CollectionSpec<T>, records: T[]): Prom
   const kv = getRedis();
   if (kv) {
     await ensureHashSeeded(kv, spec);
-    await kv.hset(hashKey(spec.name), Object.fromEntries(records.map((r) => [spec.keyOf(r), r])));
+    // Upstash caps the request size, so large batches (a 600-team import) go in chunks.
+    for (let i = 0; i < records.length; i += 200) {
+      await kv.hset(hashKey(spec.name), Object.fromEntries(records.slice(i, i + 200).map((r) => [spec.keyOf(r), r])));
+    }
     return true;
   }
   const rows = await localRows(spec);
@@ -297,13 +300,15 @@ export async function pushLog<T>(spec: LogSpec<T>, entry: T): Promise<void> {
   writeLocalJSON(spec.name, rows);
 }
 
-export async function readLog<T>(spec: LogSpec<T>): Promise<T[]> {
+/** Newest `limit` entries (all of them by default). */
+export async function readLog<T>(spec: LogSpec<T>, limit = spec.max): Promise<T[]> {
+  const count = Math.min(limit, spec.max);
   const kv = getRedis();
   if (kv) {
     await ensureListSeeded(kv, spec);
-    return kv.lrange<T>(listKey(spec.name), 0, spec.max - 1);
+    return kv.lrange<T>(listKey(spec.name), 0, count - 1);
   }
-  return structuredClone(await localRows<T>({ name: spec.name, keyOf: () => "", seed: spec.seed }));
+  return structuredClone((await localRows<T>({ name: spec.name, keyOf: () => "", seed: spec.seed })).slice(0, count));
 }
 
 /** Removes matching entries (rare admin operation). */
@@ -333,6 +338,18 @@ export async function clearLog<T>(spec: LogSpec<T>): Promise<void> {
   const rows = await localRows<T>({ name: spec.name, keyOf: () => "", seed: spec.seed });
   rows.length = 0;
   writeLocalJSON(spec.name, rows);
+}
+
+// ---- Shared fixed-window counter (rate limits that must hold across every server instance) ----
+
+/** Counts a hit in the current window. Returns null when Redis isn't configured (local dev). */
+export async function countInWindow(key: string, windowMs: number): Promise<{ count: number; ttlMs: number } | null> {
+  const kv = getRedis();
+  if (!kv) return null;
+  const k = `${REDIS_KEY_PREFIX}rl:${key}`;
+  // SET NX starts the window with its expiry; INCR counts; one round trip.
+  const [, count, ttlMs] = await kv.pipeline().set(k, 0, { nx: true, px: windowMs }).incr(k).pttl(k).exec<[unknown, number, number]>();
+  return { count, ttlMs };
 }
 
 // ---- Change counter (drives live updates) ----

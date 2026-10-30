@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import {
   getHackathonRounds,
   getHackathonTeams,
@@ -12,6 +13,8 @@ import { computeStandings } from "@/lib/hackathon/scoring";
 // Live ranking for any round, published or not, with the cutoff line applied. This is exactly the
 // computation the Advance action uses, so the preview is what will happen.
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId");
   const roundId = searchParams.get("roundId");

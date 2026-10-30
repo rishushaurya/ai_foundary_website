@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getVerifiedParticipant } from "@/lib/hackathon/sessions";
 import {
-  getHackathonTeamById,
   getHackathonEventById,
   getHackathonRounds,
+  getHackathonTeams,
   recordHackathonVote,
   logHackathonActivity,
 } from "@/lib/hackathon/data";
+import { getCompetingTeamsForRound } from "@/lib/hackathon/scoring";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { clientIp } from "@/lib/auth";
 import { HACKATHON_CONSTANTS, HackathonVote } from "@/lib/hackathon/constants";
@@ -82,21 +83,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Voting has ended. The final results are locked." }, { status: 403 });
     }
 
-    const candidateTeam = await getHackathonTeamById(candidateTeamId);
-    if (!candidateTeam || candidateTeam.eventId !== event.id) {
+    if (candidateTeamId === voterTeam.id) {
+      return NextResponse.json({ error: "Cannot vote for your own team." }, { status: 400 });
+    }
+    // Candidates are exactly the teams competing in the final: finalists, not eliminated, not disqualified.
+    const teams = await getHackathonTeams(event.id);
+    const candidateTeam = teams.find((t) => t.id === candidateTeamId);
+    if (!candidateTeam) {
       return NextResponse.json({ error: "Candidate team not found in this hackathon." }, { status: 404 });
     }
-
-    if (!candidateTeam.finalist || candidateTeam.isEliminated) {
-      return NextResponse.json({ error: "Votes can only be cast for official finalists." }, { status: 400 });
-    }
-
-    if (candidateTeam.disqualified) {
-      return NextResponse.json({ error: "Selected team has been disqualified." }, { status: 400 });
-    }
-
-    if (candidateTeam.id === voterTeam.id) {
-      return NextResponse.json({ error: "Cannot vote for your own team." }, { status: 400 });
+    if (!getCompetingTeamsForRound(teams, finalRound, rounds).some((t) => t.id === candidateTeam.id)) {
+      return NextResponse.json({ error: "Votes can only be cast for teams competing in the final." }, { status: 400 });
     }
 
     // One vote per team per event, enforced atomically by the storage key (not a read-then-write check).

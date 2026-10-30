@@ -3,6 +3,19 @@ All notable changes to the AI Foundry Web Platform will be documented in this fi
 
 The format is based on Keep a Changelog, and follows the Multi-AI Orchestration Protocol.
 
+## [2026-10-30] - Claude Opus 5.5 - Session 51
+**Description**: Adjustable final-round split, sheet import with analysis, 600+ team scale, Next.js security upgrade and fixes. Full plan and results: `REMEDIATION_PLAN.md`, Phase 2.
+- **Final split set by the admin** (`judgeWeight` on the final round, 0-100, default 70): used by the public board, team scorecards, live standings, advancement and the Excel marks sheet. Locked once the final is completed. Admin UI: slider + exact value + presets in the round form; ballot, board and votes tab show the real split.
+- **Team import** (`src/lib/hackathon/team-import.ts`, `components/admin/team-import-modal.tsx`): Excel/CSV/TSV upload or paste, header aliases, member columns, per-row errors and warnings, generated `TEAM-###` codes and passkeys, dry run, import all or only valid rows, credentials download. `xlsx` upgraded to 0.20.3 (SheetJS CDN; fixes CVE-2023-30533, CVE-2024-22363).
+- **Scale**: native `scrypt` passkey hashing (non-blocking; bcrypt hashes still verify), cached participant auth, O(n) ranking, refetch jitter, Redis-shared login rate limits, chunked bulk writes, event log cap 5,000 with bounded reads.
+- **Security**: Next.js 16.2.1 -> 16.4.3 (proxy-bypass and DoS advisories; `npm audit` clean); `requireAdmin()` in all 50 admin API handlers; root-only audit-log deletion uses `isRoot`; site event deletion root-only; `clientIp()` everywhere; runtime data with passkeys/PII untracked from git.
+- **Fixes**: non-root admins can save Settings/Landing/Content; score override button wired; ballot only for teams that can vote; vote candidates and counted votes use the ranking's own rules; disqualified teams' round-1 rank from the standard ranking; `/admin/content` in the nav; old service worker replaced with a kill switch.
+- **Removed**: 12 unused components, 7 unused packages, ~35 MB of unreferenced `public/` files, `scripts/verify-full-features.mjs` (could not run; asserted the old fixed split), `scripts/cleanup-wix-export.js`.
+- **Several hackathons at once**: team and judge sign-in pick the event deliberately (selected hackathon, else the only running one, else a 409 asking which) instead of the first matching record; the leaderboard sends the selected hackathon and switches to the team's own after sign-in.
+- **Verification**: `tsc` and `next build` pass. Local and real Upstash (isolated key prefix, test keys deleted): `verify-hackathon-integrity.mjs` 54/54; `load-test-hackathon.mjs` with 650 teams: 640 simultaneous logins, 840 vote taps -> exactly 640 votes, 0 server errors.
+
+---
+
 ## [2026-09-12] - Antigravity - Session 50
 **Description**: Complete **Rate Limiter Calibration for Smooth Event Operations**, **Venue & Campus Wi-Fi NAT Collision Prevention**, **Entity-Specific Rate Keying**, **GlobalThis Memory Bound Hardening (50k eviction cap)**, and **Edge CDN Caching**:
 - **Smooth Hackathon Rate Limits Calibration (`src/lib/hackathon/constants.ts`)**:

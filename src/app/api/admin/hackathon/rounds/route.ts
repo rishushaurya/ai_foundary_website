@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
-import { roundStartBlocker } from "@/lib/hackathon/scoring";
+import { isValidJudgeWeight, judgeSharePct, roundStartBlocker } from "@/lib/hackathon/scoring";
 import {
   getHackathonScores,
   getHackathonRounds,
@@ -17,6 +18,8 @@ const ROUND_TYPES: RoundType[] = ["qualifier", "semi-final", "final"];
 const ROUND_STATUSES: RoundStatus[] = ["pending", "active", "scoring", "completed"];
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId") || undefined;
   const rounds = await getHackathonRounds(eventId);
@@ -24,6 +27,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
@@ -43,6 +48,11 @@ export async function POST(request: Request) {
     }
     if (cutoffRank && (!Number.isInteger(Number(cutoffRank)) || Number(cutoffRank) < 1)) {
       return NextResponse.json({ error: "cutoffRank must be a whole number of 1 or more." }, { status: 400 });
+    }
+    const weightGiven = body.judgeWeight !== undefined && body.judgeWeight !== null && body.judgeWeight !== "";
+    const judgeWeight = weightGiven ? Number(body.judgeWeight) : undefined;
+    if (weightGiven && !isValidJudgeWeight(judgeWeight)) {
+      return NextResponse.json({ error: "judgeWeight must be a whole number from 0 to 100 (judges' share in percent)." }, { status: 400 });
     }
 
     // Client-supplied ids are only accepted for editing an existing round of this event.
@@ -82,17 +92,28 @@ export async function POST(request: Request) {
       }
     }
 
+    const effectiveType = type || existing?.type || "qualifier";
+    const nextJudgeWeight = effectiveType === "final" ? judgeWeight ?? existing?.judgeWeight : undefined;
+    // The split decides the winners: once the final is completed it is part of the locked results.
+    if (existing?.status === "completed" && judgeSharePct({ judgeWeight: nextJudgeWeight }) !== judgeSharePct(existing)) {
+      return NextResponse.json(
+        { error: "This final is completed; changing the judge/vote split would change locked results." },
+        { status: 409 }
+      );
+    }
+
     const round: HackathonRound = {
       id: roundId,
       eventId,
       roundNumber: Number(roundNumber),
       name: sanitizeString(name),
-      type: type || existing?.type || "qualifier",
+      type: effectiveType,
       status: status || existing?.status || "pending",
       cutoffRank: cutoffRank ? Number(cutoffRank) : undefined,
       isElimination: typeof isElimination === "boolean" ? isElimination : existing?.isElimination ?? true,
       isPublished: typeof isPublished === "boolean" ? isPublished : (existing?.isPublished || false),
       allowRevisions: typeof body.allowRevisions === "boolean" ? body.allowRevisions : (existing?.allowRevisions || false),
+      judgeWeight: nextJudgeWeight,
       description: description ? sanitizeString(description) : undefined,
       createdAt: existing?.createdAt || new Date().toISOString(),
     };
@@ -107,7 +128,13 @@ export async function POST(request: Request) {
       action: existing ? `Round Updated: ${round.name}` : `Round Created: ${round.name}`,
       actorType: "admin",
       actorId: adminEmail,
-      details: { name: round.name, roundNumber: round.roundNumber, status: round.status, allowRevisions: round.allowRevisions },
+      details: {
+        name: round.name,
+        roundNumber: round.roundNumber,
+        status: round.status,
+        allowRevisions: round.allowRevisions,
+        ...(round.type === "final" ? { judgeWeight: judgeSharePct(round), voteWeight: 100 - judgeSharePct(round) } : {}),
+      },
     });
 
     return NextResponse.json({ success: true, round });
@@ -117,6 +144,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const adminEmail = await getAdminEmailFromRequest(request);
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonJudges,
@@ -12,6 +13,8 @@ import { randomUUID } from "crypto";
 import { HackathonJudge } from "@/lib/hackathon/constants";
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId") || undefined;
   const judges = await getHackathonJudges(eventId);
@@ -31,6 +34,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
@@ -108,6 +113,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const adminEmail = await getAdminEmailFromRequest(request);
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

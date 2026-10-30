@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import { randomInt } from "crypto";
+import { randomBytes, randomInt, scrypt, timingSafeEqual, type ScryptOptions } from "crypto";
+import { promisify } from "util";
 import type { HackathonCriteria } from "./constants";
 
 // ---- String sanitization ----
@@ -40,100 +41,30 @@ export function validateCriterionScores(
 }
 
 // ---- Passkey / Access code hashing ----
+// Native scrypt runs on libuv's thread pool, so a burst of 600 logins never blocks the event loop
+// (bcryptjs is pure JS on the main thread: 50 parallel checks took ~2.7s). Old bcrypt hashes still verify.
+const scryptAsync = promisify(scrypt) as (password: string, salt: Buffer, keylen: number, options: ScryptOptions) => Promise<Buffer>;
+// seniordev: N=4096 (~7ms, 4MB) suits random admin-issued codes that are rate-limited per team and
+// stored retrievably anyway; raise it (hashes carry their own N) if passkeys ever become user passwords.
+const SCRYPT_N = 4096;
+const SCRYPT_KEYLEN = 32;
+
 export async function hashSecret(secret: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(secret, salt);
+  const salt = randomBytes(16);
+  const hash = await scryptAsync(secret, salt, SCRYPT_KEYLEN, { N: SCRYPT_N });
+  return `scrypt$${SCRYPT_N}$${salt.toString("base64")}$${hash.toString("base64")}`;
 }
 
 export async function compareSecret(secret: string, hashed: string): Promise<boolean> {
   try {
+    if (hashed.startsWith("scrypt$")) {
+      const [, n, salt, expected] = hashed.split("$");
+      const want = Buffer.from(expected, "base64");
+      const got = await scryptAsync(secret, Buffer.from(salt, "base64"), want.length, { N: Number(n) });
+      return timingSafeEqual(got, want);
+    }
     return await bcrypt.compare(secret, hashed);
   } catch {
     return false;
   }
-}
-
-// ---- CSV Parser for Bulk Teams ----
-export interface ParsedTeamCSV {
-  teamCode: string;
-  teamName: string;
-  leaderName: string;
-  leaderEmail: string;
-  leaderPhone?: string;
-  members: string[];
-  passkey: string;
-}
-
-export function parseTeamsCSV(csvContent: string): { teams: ParsedTeamCSV[]; errors: string[] } {
-  const lines = csvContent
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
-  if (lines.length <= 1) {
-    return { teams: [], errors: ["CSV file is empty or contains only a header line."] };
-  }
-
-  const header = lines[0].toLowerCase().split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
-  // Expected headers: team_code, team_name, leader_name, leader_email, leader_phone, members (comma or semicolon separated or member_1...), passkey
-  const codeIdx = header.findIndex((h) => (h.includes("code") && !h.includes("pass")) || h === "id");
-  const nameIdx = header.findIndex((h) => h.includes("name") && !h.includes("leader"));
-  const leaderNameIdx = header.findIndex((h) => h.includes("leader") && h.includes("name"));
-  const leaderEmailIdx = header.findIndex((h) => h.includes("leader") && h.includes("email") || h === "email");
-  const phoneIdx = header.findIndex((h) => h.includes("phone") || h.includes("mobile"));
-  // Never match "code" here: that is the PUBLIC team code column, and using it as the passkey
-  // would let anyone who knows a team's code sign in as that team.
-  const passkeyIdx = header.findIndex((h) => h.includes("pass") || h.includes("secret") || h.includes("pin"));
-  const membersIdx = header.findIndex((h) => h.includes("member"));
-
-  const teams: ParsedTeamCSV[] = [];
-  const errors: string[] = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const rawLine = lines[i];
-    // Simple CSV parser handling quotes
-    const cells: string[] = [];
-    let inQuote = false;
-    let curr = "";
-    for (let c = 0; c < rawLine.length; c++) {
-      const char = rawLine[c];
-      if (char === '"') {
-        inQuote = !inQuote;
-      } else if (char === "," && !inQuote) {
-        cells.push(curr.trim().replace(/^"|"$/g, ""));
-        curr = "";
-      } else {
-        curr += char;
-      }
-    }
-    cells.push(curr.trim().replace(/^"|"$/g, ""));
-
-    const teamCode = sanitizeString(cells[codeIdx >= 0 ? codeIdx : 0]);
-    const teamName = sanitizeString(cells[nameIdx >= 0 ? nameIdx : 1]);
-    const leaderName = sanitizeString(cells[leaderNameIdx >= 0 ? leaderNameIdx : 2]);
-    const leaderEmail = sanitizeString(cells[leaderEmailIdx >= 0 ? leaderEmailIdx : 3]);
-    const leaderPhone = phoneIdx >= 0 ? sanitizeString(cells[phoneIdx]) : undefined;
-    const passkey = (passkeyIdx >= 0 ? sanitizeString(cells[passkeyIdx]) : "") || generateSecretCode();
-    const rawMembers = membersIdx >= 0 ? cells[membersIdx] : "";
-    const members = rawMembers
-      ? rawMembers.split(/[;|]/).map((m) => sanitizeString(m)).filter(Boolean)
-      : [];
-
-    if (!teamCode || !teamName) {
-      errors.push(`Row ${i + 1}: Missing teamCode or teamName.`);
-      continue;
-    }
-
-    teams.push({
-      teamCode,
-      teamName,
-      leaderName: leaderName || "Leader",
-      leaderEmail: leaderEmail || "",
-      leaderPhone,
-      members,
-      passkey,
-    });
-  }
-
-  return { teams, errors };
 }

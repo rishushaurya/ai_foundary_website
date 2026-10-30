@@ -3,14 +3,14 @@ import { SignJWT } from "jose";
 import { getSettings } from "@/lib/data";
 import { logAdminAction } from "@/lib/audit-logger";
 import { clientIp, getJwtSecret } from "@/lib/auth";
-import { checkRateLimit } from "@/lib/rate-limiter";
+import { checkSharedRateLimit } from "@/lib/rate-limiter";
 
 const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
 
 export async function POST(request: Request) {
   const ip = clientIp(request);
 
-  const rate = checkRateLimit(`google-login-${ip}`, 20, 60_000);
+  const rate = await checkSharedRateLimit(`google-login-${ip}`, 20, 60_000);
   if (!rate.allowed) {
     return NextResponse.json(
       { error: `Too many sign-in attempts. Try again in ${rate.retryAfterSeconds}s.` },

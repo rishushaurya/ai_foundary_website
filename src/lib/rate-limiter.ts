@@ -2,6 +2,7 @@
  * In-Memory Sliding Window Rate Limiter
  * Tracks request counts per IP address to prevent spam and DDoS
  */
+import { countInWindow } from "@/lib/local-db";
 
 interface RateLimitRecord {
   timestamps: number[];
@@ -72,4 +73,29 @@ export function checkRateLimit(
     remaining: limit - record.timestamps.length,
     retryAfterSeconds: 0,
   };
+}
+
+/**
+ * Login brute-force limits: counted in Redis so they hold across every server instance (an
+ * in-memory counter multiplies with scale-out). Falls back to this instance's counter without Redis.
+ */
+export async function checkSharedRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<{ allowed: boolean; remaining: number; retryAfterSeconds: number }> {
+  try {
+    const shared = await countInWindow(key, windowMs);
+    if (shared) {
+      const allowed = shared.count <= limit;
+      return {
+        allowed,
+        remaining: Math.max(0, limit - shared.count),
+        retryAfterSeconds: allowed ? 0 : Math.max(1, Math.ceil(shared.ttlMs / 1000)),
+      };
+    }
+  } catch (err) {
+    console.error("[rate-limiter] Shared counter unavailable, using local window:", err);
+  }
+  return checkRateLimit(key, limit, windowMs);
 }

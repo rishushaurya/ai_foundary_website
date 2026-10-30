@@ -19,20 +19,6 @@
         "required": false
       }
     ],
-    "registrations": [
-      {
-        "id": "reg-1788043959126-ioiq",
-        "name": "Custom Effect",
-        "email": "aaravsing9431@gmail.com",
-        "phone": "wdqdqwdq",
-        "college": "Dayananda Sagar University",
-        "branch": "B.Tech CSE (AI & ML)",
-        "timestamp": "2026-08-29T22:52:39.126Z",
-        "customAnswers": {
-          "q-1787509226997": "wqddwqdwq"
-        }
-      }
-    ],
     "googleFormUrl": "https://forms.gle/cCHJAbBDCkJPARtk7",
     "isRegistrationOpen": false,
     "registrationStartDate": "2026-09-03T04:35:00.000Z",
@@ -78,7 +64,6 @@
         "required": false
       }
     ],
-    "registrations": [],
     "googleFormUrl": "https://forms.gle/wbSx17QW3SR5P5NJ6",
     "imageFit": "cover",
     "imagePosition": "center",

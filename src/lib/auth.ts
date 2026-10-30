@@ -47,15 +47,38 @@ export interface AdminSession {
   isRoot: boolean;
 }
 
-/** Admin token must be valid AND the email must still be whitelisted, so removal revokes access immediately. */
+// The whitelist is re-checked on every admin call (proxy and route). A few seconds of per-instance
+// cache keeps a dashboard refreshing 8 endpoints from costing 16 Redis reads each time.
+const WHITELIST_TTL_MS = 5000;
+const globalForAuth = globalThis as unknown as {
+  __aifAdminWhitelist?: { at: number; roots: string[]; admins: string[] };
+};
+
+async function adminWhitelist(): Promise<{ roots: string[]; admins: string[] }> {
+  const cached = globalForAuth.__aifAdminWhitelist;
+  if (cached && Date.now() - cached.at < WHITELIST_TTL_MS) return cached;
+  const settings = await getSettings();
+  const fresh = {
+    at: Date.now(),
+    roots: (settings.rootAdminEmails || []).map((e) => e.trim().toLowerCase()),
+    admins: (settings.adminEmails || []).map((e) => e.trim().toLowerCase()),
+  };
+  globalForAuth.__aifAdminWhitelist = fresh;
+  return fresh;
+}
+
+/** Call after saving settings so a removed admin loses access on this instance immediately. */
+export function invalidateAdminWhitelist(): void {
+  globalForAuth.__aifAdminWhitelist = undefined;
+}
+
+/** Admin token must be valid AND the email must still be whitelisted (re-checked within seconds of removal). */
 export async function getAdminSessionFromToken(token: string | undefined): Promise<AdminSession | null> {
   const payload = await verifyRoleToken(token, "admin");
   const email = typeof payload?.email === "string" ? payload.email.trim().toLowerCase() : "";
   if (!email) return null;
 
-  const settings = await getSettings();
-  const roots = (settings.rootAdminEmails || []).map((e) => e.trim().toLowerCase());
-  const admins = (settings.adminEmails || []).map((e) => e.trim().toLowerCase());
+  const { roots, admins } = await adminWhitelist();
   if (!roots.includes(email) && !admins.includes(email)) return null;
   return { email, isRoot: roots.includes(email) };
 }
@@ -64,6 +87,16 @@ export async function getAdminSessionFromToken(token: string | undefined): Promi
 export async function getAdminSession(): Promise<AdminSession | null> {
   const cookieStore = await cookies();
   return getAdminSessionFromToken(cookieStore.get("admin-token")?.value);
+}
+
+/**
+ * Route-level admin gate. The proxy is the first gate; this second one means a proxy bypass
+ * (Next.js has shipped several) can never expose the admin API. Returns the session or a 401.
+ */
+export async function requireAdmin(): Promise<AdminSession | NextResponse> {
+  const admin = await getAdminSession();
+  if (admin) return admin;
+  return NextResponse.json({ error: "Unauthorized access: Administrator session required" }, { status: 401 });
 }
 
 /** Returns the root admin session, or a 403 response to return as-is. */

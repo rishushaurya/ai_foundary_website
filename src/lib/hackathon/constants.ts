@@ -1,22 +1,17 @@
 /**
  * Hackathon Leaderboard - Core System Constants & Interfaces
- * Enforces architectural rules: 70/30 judge/vote split, 100 scale, 2-decimal precision
+ * Enforces architectural rules: admin-set final judge/vote split, 100 scale, 2-decimal precision
  */
 
 export const HACKATHON_CONSTANTS = {
-  // Scoring split for Final Round (70% Judges, 30% Audience Votes)
-  JUDGE_WEIGHT: 0.70,
-  VOTE_WEIGHT: 0.30,
+  // Final round judges' share in percent when the admin hasn't set one (votes get the rest)
+  DEFAULT_JUDGE_WEIGHT_PCT: 70,
   MAX_SCORE_SCALE: 100.0,
   DECIMAL_PRECISION: 2,
 
   // Session Lifetimes (seconds)
   JUDGE_SESSION_TTL_SECONDS: 8 * 60 * 60, // 8 hours
   PARTICIPANT_SESSION_TTL_SECONDS: 12 * 60 * 60, // 12 hours
-
-  // Polling & Real-time Synchronization
-  POLL_INTERVAL_MS: 15000, // 15 seconds recommended for client poll
-  STATUS_CACHE_TTL_MS: 5000, // 5 seconds in-memory TTL to protect Redis free tier
 
   // Cookie Names
   COOKIE_JUDGE: "judge-session",
@@ -64,6 +59,7 @@ export interface HackathonRound {
   isElimination: boolean;
   isPublished?: boolean; // Whether marks/rankings are visible to public
   allowRevisions?: boolean; // Universal toggle: allows judges to revise submitted scores for this round
+  judgeWeight?: number; // Final round only: judges' share in percent (0-100); audience votes get the rest
   description?: string;
   createdAt: string;
 }

@@ -41,9 +41,12 @@ import {
   HackathonScore,
   HackathonTiebreaker,
   HackathonActivityLog,
+  HACKATHON_CONSTANTS,
 } from "@/lib/hackathon/constants";
+import { judgeSharePct } from "@/lib/hackathon/scoring";
 import { useLiveVersion } from "@/hooks/use-live-version";
 import { LiveStandings } from "@/components/admin/live-standings";
+import { TeamImportModal } from "@/components/admin/team-import-modal";
 
 export default function AdminHackathonPage() {
   const [events, setEvents] = useState<HackathonEvent[]>([]);
@@ -120,7 +123,6 @@ export default function AdminHackathonPage() {
   });
 
   const [csvModalOpen, setCsvModalOpen] = useState(false);
-  const [csvText, setCsvText] = useState("");
 
   const [judgeModalOpen, setJudgeModalOpen] = useState(false);
   const [editingJudge, setEditingJudge] = useState<any>({
@@ -287,6 +289,8 @@ export default function AdminHackathonPage() {
   };
 
   const currentEvent = events.find((e) => e.id === selectedEventId);
+  const finalRoundRecord = rounds.find((r) => r.type === "final");
+  const finalVotePct = 100 - judgeSharePct(finalRoundRecord || {});
 
   // Load Events on Mount
   useEffect(() => {
@@ -537,29 +541,6 @@ export default function AdminHackathonPage() {
       if (!res.ok) throw new Error(data.error || "Failed to save team.");
       setNotice({ type: "success", text: "Team saved successfully." });
       setTeamModalOpen(false);
-      await fetchEventData(selectedEventId);
-    } catch (err: any) {
-      setNotice({ type: "error", text: err.message });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ---- Bulk CSV Upload ----
-  const handleBulkCSV = async () => {
-    if (!selectedEventId || !csvText.trim()) return;
-    setSaving(true);
-    try {
-      const res = await fetch("/api/admin/hackathon/teams/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId: selectedEventId, csvContent: csvText }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "CSV upload failed.");
-      setNotice({ type: "success", text: `Imported ${data.count} teams.` });
-      setCsvModalOpen(false);
-      setCsvText("");
       await fetchEventData(selectedEventId);
     } catch (err: any) {
       setNotice({ type: "error", text: err.message });
@@ -1128,6 +1109,11 @@ export default function AdminHackathonPage() {
                           >
                             {round.isPublished ? "Scores Publicly Live" : "Scores Draft (Hidden)"}
                           </span>
+                          {isFinal && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800">
+                              Judges {judgeSharePct(round)}% · Votes {100 - judgeSharePct(round)}%
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1137,7 +1123,7 @@ export default function AdminHackathonPage() {
                       {isFinal && currentEvent && (
                         <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs font-bold">
                           <Vote className="size-3.5 text-purple-600" />
-                          <span>Audience Voting (30%):</span>
+                          <span>Audience Voting ({100 - judgeSharePct(round)}%):</span>
                           <button
                             onClick={() => handleStateToggle({ isVotingOpen: !currentEvent.isVotingOpen })}
                             className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase cursor-pointer transition-all ${
@@ -1245,7 +1231,7 @@ export default function AdminHackathonPage() {
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
               >
                 <Upload className="size-3.5 text-slate-600" />
-                <span>Bulk CSV Import</span>
+                <span>Import Sheet (Excel / CSV)</span>
               </button>
               <button
                 onClick={() => {
@@ -1726,6 +1712,17 @@ export default function AdminHackathonPage() {
                             </button>
                             <button
                               onClick={() => {
+                                setEditingScore({ ...s, criterionScores: { ...s.criterionScores }, overrideReason: "" });
+                                setScoreEditModalOpen(true);
+                              }}
+                              disabled={rounds.find((r) => r.id === s.roundId)?.status === "completed"}
+                              className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-bold text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              title="Correct this evaluation directly (logged in the audit trail). Locked once the round is completed."
+                            >
+                              Override
+                            </button>
+                            <button
+                              onClick={() => {
                                 setEditingTie({
                                   roundId: s.roundId,
                                   teamId: s.teamId,
@@ -1763,7 +1760,7 @@ export default function AdminHackathonPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-black text-slate-900">
-                Audience Voting Tallies (30% Final Component)
+                Audience Voting Tallies ({finalVotePct}% Final Component)
               </h2>
               <p className="text-xs text-slate-500">Votes cast by eliminated teams for final candidates.</p>
             </div>
@@ -2038,9 +2035,68 @@ export default function AdminHackathonPage() {
                 >
                   <option value="qualifier">Qualifier</option>
                   <option value="semi-final">Semi-Final</option>
-                  <option value="final">Final (Activates 70/30 Split & Voting)</option>
+                  <option value="final">Final (Judges + Audience Votes)</option>
                 </select>
               </div>
+
+              {editingRound.type === "final" &&
+                (() => {
+                  const judgePct = judgeSharePct(editingRound);
+                  const locked = !!editingRound.id && editingRound.status === "completed";
+                  const setPct = (value: number) =>
+                    setEditingRound({ ...editingRound, judgeWeight: Math.min(100, Math.max(0, Math.round(value || 0))) });
+                  return (
+                    <fieldset className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 space-y-2.5" disabled={locked}>
+                      <legend className="font-bold text-purple-900 px-1">Final score split</legend>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={judgePct}
+                          onChange={(e) => setPct(Number(e.target.value))}
+                          aria-label="Judges' share in percent"
+                          className="flex-1 accent-purple-600"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={judgePct}
+                          onChange={(e) => setPct(Number(e.target.value))}
+                          aria-label="Judges' share in percent (exact)"
+                          className="w-16 px-2 py-1.5 rounded-lg border border-purple-300 font-black text-right text-slate-900"
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[70, 60, 50, 40].map((pct) => (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() => setPct(pct)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border cursor-pointer ${
+                              judgePct === pct ? "bg-purple-600 text-white border-purple-600" : "bg-white text-purple-800 border-purple-200"
+                            }`}
+                          >
+                            {pct}/{100 - pct}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="font-black text-purple-900" aria-live="polite">
+                        Judges {judgePct}% · Audience votes {100 - judgePct}%
+                      </p>
+                      <p className="text-[11px] text-purple-800 leading-relaxed">
+                        Final score = judge average × {judgePct}% + the team&apos;s share of all votes × {100 - judgePct}%.{" "}
+                        {locked
+                          ? "Locked: this final is completed."
+                          : "Saving applies it to the live ranking straight away."}
+                        {judgePct === 100 && " At 100% judges, audience votes don't change the result."}
+                      </p>
+                    </fieldset>
+                  );
+                })()}
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -2326,53 +2382,16 @@ export default function AdminHackathonPage() {
       )}
 
       {/* Bulk CSV Modal */}
-      {csvModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="glass-card rounded-3xl p-5 sm:p-8 border border-white/80 bg-white max-w-lg w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-slate-900">Bulk Import Teams (CSV)</h3>
-              <button onClick={() => setCsvModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="size-5" />
-              </button>
-            </div>
-
-            <div className="text-xs text-slate-500 space-y-2">
-              <p>
-                Paste CSV with a header row. Required: team_code, team_name. Leave the passkey column out (or empty) to
-                auto-generate strong 8-character passkeys; typed passkeys need 6+ characters.
-              </p>
-              <pre className="p-2.5 rounded-xl bg-slate-100 text-slate-800 font-mono text-[10px] overflow-x-auto">
-                team_code,team_name,leader_name,leader_email,leader_phone,members,passkey
-              </pre>
-            </div>
-
-            <textarea
-              rows={8}
-              value={csvText}
-              onChange={(e) => setCsvText(e.target.value)}
-              placeholder={`team_code,team_name,leader_name,leader_email,leader_phone,members,passkey\nT-101,Neural Nexus,Alex Chen,alex@uni.edu,9876543210,David;Sarah,`}
-              className="w-full p-3 rounded-2xl border border-slate-200 text-slate-900 font-mono text-xs"
-            />
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setCsvModalOpen(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 font-bold text-slate-600 text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkCSV}
-                disabled={saving || !csvText.trim()}
-                className="px-5 py-2 rounded-xl bg-cyan-600 text-white font-bold hover:bg-cyan-700 disabled:opacity-50 text-xs cursor-pointer"
-              >
-                {saving ? "Importing..." : "Process & Import"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {csvModalOpen && selectedEventId && (
+        <TeamImportModal
+          eventId={selectedEventId}
+          onClose={() => setCsvModalOpen(false)}
+          onImported={(message) => {
+            setNotice({ type: "success", text: message });
+            void fetchEventData(selectedEventId);
+          }}
+          onDownloadCredentials={() => handleExport("teams", { mode: "credentials_only" })}
+        />
       )}
 
       {/* Register Judge Modal */}

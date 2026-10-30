@@ -165,6 +165,7 @@ export default function PublicLeaderboardPage() {
         body: JSON.stringify({
           teamCode: teamCodeInput.trim(),
           passkey: passkeyInput.trim(),
+          eventId: selectedEventId || undefined, // decides if this code exists in several hackathons
         }),
       });
 
@@ -174,7 +175,9 @@ export default function PublicLeaderboardPage() {
       setTeamCodeInput("");
       setPasskeyInput("");
       await fetchMyTeamStatus();
-      await fetchStatus(selectedEventId, selectedRoundId);
+      // Show the team's own hackathon, even if another one was selected on the board.
+      if (data.team?.eventId && data.team.eventId !== selectedEventId) handleSelectEvent(data.team.eventId);
+      else await fetchStatus(selectedEventId, selectedRoundId);
     } catch (err: any) {
       setVerifyError(err.message || "Invalid Team Code or Passkey.");
     } finally {
@@ -654,7 +657,11 @@ export default function PublicLeaderboardPage() {
                       <th className="py-3 px-4">Rank</th>
                       <th className="py-3 px-4">Code</th>
                       <th className="py-3 px-4">Team</th>
-                      <th className="py-3 px-4">{isFinalRound ? "Total Score" : "Score (100 Scale)"}</th>
+                      <th className="py-3 px-4">
+                        {isFinalRound
+                          ? `Total Score (${selectedRound?.judgeWeight ?? 70}% Judges + ${100 - (selectedRound?.judgeWeight ?? 70)}% Votes)`
+                          : "Score (100 Scale)"}
+                      </th>
                       {isFinalRound && isPublished && <th className="py-3 px-4">Votes Received</th>}
                       {isFinalRound && isVotingOpen && <th className="py-3 px-4 text-center">Audience Ballot</th>}
                       <th className="py-3 px-4 text-right">Tournament Status</th>
@@ -1082,7 +1089,7 @@ export default function PublicLeaderboardPage() {
               ) : myTeamData.voting?.canVote ? (
                 <div className="space-y-3">
                   <p className="text-xs text-[#5E6059] leading-relaxed">
-                    As an eliminated team you get one vote. All audience votes together count for 30% of each finalist's final score (judges count 70%). Choose carefully: votes are final.
+                    As an eliminated team you get one vote. All audience votes together count for {100 - (myTeamData.voting?.judgeWeight ?? 70)}% of each finalist&apos;s final score (judges count {myTeamData.voting?.judgeWeight ?? 70}%). Choose carefully: votes are final.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

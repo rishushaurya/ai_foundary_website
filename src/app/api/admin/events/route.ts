@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
+import { clientIp, requireRootAdmin, requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getEvents, saveEvents, deleteEventRegistrations, EventData } from "@/lib/data";
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const events = await getEvents();
   return NextResponse.json(events);
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const event = (await request.json()) as EventData;
     if (!event.title || !event.date) {
@@ -34,7 +39,7 @@ export async function POST(request: Request) {
       revalidatePath("/");
     } catch {}
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,
@@ -51,6 +56,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const body = await request.json();
 
@@ -61,7 +68,7 @@ export async function PUT(request: Request) {
         revalidatePath("/");
       } catch {}
 
-      const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+      const ip = clientIp(request);
       const adminEmail = await getAdminEmailFromRequest(request);
       await logAdminAction({
         adminEmail,
@@ -96,7 +103,7 @@ export async function PUT(request: Request) {
       revalidatePath("/");
     } catch {}
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,
@@ -112,7 +119,10 @@ export async function PUT(request: Request) {
   }
 }
 
+// Deleting an event also erases its attendee registrations: root admins only.
 export async function DELETE(request: Request) {
+  const root = await requireRootAdmin();
+  if (root instanceof NextResponse) return root;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -132,7 +142,7 @@ export async function DELETE(request: Request) {
       revalidatePath("/");
     } catch {}
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,

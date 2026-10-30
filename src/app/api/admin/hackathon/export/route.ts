@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import {
   getHackathonEventById,
@@ -20,6 +21,8 @@ import {
 } from "@/lib/hackathon/excel-export";
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const { searchParams } = new URL(request.url);

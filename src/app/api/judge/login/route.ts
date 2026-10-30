@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getHackathonJudges, logHackathonActivity } from "@/lib/hackathon/data";
+import { getHackathonEvents, getHackathonJudges, logHackathonActivity } from "@/lib/hackathon/data";
 import { compareSecret } from "@/lib/hackathon/validators";
 import { createJudgeToken } from "@/lib/hackathon/sessions";
 import { HACKATHON_CONSTANTS } from "@/lib/hackathon/constants";
-import { checkRateLimit } from "@/lib/rate-limiter";
+import { checkSharedRateLimit } from "@/lib/rate-limiter";
 import { clientIp } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const normalizedEmail = email.trim().toLowerCase();
 
     // Smooth Rate Limiting per Judge Email (prevents venue Wi-Fi NAT collisions)
-    const rate = checkRateLimit(
+    const rate = await checkSharedRateLimit(
       `judge-login-${normalizedEmail}`,
       HACKATHON_CONSTANTS.RATE_LIMITS.JUDGE_LOGIN.limit,
       HACKATHON_CONSTANTS.RATE_LIMITS.JUDGE_LOGIN.windowMs
@@ -34,31 +34,27 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
-    const judges = await getHackathonJudges();
-    const candidates = judges.filter(
-      (j) => j.email.trim().toLowerCase() === normalizedEmail && j.active && (!eventId || j.eventId === eventId)
+    // One judge can sit on several hackathons with the same email (and even the same code), so collect
+    // every match and pick deliberately: the requested event, else the only live one, else the only one.
+    const candidates = (await getHackathonJudges()).filter(
+      (j) => j.email.trim().toLowerCase() === normalizedEmail && j.active
     );
-
-    if (candidates.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid email or access code." },
-        { status: 401 }
-      );
-    }
-
-    let authenticatedJudge: typeof candidates[0] | null = null;
+    const matches: typeof candidates = [];
     for (const cand of candidates) {
-      const valid = await compareSecret(accessCode.trim(), cand.accessCodeHash);
-      if (valid) {
-        authenticatedJudge = cand;
-        break;
-      }
+      if (await compareSecret(accessCode.trim(), cand.accessCodeHash)) matches.push(cand);
+    }
+    if (matches.length === 0) {
+      return NextResponse.json({ error: "Invalid email or access code." }, { status: 401 });
     }
 
+    const liveEventIds = new Set((await getHackathonEvents()).filter((e) => e.status === "live").map((e) => e.id));
+    const only = <T,>(list: T[]) => (list.length === 1 ? list[0] : null);
+    const authenticatedJudge =
+      matches.find((j) => j.eventId === eventId) ?? only(matches.filter((j) => liveEventIds.has(j.eventId))) ?? only(matches);
     if (!authenticatedJudge) {
       return NextResponse.json(
-        { error: "Invalid email or access code." },
-        { status: 401 }
+        { error: "This email and access code work for more than one hackathon. Ask the organisers for a separate code per event." },
+        { status: 409 }
       );
     }
 

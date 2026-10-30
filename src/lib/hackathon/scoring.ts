@@ -19,7 +19,7 @@ export interface TeamScoreSummary {
   avgJudgeScore: number; // 0 - 100
   criteriaBreakdown: Record<string, { name: string; marksAwarded: number; maxMarks: number }>;
   votesCount?: number;
-  voteScore?: number; // 0 - 100 (scaled to vote weight component)
+  voteScore?: number; // 0 - 100 (share of all counted votes)
   finalScore: number; // 0 - 100
   rank: number;
   isTie: boolean;
@@ -35,9 +35,20 @@ export function roundToPrecision(val: number, decimals = HACKATHON_CONSTANTS.DEC
   return Math.round((val + Number.EPSILON) * factor) / factor;
 }
 
+/** A valid admin-set split: whole percent 0-100. */
+export function isValidJudgeWeight(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100;
+}
+
+/** Judges' share (percent) of a final round's score; audience votes get the rest. */
+export function judgeSharePct(round: { judgeWeight?: number }): number {
+  return isValidJudgeWeight(round.judgeWeight) ? round.judgeWeight : HACKATHON_CONSTANTS.DEFAULT_JUDGE_WEIGHT_PCT;
+}
+
 /**
  * Filters teams eligible to compete in a specific tournament round.
  * Excludes disqualified teams and teams eliminated in previous rounds.
+ * For the final this is also the list of teams that can receive audience votes.
  */
 export function getCompetingTeamsForRound(
   teams: HackathonTeam[],
@@ -76,6 +87,11 @@ export function getCompetingTeamsForRound(
   });
 }
 
+/** Who may cast the single audience vote: eliminated teams that weren't disqualified. */
+export function canTeamVote(team: HackathonTeam): boolean {
+  return team.isEliminated && !team.disqualified;
+}
+
 /**
  * A round may go live (active/scoring) only when no other round of the event is live and every
  * earlier round is completed. Returns the reason it can't, or null.
@@ -103,12 +119,12 @@ export function computeStandings(
   cutoffRank: number | undefined = round.cutoffRank
 ): TeamScoreSummary[] {
   const competing = getCompetingTeamsForRound(teams, round, allRounds);
-  // Only votes from non-disqualified voters for eligible, non-disqualified finalists count, so a
-  // later disqualification can't skew everyone else's vote share.
-  const eligibleCandidates = new Set(competing.filter((t) => !t.disqualified).map((t) => t.id));
-  const disqualifiedVoters = new Set(teams.filter((t) => t.disqualified).map((t) => t.id));
+  // Only votes from eligible voters for eligible finalists count, so a later disqualification
+  // can't skew everyone else's vote share.
+  const eligibleCandidates = new Set(competing.map((t) => t.id));
+  const eligibleVoters = new Set(teams.filter(canTeamVote).map((t) => t.id));
   const countedVotes = votes.filter(
-    (v) => eligibleCandidates.has(v.candidateTeamId) && !disqualifiedVoters.has(v.voterTeamId)
+    (v) => eligibleCandidates.has(v.candidateTeamId) && eligibleVoters.has(v.voterTeamId)
   );
   return computeRoundLeaderboard(
     round.id,
@@ -118,7 +134,8 @@ export function computeStandings(
     countedVotes,
     criteria.filter((c) => c.roundId === round.id || !c.roundId),
     tiebreakers,
-    cutoffRank
+    cutoffRank,
+    judgeSharePct(round)
   );
 }
 
@@ -154,7 +171,7 @@ export function calculateJudgeNormalizedScore(
  * Calculates full leaderboard rankings for a specific round.
  * Handles:
  * - Qualifier/Semi-final judge averaging
- * - Final round 70/30 judge/audience vote split
+ * - Final round judge/audience split (judgeWeightPct% judges, the rest votes)
  * - Tie detection and manual tiebreaker adjustments
  * - Disqualifications
  */
@@ -166,16 +183,31 @@ export function computeRoundLeaderboard(
   votes: HackathonVote[],
   criteria: HackathonCriteria[],
   tiebreakers: HackathonTiebreaker[],
-  cutoffRank?: number
+  cutoffRank?: number,
+  judgeWeightPct: number = HACKATHON_CONSTANTS.DEFAULT_JUDGE_WEIGHT_PCT
 ): TeamScoreSummary[] {
-  const roundScores = scores.filter((s) => s.roundId === roundId);
-  const roundVotes = isFinalRound ? votes.filter((v) => v.roundId === roundId) : [];
-  const totalVotesCast = roundVotes.length;
-
-  // Criteria map
+  // Group once: O(teams + scores + votes) instead of re-filtering every list for every team.
+  const scoresByTeam = new Map<string, HackathonScore[]>();
+  for (const s of scores) {
+    if (s.roundId !== roundId) continue;
+    const list = scoresByTeam.get(s.teamId);
+    if (list) list.push(s);
+    else scoresByTeam.set(s.teamId, [s]);
+  }
+  const votesByTeam = new Map<string, number>();
+  let totalVotesCast = 0;
+  if (isFinalRound) {
+    for (const v of votes) {
+      if (v.roundId !== roundId) continue;
+      totalVotesCast++;
+      votesByTeam.set(v.candidateTeamId, (votesByTeam.get(v.candidateTeamId) || 0) + 1);
+    }
+  }
+  const tieByTeam = new Map(tiebreakers.filter((t) => t.roundId === roundId).map((t) => [t.teamId, t]));
   const critMap = new Map(criteria.map((c) => [c.id, c]));
+  const judgeShare = judgeWeightPct / 100;
+  const voteShare = (100 - judgeWeightPct) / 100;
 
-  // Aggregate by team
   const summaries: TeamScoreSummary[] = teams.map((team) => {
     // If disqualified, zero out score and pin to bottom
     if (team.disqualified) {
@@ -198,7 +230,7 @@ export function computeRoundLeaderboard(
       };
     }
 
-    const teamScores = roundScores.filter((s) => s.teamId === team.id);
+    const teamScores = scoresByTeam.get(team.id) || [];
     const judgeCount = teamScores.length;
 
     let avgJudgeScore = 0;
@@ -208,14 +240,11 @@ export function computeRoundLeaderboard(
       const sumNormalized = teamScores.reduce((acc, s) => acc + s.normalizedScore, 0);
       avgJudgeScore = roundToPrecision(sumNormalized / judgeCount);
 
-      // Aggregate criteria breakdowns
       for (const score of teamScores) {
         for (const [critId, marks] of Object.entries(score.criterionScores)) {
           const crit = critMap.get(critId);
-          const name = crit ? crit.name : "Unknown";
-          const max = crit ? crit.maxMarks : 10;
           if (!criteriaSums[critId]) {
-            criteriaSums[critId] = { name, marksAwarded: 0, maxMarks: max, count: 0 };
+            criteriaSums[critId] = { name: crit ? crit.name : "Unknown", marksAwarded: 0, maxMarks: crit ? crit.maxMarks : 10, count: 0 };
           }
           criteriaSums[critId].marksAwarded += marks;
           criteriaSums[critId].count += 1;
@@ -236,22 +265,13 @@ export function computeRoundLeaderboard(
     let votesCount = 0;
     let voteScore = 0;
 
-    // Apply 70/30 rule if final round (70% Judges, 30% Audience Votes)
     if (isFinalRound) {
-      const teamVotes = roundVotes.filter((v) => v.candidateTeamId === team.id);
-      votesCount = teamVotes.length;
-
-      // Vote score out of 100: percentage of total votes cast
+      votesCount = votesByTeam.get(team.id) || 0;
+      // Vote score out of 100: this team's share of all counted votes
       const votePercentage = totalVotesCast > 0 ? (votesCount / totalVotesCast) * 100 : 0;
       voteScore = roundToPrecision(votePercentage);
-
-      const judgeComponent = avgJudgeScore * HACKATHON_CONSTANTS.JUDGE_WEIGHT; // 70%
-      const voteComponent = votePercentage * HACKATHON_CONSTANTS.VOTE_WEIGHT; // 30%
-      finalScore = roundToPrecision(judgeComponent + voteComponent);
+      finalScore = roundToPrecision(avgJudgeScore * judgeShare + votePercentage * voteShare);
     }
-
-    // Check tiebreaker adjustment
-    const tiebreaker = tiebreakers.find((t) => t.roundId === roundId && t.teamId === team.id);
 
     return {
       teamId: team.id,
@@ -268,7 +288,7 @@ export function computeRoundLeaderboard(
       finalScore,
       rank: 1,
       isTie: false,
-      tiebreakerReason: tiebreaker?.reason,
+      tiebreakerReason: tieByTeam.get(team.id)?.reason,
     };
   });
 
@@ -299,7 +319,7 @@ export function computeRoundLeaderboard(
 
   // Apply manual tiebreaker adjustments
   for (const summary of summaries) {
-    const tie = tiebreakers.find((t) => t.roundId === roundId && t.teamId === summary.teamId);
+    const tie = tieByTeam.get(summary.teamId);
     if (tie && !summary.disqualified) {
       summary.rank = Math.max(1, summary.rank + tie.rankAdjustment);
     }
@@ -316,11 +336,7 @@ export function computeRoundLeaderboard(
   // Apply cutoff rank advancement if applicable
   if (cutoffRank && cutoffRank > 0) {
     for (const item of summaries) {
-      if (!item.disqualified && item.rank <= cutoffRank) {
-        item.advanced = true;
-      } else {
-        item.advanced = false;
-      }
+      item.advanced = !item.disqualified && item.rank <= cutoffRank;
     }
   }
 

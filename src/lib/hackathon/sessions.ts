@@ -2,7 +2,7 @@ import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { HACKATHON_CONSTANTS, HackathonJudge, HackathonTeam } from "./constants";
 import { getJwtSecret, verifyRoleToken } from "@/lib/auth";
-import { getActiveTeamSession, getHackathonJudgeById, getHackathonTeamById } from "./data";
+import { getCachedTeam, getHackathonJudgeById, isTeamSessionActive } from "./data";
 
 export interface JudgeSessionPayload {
   judgeId: string;
@@ -90,12 +90,11 @@ export async function getVerifiedParticipant(): Promise<VerifiedParticipant> {
   const session = await getParticipantSession();
   if (!session) return { status: "anonymous" };
 
-  const team = await getHackathonTeamById(session.teamId);
+  const team = await getCachedTeam(session.teamId);
   if (!team) return { status: "missing" };
 
-  if (!team.allowMultipleLogins) {
-    const active = await getActiveTeamSession(team.id);
-    if (!active || active.sessionId !== session.sessionId) return { status: "revoked" };
+  if (!team.allowMultipleLogins && !(await isTeamSessionActive(team.id, session.sessionId))) {
+    return { status: "revoked" };
   }
   return { status: "ok", session, team };
 }

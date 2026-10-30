@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import {
+  getHackathonScore,
+  getHackathonRoundById,
   getHackathonScores,
   getHackathonJudges,
   getHackathonTeams,
@@ -13,6 +16,8 @@ import { getAdminEmailFromRequest } from "@/lib/audit-logger";
 import { HackathonScore } from "@/lib/hackathon/constants";
 
 export async function GET(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId") || undefined;
   const roundId = searchParams.get("roundId") || undefined;
@@ -35,13 +40,27 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const adminEmail = await getAdminEmailFromRequest(request);
     const body = await request.json();
-    const { eventId, roundId, judgeId, teamId, criterionScores, feedback, reason } = body;
+    const { eventId, roundId, teamId, criterionScores, feedback, reason } = body;
 
-    if (!eventId || !roundId || !judgeId || !teamId || !criterionScores || typeof criterionScores !== "object") {
+    if (!eventId || !roundId || !teamId || !criterionScores || typeof criterionScores !== "object") {
       return NextResponse.json({ error: "Missing required score fields." }, { status: 400 });
+    }
+
+    // An override corrects an existing evaluation; it never invents one or rewrites a decided round.
+    const [existing, round] = await Promise.all([getHackathonScore(roundId, teamId), getHackathonRoundById(roundId)]);
+    if (!existing || !round || round.eventId !== eventId) {
+      return NextResponse.json({ error: "No submitted score to override for this team and round." }, { status: 404 });
+    }
+    if (round.status === "completed") {
+      return NextResponse.json(
+        { error: "This round is completed and its advancement is decided; scores can no longer be overridden." },
+        { status: 409 }
+      );
     }
 
     const allCriteria = await getHackathonCriteria(eventId, roundId);
@@ -56,7 +75,7 @@ export async function POST(request: Request) {
       id: `score-${roundId}-${teamId}`,
       eventId,
       roundId,
-      judgeId,
+      judgeId: existing.judgeId,
       teamId,
       criterionScores: parsed.scores,
       totalMarksAwarded: totalAwarded,
@@ -80,7 +99,8 @@ export async function POST(request: Request) {
       details: {
         teamId,
         roundId,
-        judgeId,
+        judgeId: existing.judgeId,
+        previousScore: existing.normalizedScore,
         normalizedScore: normalized,
         reason: typeof reason === "string" && reason.trim() ? reason.trim().slice(0, 300) : "Admin correction",
       },

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientIp, requireAdmin } from "@/lib/auth";
 import {
   getRecruitmentEntries,
   updateRecruitmentStatus,
@@ -8,11 +9,15 @@ import {
 import { logAdminAction, getAdminEmailFromRequest } from "@/lib/audit-logger";
 
 export async function GET() {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   const entries = await getRecruitmentEntries();
   return NextResponse.json(entries);
 }
 
 export async function PUT(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const { id, status } = await request.json();
     if (!id || !status) {
@@ -28,7 +33,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Application not found" }, { status: 404 });
     }
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,
@@ -46,6 +51,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const gate = await requireAdmin();
+  if (gate instanceof NextResponse) return gate;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -56,7 +63,7 @@ export async function DELETE(request: Request) {
 
     const target = await deleteRecruitmentEntry(id);
 
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = clientIp(request);
     const adminEmail = await getAdminEmailFromRequest(request);
     await logAdminAction({
       adminEmail,
