@@ -58,8 +58,6 @@ export default async function RootLayout({
     <html lang="en" className="h-full scroll-smooth">
       <head>
         <link rel="preload" href="/images/architectural-bg.jpg" as="image" />
-        <link rel="preload" href="/fonts/helveticanowdisplay-medium.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/helvetica-now-display-regular.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
       </head>
       <body
         id="i6mb"

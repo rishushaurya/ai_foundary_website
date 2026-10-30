@@ -13,22 +13,6 @@
   font-family: 'Inter', -apple-system, sans-serif;
 }
 
-@font-face {
-  font-family: "68832fb0ffba9b1995adac75-helveticanowdisplay-medium";
-  src: url("/fonts/helveticanowdisplay-medium.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "68832fb0ffba9b1995adac75-helvetica-now-display-regular";
-  src: url("/fonts/helvetica-now-display-regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 @layer base {
   html {
     scroll-behavior: smooth;
